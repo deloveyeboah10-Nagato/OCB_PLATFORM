@@ -14,32 +14,32 @@ OCB Platform v1.0.0 is a SQL-first implementation focused on financial event mod
 
 ### Included
 
-- Simulated financial institutions and transaction domains
-- Transaction and financial-event modelling
-- Financial state and balance derivation
-- Reconciliation and integrity controls
-- Bronze, Silver, and Gold data layers
-- Dimensional and analytical modelling
-- Historical analytical snapshots
-- SQL-based financial intelligence and risk analysis
-- Auditability, provenance, and explainability
-- Controlled synthetic data and validation
+- Simulated financial institutions and transaction domains.
+- Transaction and financial-event modelling.
+- Financial state and balance derivation.
+- Reconciliation and integrity controls.
+- Bronze, Silver, and Gold data layers.
+- Dimensional and analytical modelling.
+- Historical analytical snapshots.
+- SQL-based financial intelligence and risk analysis.
+- Auditability, provenance, and explainability.
+- Controlled synthetic data and validation.
 
 ### Outside v1.0.0
 
 The following capabilities are deliberately deferred and are not required for v1.0.0:
 
-- Production event streaming
-- Real-time fraud alerting
-- External payment rails
-- Production APIs
-- Microservices
-- Cloud deployment
-- Apache Kafka
-- Apache Spark
-- Machine learning and AI-driven risk models
-- Containers and Kubernetes
-- Mobile applications
+- Production event streaming.
+- Real-time fraud alerting.
+- External payment rails.
+- Production APIs.
+- Microservices.
+- Cloud deployment.
+- Apache Kafka.
+- Apache Spark.
+- Machine learning and AI-driven risk models.
+- Containers and Kubernetes.
+- Mobile applications.
 
 These boundaries may only change through the project's formal change-control process.
 
@@ -77,15 +77,15 @@ Regulatory Intelligence
 
 OCB Platform v1.0.0 uses the following tools and technologies:
 
-- **Microsoft SQL Server** — primary database and financial intelligence engine
-- **SQL Server Management Studio (SSMS)** — database administration and development
-- **Visual Studio Code** — source-code and documentation environment
-- **Git** — version control
-- **GitHub** — source repository and project history
-- **Markdown** — project documentation
-- **Mermaid** — lightweight architecture and process diagrams
-- **Draw.io** — detailed architecture and engineering diagrams
-- **Excel** — controlled data preparation and supporting analytical artefacts
+- **Microsoft SQL Server** — primary database and financial intelligence engine.
+- **SQL Server Management Studio (SSMS)** — database administration and development.
+- **Visual Studio Code** — source-code and documentation environment.
+- **Git** — version control.
+- **GitHub** — source repository and project history.
+- **Markdown** — project documentation.
+- **Mermaid** — lightweight architecture and process diagrams.
+- **Draw.io** — detailed architecture and engineering diagrams.
+- **Excel** — controlled data preparation and supporting analytical artefacts.
 
 The v1.0.0 implementation is intentionally SQL-first. Additional technologies may be evaluated in future versions but are not part of the current implementation boundary.
 
