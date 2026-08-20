@@ -1,0 +1,73 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="-LpaJRl1vfbh18d5gAId">
+    <mxGraphModel dx="2203" dy="2173" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-14" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-18" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-30" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;fontSize=27;" value="CUSTOMER (CROSS DOMAIN ACTOR)" vertex="1">
+          <mxGeometry height="130" width="520" x="125" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-15" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fa6800;fontColor=#000000;strokeColor=#C73500;gradientColor=light-dark(#000000,#994C00);fontSize=25;" value="ANANSE TELECOM" vertex="1">
+          <mxGeometry height="130" width="290" x="-80" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-20" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e3c800;fontColor=#000000;strokeColor=#B09500;gradientColor=light-dark(#D4AF37,#FFD966);fontSize=25;" value="SIKA CREDIT" vertex="1">
+          <mxGeometry height="130" width="290" x="240" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-19" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;fontSize=25;" value="OMAN REMIT" vertex="1">
+          <mxGeometry height="130" width="290" x="560" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-22" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;" value="WALLET DOMAIN" vertex="1">
+          <mxGeometry height="50" width="290" x="-80" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-24" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;" value="LOAN DOMAIN" vertex="1">
+          <mxGeometry height="50" width="290" x="240" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-26" edge="1" parent="1" source="FQz9XGdhc2SfXqQXBIKk-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="FQz9XGdhc2SfXqQXBIKk-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;" value="REMITTANCE DOMAIN" vertex="1">
+          <mxGeometry height="50" width="290" x="560" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;" value="WALLET POSITION" vertex="1">
+          <mxGeometry height="50" width="290" x="-80" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-23" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;" value="LOAN POSITION" vertex="1">
+          <mxGeometry height="50" width="290" x="240" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-25" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;" value="BENEFICIARY POSITION" vertex="1">
+          <mxGeometry height="50" width="290" x="560" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-28" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontSize=18;fillColor=#eeeeee;strokeColor=#36393d;" value="&lt;br&gt;NOTE:&lt;div&gt;Institutions remain operationally independent. Cross-institutional relationships are observed through the customer&#39;s financial journey and do not imply shared accounts, databases, ledgers, or infrastructure.&lt;br&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="170" width="930" x="-80" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="FQz9XGdhc2SfXqQXBIKk-31" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=30;fillColor=light-dark(#000000,#333333);" value="INSTITUTIONAL RELATIONSHIPS" vertex="1">
+          <mxGeometry height="60" width="930" x="-80" y="-100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

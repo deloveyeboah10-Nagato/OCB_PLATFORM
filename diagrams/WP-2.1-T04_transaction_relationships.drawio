@@ -1,0 +1,40 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="euxJa2bjd_yxlQPGw3-5">
+    <mxGraphModel dx="1773" dy="690" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-10" edge="1" parent="1" source="7DyQlIc1vSGNTmnbTjUJ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="7DyQlIc1vSGNTmnbTjUJ-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-11" edge="1" parent="1" source="7DyQlIc1vSGNTmnbTjUJ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="7DyQlIc1vSGNTmnbTjUJ-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fillColor=#fa6800;fontColor=#000000;strokeColor=#C73500;gradientColor=light-dark(#000000,#994C00);" value="ANANSE TELECOM" vertex="1">
+          <mxGeometry height="60" width="320" x="160" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;gradientColor=none;fillColor=light-dark(#FFFFFF,#FFD700);" value="WALLET" vertex="1">
+          <mxGeometry height="50" width="250" x="-10" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fillColor=#f8cecc;strokeColor=#b85450;gradientColor=#ea6b66;" value="TRANSACTION" vertex="1">
+          <mxGeometry height="50" width="250" x="390" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-14" edge="1" parent="1" source="7DyQlIc1vSGNTmnbTjUJ-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;startFill=0;endArrow=none;endFill=0;" target="7DyQlIc1vSGNTmnbTjUJ-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;" value="CUSTOMER" vertex="1">
+          <mxGeometry height="60" width="310" x="160" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-13" edge="1" parent="1" source="7DyQlIc1vSGNTmnbTjUJ-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.48;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;" target="7DyQlIc1vSGNTmnbTjUJ-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=22;" value="TRANSACTION RELATIONSHIPS" vertex="1">
+          <mxGeometry height="50" width="710" x="-40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="7DyQlIc1vSGNTmnbTjUJ-16" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontSize=16;" value="NOTE:&lt;div&gt;Ananse Telecom owns the wallet and transaction domains. Transactions record observable financial activity involving the Ananse wallet/customer domain.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="710" x="-40" y="560" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
