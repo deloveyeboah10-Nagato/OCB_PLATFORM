@@ -155,7 +155,6 @@ The relevant outcome categories currently include:
 
 * Successful;
 * Failed;
-* Rejected.
 
 For example:
 
@@ -354,10 +353,3 @@ Detailed state semantics and transition rules are deferred to **WP-1.4-T02**.
 ## Core Principle
 
 > **OCB distinguishes what financial position exists, what happened to an event, what condition a financial relationship is in, and what an analytical rule concludes about that information.**
-
-```
-
-I think this is substantially stronger than the previous version because **"state" is now a controlled term rather than a bucket we keep throwing things into**.
-
-Once this is saved, **WP-1.4-T01 is complete** and T02 can focus specifically on the semantics and transitions of the three financial-position states.
-```

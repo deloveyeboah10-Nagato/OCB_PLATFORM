@@ -546,8 +546,3 @@ Changes that materially affect financial truth, event semantics, ledger behaviou
 ## Core Principle
 
 > **A financial event establishes what occurred; its successful financial consequence determines what changes; financial state records what is subsequently true.**
-
-```
-
-This is much closer to the appropriate size for **T03**. It records the relationships we have actually agreed without prematurely building WP-1.4's full state machine.
-```

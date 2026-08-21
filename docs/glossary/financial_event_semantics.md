@@ -728,8 +728,3 @@ Any material change to these semantics must be reflected in the Financial Event 
 ## Core Principle
 
 > **Define what the financial event means before defining how the system stores it.**
-
-```
-
-**This is the version I would actually commit as T02.** It is deliberately leaner than my previous response, follows the T02 fields, and leaves implementation decisions for the later database/ledger work.
-```
