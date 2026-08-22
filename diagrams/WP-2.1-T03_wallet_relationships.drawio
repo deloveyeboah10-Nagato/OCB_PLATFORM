@@ -1,42 +1,132 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="xGg5CKCdAtbF7QIaUHkr">
-    <mxGraphModel dx="1992" dy="2018" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1773" dy="690" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-4" edge="1" parent="1" source="2KdgrepM_Rxseeg8R8sd-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="2KdgrepM_Rxseeg8R8sd-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fontSize=24;fillColor=#dae8fc;strokeColor=#6c8ebf;gradientColor=#7ea6e0;" value="CUSTOMER" vertex="1">
-          <mxGeometry height="110" width="290" x="180" y="80" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-5" edge="1" parent="1" source="2KdgrepM_Rxseeg8R8sd-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="2KdgrepM_Rxseeg8R8sd-3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fontSize=24;fillColor=light-dark(#E3C800,#FFD700);fontColor=#000000;strokeColor=#B09500;" value="WALLET" vertex="1">
-          <mxGeometry height="110" width="290" x="180" y="280" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fontSize=24;fillColor=#fa6800;fontColor=#000000;strokeColor=#C73500;gradientColor=light-dark(#000000,#994C00);" value="ANANSE TELECOM" vertex="1">
-          <mxGeometry height="110" width="290" x="180" y="480" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;" value="associated with" vertex="1">
-          <mxGeometry height="40" width="210" x="340" y="215" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;" value="owned by" vertex="1">
-          <mxGeometry height="40" width="210" x="340" y="420" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;" value="Customer → Wallet&lt;div&gt;The customer is the party associated with the wallet.&lt;/div&gt;" vertex="1">
-          <mxGeometry height="75" width="320" x="-160" y="205" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;" value="Wallet → Ananse Telecom&lt;div&gt;Ananse Telecom owns and operates the wallet domain.&lt;/div&gt;" vertex="1">
-          <mxGeometry height="75" width="320" x="-160" y="405" as="geometry" />
-        </mxCell>
-        <mxCell id="2KdgrepM_Rxseeg8R8sd-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=18;" value="&lt;div&gt;WALLET RELATIONSHIPS&lt;/div&gt;" vertex="1">
-          <mxGeometry height="75" width="760" x="-160" y="-80" as="geometry" />
-        </mxCell>
-        <mxCell id="nWifAkECQ0CMQSF3KAoQ-1" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" value="&lt;div style=&quot;font-size: 18px;&quot;&gt;NOTE:&lt;/div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;The wallet is a distinct financial object from the customer. Cardinality is deferred to WP-2.2.&lt;/span&gt;" vertex="1">
-          <mxGeometry height="110" width="760" x="-160" y="645" as="geometry" />
-        </mxCell>
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;flowchart TB\n\n    ANANSE[\&quot;ANANSE TELECOM\&quot;]\n    WALLET[\&quot;ANANSE WALLET\&quot;]\n    TRANSACTION[\&quot;ANANSE TRANSACTION\&quot;]\n\n    CUSTOMER[\&quot;CUSTOMER\&quot;]\n\n    SIKA[\&quot;SIKACREDIT\&quot;]\n    SIKA_ACTIVITY[\&quot;LOAN / REPAYMENT\&quot;]\n\n    OMAN[\&quot;OMAN REMIT\&quot;]\n    REMIT[\&quot;REMITTANCE\&quot;]\n\n    FINANCIAL_CONSEQUENCE[\&quot;FINANCIAL CONSEQUENCE\&quot;]\n\n    ANANSE --&gt;|\&quot;owns and operates\&quot;| WALLET\n\n    CUSTOMER --&gt;|\&quot;participates in\&quot;| TRANSACTION\n    WALLET --&gt;|\&quot;used in\&quot;| TRANSACTION\n\n    SIKA --&gt; SIKA_ACTIVITY\n    OMAN --&gt; REMIT\n\n    SIKA_ACTIVITY --&gt;|\&quot;may produce\&quot;| FINANCIAL_CONSEQUENCE\n    REMIT --&gt;|\&quot;may produce\&quot;| FINANCIAL_CONSEQUENCE\n\n    FINANCIAL_CONSEQUENCE --&gt;|\&quot;may affect\&quot;| WALLET\n\n    NOTE[\&quot;WALLET RELATIONSHIP PRINCIPLE&lt;br/&gt;&lt;br/&gt;The wallet is a distinct financial object owned and operated by Ananse Telecom.&lt;br/&gt;Ananse transactions directly involve the wallet.&lt;br/&gt;SikaCredit and Oman Remit activities may produce financial consequences affecting the wallet.&lt;br/&gt;These cross-institutional relationships are conceptual and are not represented as direct&lt;br/&gt;SikaCredit → Wallet or Oman Remit → Wallet relational links.\&quot;]&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="7s2v3GDVgfhfRH16O8kl-10">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
+            <mxGeometry as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="ANANSE TELECOM" mermaidId="n:ANANSE" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="ANANSE TELECOM" id="7s2v3GDVgfhfRH16O8kl-11">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="186" x="79" y="382" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="ANANSE WALLET" mermaidId="n:WALLET" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="ANANSE WALLET" id="7s2v3GDVgfhfRH16O8kl-12">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="176" x="216" y="505" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="ANANSE TRANSACTION" mermaidId="n:TRANSACTION" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="ANANSE TRANSACTION" id="7s2v3GDVgfhfRH16O8kl-13">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="220" x="91" y="628" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="CUSTOMER" mermaidId="n:CUSTOMER" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="CUSTOMER" id="7s2v3GDVgfhfRH16O8kl-14">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="136" x="30" y="505" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="SIKACREDIT" mermaidId="n:SIKA" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="SIKACREDIT" id="7s2v3GDVgfhfRH16O8kl-15">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="142" x="254" y="98" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="LOAN / REPAYMENT" mermaidId="n:SIKA_ACTIVITY" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="LOAN / REPAYMENT" id="7s2v3GDVgfhfRH16O8kl-16">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="198" x="226" y="259" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="OMAN REMIT" mermaidId="n:OMAN" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="OMAN REMIT" id="7s2v3GDVgfhfRH16O8kl-17">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="150" x="473" y="98" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="REMITTANCE" mermaidId="n:REMIT" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="REMITTANCE" id="7s2v3GDVgfhfRH16O8kl-18">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="149" x="474" y="259" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FINANCIAL CONSEQUENCE" mermaidId="n:FINANCIAL_CONSEQUENCE" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FINANCIAL CONSEQUENCE" id="7s2v3GDVgfhfRH16O8kl-19">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="243" x="315" y="382" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="WALLET RELATIONSHIP PRINCIPLE&#xa;&#xa;The wallet is a distinct financial object owned and operated by Ananse Telecom.&#xa;Ananse transactions directly involve the wallet.&#xa;SikaCredit and Oman Remit activities may produce financial consequences affecting the wallet.&#xa;These cross-institutional relationships are conceptual and are not represented as direct&#xa;SikaCredit → Wallet or Oman Remit → Wallet relational links." mermaidId="n:NOTE" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="WALLET RELATIONSHIP PRINCIPLE&#xa;&#xa;The wallet is a distinct financial object owned and operated by Ananse Telecom.&#xa;Ananse transactions directly involve the wallet.&#xa;SikaCredit and Oman Remit activities may produce financial consequences affecting the wallet.&#xa;These cross-institutional relationships are conceptual and are not represented as direct&#xa;SikaCredit → Wallet or Oman Remit → Wallet relational links." id="7s2v3GDVgfhfRH16O8kl-20">
+          <mxCell parent="7s2v3GDVgfhfRH16O8kl-10" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="169" width="748" x="-30" y="751" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="owns and operates" mermaidId="e:ANANSE-&gt;WALLET#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.17;entryY=0;" mermaidBaseValue="owns and operates" id="7s2v3GDVgfhfRH16O8kl-21">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-11" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.17;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-12">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="172" y="471" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="participates in" mermaidId="e:CUSTOMER-&gt;TRANSACTION#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.3;entryY=0;" mermaidBaseValue="participates in" id="7s2v3GDVgfhfRH16O8kl-22">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-14" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.3;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-13">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="98" y="594" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="used in" mermaidId="e:WALLET-&gt;TRANSACTION#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.7;entryY=0;" mermaidBaseValue="used in" id="7s2v3GDVgfhfRH16O8kl-23">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-12" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.7;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-13">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="304" y="594" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:SIKA-&gt;SIKA_ACTIVITY#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="7s2v3GDVgfhfRH16O8kl-24">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-15" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-16">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:OMAN-&gt;REMIT#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="7s2v3GDVgfhfRH16O8kl-25">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-17" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-18">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="may produce" mermaidId="e:SIKA_ACTIVITY-&gt;FINANCIAL_CONSEQUENCE#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.3;entryY=0;" mermaidBaseValue="may produce" id="7s2v3GDVgfhfRH16O8kl-26">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-16" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.3;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-19">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="325" y="348" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="may produce" mermaidId="e:REMIT-&gt;FINANCIAL_CONSEQUENCE#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.7;entryY=0;" mermaidBaseValue="may produce" id="7s2v3GDVgfhfRH16O8kl-27">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-18" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.7;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-19">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="548" y="348" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="may affect" mermaidId="e:FINANCIAL_CONSEQUENCE-&gt;WALLET#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.83;entryY=0;" mermaidBaseValue="may affect" id="7s2v3GDVgfhfRH16O8kl-28">
+          <mxCell edge="1" parent="7s2v3GDVgfhfRH16O8kl-10" source="7s2v3GDVgfhfRH16O8kl-19" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.83;entryY=0;rounded=0;" target="7s2v3GDVgfhfRH16O8kl-12">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="436" y="471" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
       </root>
     </mxGraphModel>
   </diagram>
