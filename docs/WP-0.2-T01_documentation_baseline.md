@@ -15,6 +15,7 @@ The repository must distinguish between established project baselines, living im
 | Implementation & Engineering Specification | `docs/governance/implementation_engineering_specification.md` | Locked Baseline | Defines how OCB is engineered |
 | Technical Build Guide | `docs/governance/technical_build_guide.md` | Baseline | Defines the construction sequence |
 | Work Breakdown Structure | `docs/execution/wbs.md` | Execution Baseline | Defines the executable engineering work |
+| Execution Backlogs | `docs/execution/wbs.md` | Work Packages (WPS) | Defines each ticket for each work programme |
 
 ## Supporting Documentation
 
