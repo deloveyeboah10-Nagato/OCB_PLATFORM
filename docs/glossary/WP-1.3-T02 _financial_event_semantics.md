@@ -1,69 +1,170 @@
+**Programme:** OCB Platform v1.0.0
+
+**Work Package:** WP-1.3 — Financial Event Model
+
+**Ticket:** WP-1.3-T02
+
+**Status:** **REVISED / LOCKED**
+
+**Decision Type:** Financial-event business semantics
+
+---
+
 # OCB Financial Event Semantics
 
 ## Purpose
 
-This document defines the business semantics of the authoritative financial events identified in the OCB Financial Event Catalogue.
+This document defines the business semantics of the authoritative financial events established in **WP-1.3-T01 — OCB Financial Event Catalogue**.
 
-It defines, for each event:
+It defines, for each authoritative event:
 
-- purpose / business meaning;
-- actor;
-- source;
-- destination;
-- value;
-- timestamp;
-- lifecycle;
-- financial consequence;
-- institution;
-- state consequences;
-- downstream intelligence significance;
-- observation boundary.
+* business meaning;
+* originating institution;
+* participating actor or role;
+* source;
+* destination;
+* value;
+* event timestamp;
+* event outcome;
+* financial consequence;
+* financial-state consequence;
+* downstream intelligence significance;
+* OCB observation boundary.
 
-This document defines business semantics. It does not define physical database structures or implementation details.
+This document defines **business semantics**.
 
----
+It does not define:
 
-## 1. Relationship to Financial Event Catalogue
+* physical database structures;
+* relational implementation;
+* ledger table structures;
+* SQL processing;
+* ETL procedures;
+* analytical calculations.
 
-The Financial Event Catalogue establishes which events are recognised by OCB Platform v1.0.0.
+## The semantics are reconciled with the institutional relationships established in **WP-2.1** and the logical relational model established in **WP-2.2**, and with the financial-state model established in **WP-1.4**.
 
-This document establishes what those events mean.
+# 1. Relationship to the Financial Event Catalogue
 
-The distinction is:
+The Financial Event Catalogue establishes **which financial events OCB recognises**.
+
+This ticket establishes **what those events mean**.
 
 ```text
-Financial Event Catalogue
-        ↓
-What events does OCB recognise?
-        ↓
-Financial Event Semantics
-        ↓
-What does each event mean?
-````
+FINANCIAL EVENT CATALOGUE
+            ↓
+     WHAT IS RECOGNISED?
+            ↓
+FINANCIAL EVENT SEMANTICS
+            ↓
+      WHAT DOES IT MEAN?
+            ↓
+   FINANCIAL CONSEQUENCE
+            ↓
+      FINANCIAL STATE
+```
 
-Any change to the approved event inventory must be reflected in the Financial Event Catalogue and, where materially architectural, handled through the appropriate ADR process.
+The distinction must remain explicit:
+
+```text
+FINANCIAL EVENT
+      ↓
+What occurred?
+
+EVENT OUTCOME
+      ↓
+What happened to the event?
+
+FINANCIAL CONSEQUENCE
+      ↓
+What financial effect occurred?
+
+FINANCIAL STATE
+      ↓
+What is subsequently true?
+
+ANALYTICAL INTERPRETATION
+      ↓
+What can OCB infer?
+```
+
+A financial event remains an event even where its outcome produces no valid financial consequence.
 
 ---
 
-# 2. Ananse Telecom Events
+# 2. Institutional Ownership and OCB Observation
 
-## 2.1 Cash-in
+The authoritative financial event belongs to the institutional domain that owns the underlying financial activity or object.
 
-### Purpose / Business Meaning
+The institutional model remains:
 
-A Cash-in is an Ananse Telecom financial event that increases the customer's wallet balance.
+```text
+ANANSE TELECOM
+    ├── Customer
+    ├── Wallet
+    └── Transaction
+
+SIKACREDIT
+    ├── Customer
+    ├── Loan
+    └── Repayment
+
+OMAN REMIT
+    ├── Customer
+    └── Remittance
+```
+
+These institutional objects remain separate in the logical model. WP-2.2 explicitly avoids merging institutional activities merely because they may produce related financial consequences.
+
+OCB's role is:
+
+```text
+INSTITUTIONAL FINANCIAL OBJECT / ACTIVITY
+                    ↓
+              OCB OBSERVES
+                    ↓
+            IDENTITY RESOLUTION
+                    ↓
+     FINANCIAL CONSEQUENCE REPRESENTATION
+                    ↓
+       OCB FINANCIAL / ANALYTICAL MODEL
+```
+
+This does **not** transfer ownership of the underlying institutional object to OCB.
+
+The governing principle is:
+
+> **Institutional financial objects remain institution-owned → OCB observes/resolves them → their financial consequences can be represented in OCB's financial and analytical model.**
+
+---
+
+# 3. Ananse Telecom Events
+
+## 3.1 Cash-in
+
+### Business Meaning
+
+A **Cash-in** is an Ananse Telecom financial event in which monetary value is credited to an Ananse wallet.
+
+### Institution
+
+**Ananse Telecom**
 
 ### Actor
 
 Customer.
 
+The precise operational mechanism by which cash is introduced into the mobile-money ecosystem is outside the OCB observation boundary.
+
 ### Source
 
-Ananse Telecom.
+The source of the financial value is represented at the event/consequence level required by OCB.
+
+OCB does not model the complete external cash or agent-float architecture.
 
 ### Destination
 
-Customer wallet.
+Ananse customer wallet.
 
 ### Value
 
@@ -73,71 +174,72 @@ The monetary amount credited to the wallet.
 
 The authoritative event timestamp supplied by Ananse Telecom.
 
-Event time is distinct from ingestion and processing timestamps.
+Event timestamp is distinct from ingestion, processing, and observation timestamps.
 
-### Lifecycle
+### Outcome
 
-```text
-Cash-in
-   ↓
-Outcome
-   ├── Successful
-   └── Failed
-```
+The event may have a successful or unsuccessful outcome according to the approved event/lifecycle semantics.
 
-A successful Cash-in produces a financial consequence. A failed Cash-in produces no wallet consequence.
+A non-successful event produces no valid wallet financial consequence.
 
 ### Financial Consequence
 
 Successful:
 
 ```text
-Customer Wallet
+ANANSE WALLET
       +
     Amount
 ```
 
-Failed:
+Non-successful:
 
 ```text
-Customer Wallet
+ANANSE WALLET
       =
-    Unchanged
+   Unchanged
 ```
 
-### Institution
+### State Consequence
 
-Ananse Telecom.
+A successful Cash-in increases the relevant Ananse wallet balance.
 
-### State Consequences
-
-A successful Cash-in increases the customer's wallet balance.
-
-A failed Cash-in does not change the wallet balance.
+A failed or rejected Cash-in does not change the wallet balance.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Cash-in activity supports analysis of:
 
 * wallet inflows;
 * transaction velocity;
-* cash-in concentration;
+* funding patterns;
+* concentration;
 * customer behaviour;
-* liquidity activity.
+* liquidity-related activity.
 
 ### Observation Boundary
 
-OCB observes the customer's wallet-level financial consequence.
+OCB observes the Ananse financial activity and its wallet-level financial consequence.
 
-Agent float, cash position, internal settlement, and other Ananse Telecom operational mechanisms are outside the OCB financial-event model.
+OCB does not reproduce:
+
+* agent float;
+* physical cash position;
+* internal cash management;
+* internal settlement mechanisms;
+* other unobserved Ananse operational architecture.
 
 ---
 
-## 2.2 Cash-out
+# 4. Cash-out
 
-### Purpose / Business Meaning
+## 4.1 Business Meaning
 
-A Cash-out is an Ananse Telecom financial event that decreases the customer's wallet balance as value is withdrawn from the wallet.
+A **Cash-out** is an Ananse Telecom financial event in which monetary value is debited from an Ananse wallet as value is withdrawn.
+
+### Institution
+
+**Ananse Telecom**
 
 ### Actor
 
@@ -145,81 +247,95 @@ Customer.
 
 ### Source
 
-Customer wallet / Ananse Telecom.
+Ananse customer wallet.
 
 ### Destination
 
-Customer.
+Customer / external value recipient as represented within the event.
+
+The detailed external cash-distribution mechanism is outside the OCB observation boundary.
 
 ### Value
 
-The monetary amount deducted from the wallet.
+The amount deducted from the wallet.
 
 ### Timestamp
 
-The authoritative event timestamp supplied by Ananse Telecom.
+The authoritative Ananse event timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-Cash-out
-   ↓
-Outcome
-   ├── Successful
-   └── Failed
-```
+The event may be successful or unsuccessful.
+
+A non-successful event produces no valid wallet debit.
 
 ### Financial Consequence
 
 Successful:
 
 ```text
-Customer Wallet
+ANANSE WALLET
       -
     Amount
 ```
 
-Failed:
+Non-successful:
 
 ```text
-Customer Wallet
+ANANSE WALLET
       =
-    Unchanged
+   Unchanged
 ```
 
-### Institution
+### State Consequence
 
-Ananse Telecom.
+A successful Cash-out decreases the Ananse wallet balance.
 
-### State Consequences
+A failed or rejected Cash-out produces no wallet-state transition.
 
-A successful Cash-out decreases the customer's wallet balance.
+### Integrity
 
-A failed Cash-out does not change the wallet balance.
+A successful debit must be supported by sufficient available wallet value.
+
+Conceptually:
+
+```text
+Available Wallet Balance
+          ≥
+      Proposed Debit
+```
+
+If the applicable validation conditions are not satisfied, the event does not produce a valid financial consequence.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Cash-out activity supports analysis of:
 
-* wallet outflows;
 * withdrawal velocity;
-* cash-out concentration;
+* wallet outflows;
+* concentration;
 * behavioural patterns;
-* balance validation.
+* balance integrity.
 
 ### Observation Boundary
 
 OCB observes the customer-side financial consequence.
 
-Agent float, agent cash position, and internal agent settlement mechanisms are outside the OCB financial-event model.
+Agent float, agent cash position, and internal settlement mechanisms remain outside the OCB event model.
 
 ---
 
-## 2.3 P2P Transfer
+# 5. P2P Transfer
 
-### Purpose / Business Meaning
+## 5.1 Business Meaning
 
-A P2P Transfer is an Ananse Telecom financial event in which value is transferred between two customer wallets.
+A **P2P Transfer** is an Ananse Telecom financial event in which value is transferred between two customer wallets.
+
+WP-2.1 establishes P2P Transfer as **one authoritative business event** with sender and receiver legs representing its financial consequences.
+
+### Institution
+
+**Ananse Telecom**
 
 ### Actor
 
@@ -227,62 +343,81 @@ Sending customer.
 
 ### Source
 
-Sender's wallet.
+Sender's Ananse wallet.
 
 ### Destination
 
-Receiver's wallet.
+Receiver's Ananse wallet.
 
 ### Value
 
-The amount transferred between the wallets.
+The amount transferred.
 
 ### Timestamp
 
-The authoritative event timestamp supplied by Ananse Telecom.
+The authoritative Ananse transaction/event timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-P2P Transfer
-      ↓
-Outcome
-   ├── Successful
-   └── Failed
-```
+The transfer may be successful or unsuccessful.
 
 ### Financial Consequence
 
 A successful P2P Transfer produces two financial legs:
 
 ```text
-Sender Wallet
-      -
-    Amount
-
-Receiver Wallet
-      +
-    Amount
+                 P2P TRANSFER
+                       │
+              ┌────────┴────────┐
+              ↓                 ↓
+         SENDER LEG        RECEIVER LEG
+              ↓                 ↓
+            DEBIT             CREDIT
+              -                 +
+            Amount            Amount
 ```
 
-P2P Send and P2P Receive are financial legs of the same P2P Transfer, not separate financial events.
+Therefore:
 
-A failed P2P Transfer produces no wallet financial consequence.
+```text
+Sender Wallet
+      ↓
+Balance − Amount
 
-### Institution
+Receiver Wallet
+      ↓
+Balance + Amount
+```
 
-Ananse Telecom.
+The two legs belong to the same authoritative P2P Transfer.
 
-### State Consequences
+**P2P Send and P2P Receive are not independent financial events.**
+
+### Failed / Rejected Behaviour
+
+A non-successful P2P Transfer produces no valid financial consequence:
+
+```text
+P2P TRANSFER
+      ↓
+FAILED / REJECTED
+      ↓
+NO VALID CONSEQUENCE
+      ↓
+NO SENDER DEBIT
+NO RECEIVER CREDIT
+```
+
+### State Consequence
 
 Successful transfer:
 
 ```text
-Sender Wallet  = -Amount
-Receiver Wallet = +Amount
+Sender Wallet   = − Amount
+Receiver Wallet = + Amount
 ```
 
-Failed transfer:
+Non-successful transfer:
 
 ```text
 Both Wallets = Unchanged
@@ -290,31 +425,36 @@ Both Wallets = Unchanged
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+P2P activity supports analysis of:
 
 * inflows;
 * outflows;
-* velocity;
-* transaction concentration;
-* customer-to-customer activity;
+* transaction velocity;
+* concentration;
+* customer-to-customer relationships;
 * behavioural anomalies;
+* network-like transaction patterns;
 * reconciliation.
 
-Repeated failed P2P attempts may also provide behavioural evidence where captured.
+Repeated unsuccessful P2P attempts may remain analytically relevant even though they do not change financial state.
 
 ### Observation Boundary
 
-OCB observes the transfer and its customer-wallet consequences.
+OCB observes the P2P event and its customer-wallet financial consequences.
 
-OCB does not reproduce Ananse Telecom's internal transfer-processing architecture.
+OCB does not reproduce Ananse's internal transfer-processing architecture.
 
 ---
 
-## 2.4 Merchant Payment
+# 6. Merchant Payment
 
-### Purpose / Business Meaning
+## 6.1 Business Meaning
 
-A Merchant Payment is an Ananse Telecom financial event in which a customer pays a merchant using the customer's wallet.
+A **Merchant Payment** is an Ananse Telecom financial event in which a customer pays a merchant using an Ananse wallet.
+
+### Institution
+
+**Ananse Telecom**
 
 ### Actor
 
@@ -328,87 +468,91 @@ Customer wallet.
 
 Merchant reference.
 
+The merchant is an observable reference object, not an OCB financial account.
+
 ### Value
 
 The amount paid by the customer.
 
 ### Timestamp
 
-The authoritative event timestamp supplied by Ananse Telecom.
+The authoritative Ananse event timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-Merchant Payment
-      ↓
-Outcome
-   ├── Successful
-   └── Failed
-```
+The event may be successful or unsuccessful.
 
 ### Financial Consequence
 
 Successful:
 
 ```text
-Customer Wallet
+CUSTOMER WALLET
       -
     Amount
 ```
 
-The merchant is represented as an observable reference and not as an OCB financial account.
+The merchant-side financial account or settlement mechanism is not modelled.
 
-Failed:
+Non-successful:
 
 ```text
-Customer Wallet
+CUSTOMER WALLET
       =
-    Unchanged
+   Unchanged
 ```
 
-### Institution
-
-Ananse Telecom.
-
-### State Consequences
+### State Consequence
 
 A successful Merchant Payment decreases the customer's wallet balance.
 
-A failed Merchant Payment does not change the customer's wallet balance.
+A failed or rejected Merchant Payment produces no wallet-state transition.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Merchant Payment activity supports analysis of:
 
-* merchant transaction concentration;
 * customer spending behaviour;
+* merchant concentration;
+* payment velocity;
 * merchant activity;
-* suspicious merchant activity;
-* payment velocity.
+* unusual merchant relationships;
+* potentially suspicious merchant behaviour.
 
 ### Observation Boundary
 
-OCB observes the customer's financial consequence and relevant merchant reference.
+OCB observes:
 
-OCB does not model a merchant-side account, merchant ledger, or merchant settlement architecture.
+* the Ananse payment event;
+* the customer;
+* the wallet consequence;
+* the merchant reference.
+
+OCB does not model a merchant financial account, merchant ledger, or merchant settlement architecture.
 
 ---
 
-# 3. SikaCredit Events
+# 7. SikaCredit Events
 
-## 3.1 Loan Disbursement
+## 7.1 Loan Disbursement
 
-### Purpose / Business Meaning
+### Business Meaning
 
-A Loan Disbursement is a SikaCredit financial event that establishes the principal amount of a loan as an outstanding financial obligation.
+A **Loan Disbursement** is a SikaCredit financial event that establishes loan principal as an outstanding financial obligation.
+
+### Institution
+
+**SikaCredit**
 
 ### Actor
 
 SikaCredit.
 
+The borrower is the recipient/beneficiary of the lending activity, but SikaCredit remains the institution owning the loan relationship.
+
 ### Source
 
-SikaCredit.
+SikaCredit loan activity.
 
 ### Destination
 
@@ -420,63 +564,100 @@ The disbursed loan principal.
 
 ### Timestamp
 
-The authoritative loan disbursement timestamp.
+The authoritative SikaCredit disbursement timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-Loan Disbursement
-      ↓
-Successful
-      ↓
-Loan becomes financially effective
-```
+The event may be successful or unsuccessful.
 
-Loan approval is not a financial event in this catalogue.
+A non-successful disbursement does not create outstanding principal.
 
 ### Financial Consequence
 
+Successful:
+
 ```text
-Outstanding Loan Principal
-          +
-      Disbursed Amount
+SIKACREDIT LOAN
+      ↓
+Outstanding Principal
+      +
+Disbursed Amount
 ```
 
-### Institution
+### State Consequence
 
-SikaCredit.
+A successful disbursement increases Outstanding Loan Principal.
 
-### State Consequences
+The loan remains a SikaCredit-owned financial object.
 
-A successful disbursement establishes an outstanding loan obligation.
+### Cross-Domain Consequence Boundary
+
+A successful loan disbursement may have broader financial relevance to the borrower.
+
+However, the event must **not** be interpreted as an automatic Ananse wallet transaction.
+
+The model does not establish:
+
+```text
+SIKACREDIT LOAN DISBURSEMENT
+             ↓
+ANANSE WALLET +
+```
+
+as a direct institutional relationship.
+
+If Ananse separately records an actual wallet credit associated with the disbursement, that activity must be represented through Ananse's own authoritative transaction/event model.
+
+This prevents double counting and preserves institutional ownership.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Loan Disbursement supports analysis of:
 
 * credit exposure;
-* loan volume;
-* disbursement concentration;
-* repayment behaviour;
+* disbursement volume;
+* lending concentration;
+* customer borrowing behaviour;
+* repayment performance;
 * delinquency;
 * default;
-* loan-rate analysis.
+* loan-rate-related analysis.
 
-The loan rate remains an attribute required for later loan intelligence and calculation design.
+Loan rate remains an attribute and analytical input, not a financial state.
 
 ### Observation Boundary
 
-OCB observes the loan and its authoritative financial consequences.
+OCB observes the SikaCredit loan activity and its financial consequence.
 
-OCB does not reproduce SikaCredit's internal credit-decision or loan-processing architecture.
+OCB does not reproduce SikaCredit's internal:
+
+* credit decisioning;
+* approval workflow;
+* disbursement infrastructure;
+* settlement architecture.
 
 ---
 
-## 3.2 Loan Repayment
+# 8. Loan Repayment
 
-### Purpose / Business Meaning
+## 8.1 Business Meaning
 
-A Loan Repayment is a SikaCredit financial event that reduces an outstanding loan obligation.
+A **Loan Repayment** is a SikaCredit financial event/activity that reduces an outstanding loan obligation.
+
+WP-2.2 models repayments as independent institutional records associated with a loan:
+
+```text
+SIKACREDIT_LOAN
+       │
+       └── 0..N
+          SIKACREDIT_REPAYMENT
+```
+
+Therefore a repayment is not merely an attribute of the loan.
+
+### Institution
+
+**SikaCredit**
 
 ### Actor
 
@@ -484,7 +665,7 @@ Customer / borrower.
 
 ### Source
 
-Customer repayment obligation within SikaCredit.
+The customer's repayment activity within the SikaCredit loan relationship.
 
 ### Destination
 
@@ -498,76 +679,94 @@ The repayment amount.
 
 The authoritative repayment timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-Loan Repayment
-      ↓
-Outcome
-   ├── Successful
-   └── Failed
-```
+The event may be successful or unsuccessful.
 
 ### Financial Consequence
 
 Successful:
 
 ```text
-Outstanding Loan Obligation
-          -
-    Repayment Amount
+Outstanding Loan Principal
+            -
+      Repayment Amount
 ```
 
-Failed:
+Non-successful:
 
 ```text
-Outstanding Loan Obligation
-          =
-       Unchanged
+Outstanding Principal
+       =
+    Unchanged
 ```
 
-### Institution
+### State Consequence
 
-SikaCredit.
+A successful repayment reduces Outstanding Loan Principal.
 
-### State Consequences
+For v1.0.0:
 
-A successful repayment reduces the outstanding loan obligation.
+```text
+Successful Repayment
+        ↓
+Principal Reduction
+```
 
-Repayment information contributes to determining loan status and performance.
+The full successful repayment amount is treated as principal repayment.
+
+No separate interest or fee allocation is modelled in this state model.
+
+### Integrity
+
+Outstanding principal must not become negative.
+
+```text
+Outstanding Principal
+        ≥
+Repayment Amount
+```
+
+The detailed processing and validation implementation is deferred to financial-processing work.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Loan Repayment supports analysis of:
 
 * repayment behaviour;
 * outstanding exposure;
+* repayment performance;
 * delinquency;
 * default;
-* repayment performance;
-* loan-rate-related analysis.
+* loan performance.
 
 ### Observation Boundary
 
-OCB observes the authoritative loan repayment event and its financial consequence.
+OCB observes the authoritative SikaCredit repayment activity and its financial consequence.
+
+OCB does not reproduce the institution's internal repayment-processing architecture.
 
 ---
 
-# 4. Oman Remit Event
+# 9. Oman Remit — Remittance
 
-## 4.1 Remittance
+## 9.1 Business Meaning
 
-### Purpose / Business Meaning
+A **Remittance** is an Oman Remit financial event representing the transfer of value from a sender to a beneficiary.
 
-A Remittance is an Oman Remit financial event representing the transfer of value from a sender to a beneficiary.
+### Institution
+
+**Oman Remit**
 
 ### Actor
 
 Sender.
 
+Sender and beneficiary are treated as **roles within the remittance relationship**, not as separate first-class OCB entities.
+
 ### Source
 
-Sender-side remittance instruction within Oman Remit.
+Sender-side remittance activity within Oman Remit.
 
 ### Destination
 
@@ -575,156 +774,410 @@ Beneficiary.
 
 ### Value
 
-The amount transferred to the beneficiary.
+The remitted amount.
 
 ### Timestamp
 
-The authoritative remittance event timestamp.
+The authoritative Oman Remit remittance timestamp.
 
-### Lifecycle
+### Outcome
 
-```text
-Remittance
-      ↓
-Outcome
-   └── Successful
-```
+The remittance may have a successful or unsuccessful outcome according to the approved event/lifecycle semantics.
 
-Failed remittance processing is not currently included as an OCB observable financial event.
+A non-successful remittance produces no valid financial consequence.
 
 ### Financial Consequence
 
-A successful remittance results in value being received by the beneficiary.
+A successful remittance establishes the relevant beneficiary financial position within the approved OCB observation boundary:
 
-Within the v1.0.0 OCB abstraction, the successful financial consequence is treated as settled.
+```text
+OMAN REMIT
+Remittance
+     ↓
+Beneficiary Financial Position
+     +
+   Amount
+```
 
-### Institution
+The v1.0.0 model does not introduce a separate beneficiary account or withdrawal event.
 
-Oman Remit.
+### State Consequence
 
-### State Consequences
+A successful Remittance increases the conceptual Beneficiary Financial Position.
 
-A successful remittance changes the relevant customer financial state by transferring value to the beneficiary.
+A failed or rejected remittance produces no increase.
+
+### Cross-Domain Consequence Boundary
+
+A remittance may subsequently be relevant to analysis of customer activity elsewhere.
+
+However, the model does **not** establish:
+
+```text
+OMAN REMIT REMITTANCE
+          ↓
+ANANSE WALLET +
+```
+
+as an automatic institutional state transition.
+
+If Ananse subsequently records an actual wallet-affecting event associated with the value, that event/consequence must be represented through Ananse's own authoritative model.
+
+Thus:
+
+```text
+Oman Remit Activity
+        ↓
+Oman Remit Financial Consequence
+        ↓
+OCB Observation / Resolution
+        ↓
+Cross-Domain Analysis
+```
+
+does not become:
+
+```text
+Oman Remit
+     ↓
+Ananse Wallet
+```
+
+as a direct institutional relationship.
 
 ### Downstream Intelligence Significance
 
-Supports analysis of:
+Remittance activity supports analysis of:
 
-* cross-border flows;
+* cross-border financial flows;
 * remittance volumes;
-* customer remittance behaviour;
 * destination patterns;
+* customer remittance behaviour;
 * concentration;
-* AML-related analysis.
+* potential AML-related indicators.
 
 ### Observation Boundary
 
-OCB observes the remittance financial activity relevant to its intelligence requirements.
+OCB observes the remittance activity and the financial position established within the approved Oman Remit observation boundary.
 
-Sender and beneficiary are remittance roles and are not separate first-class OCB entities.
+OCB does not reproduce:
 
-OCB does not reproduce Oman Remit's internal remittance-processing or settlement architecture.
+* internal remittance-processing architecture;
+* beneficiary account infrastructure;
+* internal settlement arrangements;
+* withdrawal mechanisms not explicitly modelled.
 
 ---
 
-# 5. Cross-Event Semantic Rules
+# 10. Cross-Event Semantic Rules
 
-## 5.1 Event Outcome
+## 10.1 Event Outcome
 
 An event outcome describes what happened to the event.
 
 ```text
-Event
-  ↓
-Successful / Failed
+FINANCIAL EVENT
+      ↓
+EVENT OUTCOME
 ```
 
-A failed event does not produce its intended financial consequence.
+The state model recognises that unsuccessful activity does not create a valid financial consequence.
 
----
-
-## 5.2 Financial Consequence
-
-A financial consequence describes the change produced by a successful event.
+For financial-state purposes:
 
 ```text
-Event
-  ↓
-Financial Consequence
-  ↓
-Financial State
+Successful
+    ↓
+May produce valid financial consequence
+
+Failed / Rejected
+    ↓
+No valid financial consequence
+    ↓
+No financial-state transition
 ```
 
----
+The detailed lifecycle semantics of `Rejected`, including how it differs operationally from `Failed`, remain subject to the appropriate transaction-lifecycle work.
 
-## 5.3 Settlement
-
-Settlement is not an independent financial event in the v1.0.0 model.
-
-A successfully completed financial event is considered settled where its intended financial consequence has been completed within the relevant institutional domain.
-
-This abstraction does not imply a separate OCB settlement layer.
+The distinction must therefore not be invented in this semantic ticket.
 
 ---
 
-## 5.4 P2P Transfer Legs
+## 10.2 Financial Consequence
 
-P2P Send and P2P Receive are financial legs of the P2P Transfer.
+A financial consequence describes the financial effect produced by an event.
 
-They are not separate events and are not derived after the fact from wallet balances.
+```text
+FINANCIAL EVENT
+      ↓
+EVENT OUTCOME
+      ↓
+FINANCIAL CONSEQUENCE
+      ↓
+FINANCIAL STATE
+```
 
----
+A financial consequence is not itself the originating event.
 
-## 5.5 Loan Default
+For example:
 
-Loan Default is a derived credit state.
+```text
+P2P TRANSFER
+      ↓
+Successful
+      ↓
+Sender Debit
+Receiver Credit
+```
 
-It is determined from authoritative loan information, repayment information, and the applicable repayment deadline or rules.
-
-It is not an independent financial event.
-
----
-
-# 6. Correction, Reversal and Adjustment
-
-## 6.1 Correction
-
-Correction is treated as an internal institutional control mechanism rather than an OCB financial event.
-
-The OCB sandbox assumes that authoritative information crossing the observation boundary has undergone the originating institution's applicable internal controls.
-
----
-
-## 6.2 Reversal
-
-Reversal is not included as a v1.0.0 OCB financial event.
-
-A reversal would introduce a subsequent event linked to a previously established financial event and would materially affect event history, ledger treatment, reconciliation, and state reconstruction.
-
-A future architecture involving additional settlement institutions, banks, escrow arrangements, or other requirements may justify a separate reversal model.
+The sender debit and receiver credit are consequences/legs of the P2P Transfer.
 
 ---
 
-## 6.3 Adjustment
+## 10.3 Financial State
 
-Adjustment is not included as a v1.0.0 OCB financial event.
+A financial state describes what financial position is true after valid financial consequences have been applied.
 
-The term is insufficiently specific to establish a controlled financial meaning without a concrete business requirement.
+Examples:
+
+```text
+Wallet
+    ↓
+Customer Wallet Balance
+
+Loan
+    ↓
+Outstanding Loan Principal
+
+Remittance
+    ↓
+Beneficiary Financial Position
+```
+
+The state does not replace the institutional activity from which it is derived.
 
 ---
 
-# 7. Status
+# 11. Settlement
 
-**Status:** Defined
+Settlement is **not an independent v1.0.0 financial event**.
 
-This document establishes the business semantics of the authoritative financial events identified in the OCB Financial Event Catalogue.
+The OCB model does not assume that every financial event requires a separately observable settlement event.
 
-Physical representation, ledger design, database structures, and implementation rules are deferred to the appropriate engineering stages.
+A successful event may be treated as financially effective within the relevant institutional observation boundary once its defined financial consequence has occurred.
 
-Any material change to these semantics must be reflected in the Financial Event Catalogue and reviewed through the applicable governance process.
+This does not mean that real-world settlement mechanisms do not exist.
+
+It means that OCB does not introduce an additional settlement architecture unless a concrete v1.0.0 intelligence or supervisory requirement justifies it.
+
+Therefore OCB does not model:
+
+* settlement accounts;
+* correspondent institutions;
+* escrow arrangements;
+* inter-institution settlement infrastructure;
+
+unless separately approved.
 
 ---
 
-## Core Principle
+# 12. Correction, Reversal and Adjustment
 
-> **Define what the financial event means before defining how the system stores it.**
+## 12.1 Correction
+
+Correction is treated as an institutional control mechanism rather than an approved OCB financial-event type.
+
+OCB assumes that authoritative source activity crossing the observation boundary is subject to the originating institution's applicable controls.
+
+A future requirement may justify explicit corrective-event semantics.
+
+---
+
+## 12.2 Reversal
+
+Reversal is not an approved v1.0.0 financial-event type.
+
+A reversal would create a subsequent financial activity linked to an earlier financial consequence and would materially affect:
+
+* event history;
+* reconciliation;
+* financial-state reconstruction;
+* ledger representation.
+
+It therefore requires a concrete business scenario before introduction.
+
+---
+
+## 12.3 Adjustment
+
+Adjustment is not an approved v1.0.0 financial-event type.
+
+The term is too semantically broad to represent a controlled financial meaning without a defined business requirement.
+
+---
+
+# 13. Event-to-State Semantic Matrix
+
+| Authoritative Event | Institution    | Successful Financial Consequence | Primary Financial-State Effect           |
+| ------------------- | -------------- | -------------------------------- | ---------------------------------------- |
+| Cash-in             | Ananse Telecom | Wallet credit                    | Wallet balance increases                 |
+| Cash-out            | Ananse Telecom | Wallet debit                     | Wallet balance decreases                 |
+| P2P Transfer        | Ananse Telecom | Sender debit + receiver credit   | Both wallet positions change             |
+| Merchant Payment    | Ananse Telecom | Wallet debit                     | Wallet balance decreases                 |
+| Loan Disbursement   | SikaCredit     | Loan principal creation          | Outstanding principal increases          |
+| Loan Repayment      | SikaCredit     | Principal reduction              | Outstanding principal decreases          |
+| Remittance          | Oman Remit     | Beneficiary value established    | Beneficiary financial position increases |
+
+P2P Send and P2P Receive remain consequences/legs of the P2P Transfer rather than independent events.
+
+Cross-domain analytical relationships do not create automatic direct institutional state transitions.
+
+---
+
+# 14. Cross-Domain Financial Consequence Principle
+
+The OCB model must distinguish between:
+
+1. the **source institutional activity**;
+2. the **financial consequence produced by that activity**;
+3. the **institutional financial state affected by that consequence**;
+4. the **OCB analytical relationship created after identity resolution**.
+
+Conceptually:
+
+```text
+INSTITUTIONAL ACTIVITY
+        ↓
+INSTITUTIONAL OWNERSHIP
+        ↓
+FINANCIAL CONSEQUENCE
+        ↓
+INSTITUTIONAL / OBSERVABLE STATE
+        ↓
+OCB OBSERVATION
+        ↓
+IDENTITY RESOLUTION
+        ↓
+OCB FINANCIAL / ANALYTICAL MODEL
+        ↓
+CROSS-DOMAIN ANALYSIS
+```
+
+This prevents a financial consequence from being incorrectly interpreted as a transfer of institutional ownership.
+
+It also prevents OCB from creating artificial direct relationships such as:
+
+```text
+SIKACREDIT → ANANSE_WALLET
+```
+
+or:
+
+```text
+OMAN_REMIT → ANANSE_WALLET
+```
+
+where no such relational dependency exists in WP-2.2. The logical model explicitly avoids these cross-institutional foreign-key relationships.
+
+---
+
+# 15. Financial-State Integrity Implications
+
+The event semantics established here must satisfy the financial-state rules established in WP-1.4.
+
+Accordingly:
+
+1. Only valid financial consequences may change a financial-position state.
+2. Failed or rejected activity produces no valid financial-state transition.
+3. P2P sender and receiver consequences remain attributable to one authoritative event.
+4. Outstanding principal must not become negative.
+5. Wallet debits must respect applicable available-balance constraints.
+6. Cross-domain analytical relationships must not be interpreted as shared institutional ownership.
+7. Cross-domain activity must not be counted twice.
+8. Unmodelled institutional mechanisms must not be invented merely to explain an observed relationship.
+9. Financial positions must remain institutionally attributable and reconcilable.
+
+## These principles are consistent with the locked WP-1.4 state-transition and reconstructability model.
+
+# 16. Observation Boundary
+
+The OCB financial-event model deliberately stops short of reproducing complete institutional architectures.
+
+OCB does not model, unless separately justified:
+
+* internal institutional ledgers;
+* agent float;
+* merchant accounts;
+* settlement accounts;
+* correspondent institutions;
+* escrow accounts;
+* beneficiary withdrawal infrastructure;
+* internal processing engines;
+* unobserved institutional accounting mechanisms.
+
+The objective is not to recreate each institution.
+
+The objective is to observe institution-owned financial activity, resolve relevant identities, represent valid financial consequences, reconstruct approved financial positions, and support cross-domain intelligence.
+
+---
+
+# 17. Relationship to WP-2.2 Logical Model
+
+The event semantics align with the current logical entities:
+
+```text
+ANANSE
+    ├── ANANSE_CUSTOMER
+    ├── ANANSE_WALLET
+    └── ANANSE_TRANSACTION
+
+SIKACREDIT
+    ├── SIKACREDIT_CUSTOMER
+    ├── SIKACREDIT_LOAN
+    └── SIKACREDIT_REPAYMENT
+
+OMAN REMIT
+    ├── OMAN_REMIT_CUSTOMER
+    └── OMAN_REMIT_REMITTANCE
+
+OCB
+    ├── OCB_CUSTOMER
+    └── OCB_CUSTOMER_IDENTITY
+```
+
+The logical model preserves institutional ownership and source identity while OCB provides cross-institutional identity resolution.
+
+The event semantics therefore do not introduce new relational entities merely to represent:
+
+* wallet balance;
+* outstanding principal;
+* beneficiary financial position;
+* P2P legs;
+* analytical classifications.
+
+These remain conceptual financial consequences, states, roles, or classifications as appropriate.
+
+---
+
+# 18. Status
+
+**Status: REVISED / LOCKED**
+
+This ticket establishes the business semantics of the authoritative financial events recognised by OCB Platform v1.0.0.
+
+The semantic model is aligned with:
+
+* **WP-1.3-T01** — Financial Event Catalogue;
+* **WP-1.4** — State Model;
+* **WP-2.1** — Conceptual Data Model;
+* **WP-2.2** — Logical Data Model.
+
+Any material change to an event's business meaning, institutional ownership, financial consequence, or state implication must be reflected in the relevant upstream catalogue and reviewed through the applicable governance process.
+
+---
+
+# Core Principle
+
+> **An authoritative financial event records institutional activity; its outcome determines whether a valid financial consequence exists; the consequence affects an attributable financial position; and OCB may then observe, resolve, represent, and analyse that information without transferring ownership of the underlying institutional financial object.**
+
+> **P2P Send and P2P Receive are consequences of one P2P Transfer, cross-domain analytical relationships do not create automatic cross-domain source-state mutations, and unmodelled institutional mechanisms must not be invented merely to complete the picture.**
