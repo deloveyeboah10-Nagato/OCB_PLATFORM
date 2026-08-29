@@ -23,11 +23,11 @@ The Data Dictionary exists to make the implemented data architecture understanda
 
 It must describe the **actual implementation**.
 
-It must not be populated with invented database objects merely to make the documentation appear complete.
+It must not be populated with invented database objects, constraints, relationships, or capabilities merely to make the documentation appear complete.
 
 ---
 
-## 1. Relationship to the Business Glossary
+# 1. Relationship to the Business Glossary
 
 The Business Glossary and Data Dictionary serve different purposes.
 
@@ -35,12 +35,19 @@ The distinction is:
 
 ```text
 Business Glossary
+
 "What does this concept mean?"
+
         ↓
+
 Data Model
+
 "How is this concept represented?"
+
         ↓
+
 Data Dictionary
+
 "What are the technical characteristics?"
 ```
 
@@ -63,7 +70,7 @@ The Data Dictionary must not redefine the established business meaning.
 
 ---
 
-## 2. Relationship to Governing Documentation
+# 2. Relationship to Governing Documentation
 
 The Data Dictionary operates within the established OCB documentation hierarchy:
 
@@ -109,7 +116,7 @@ The Data Dictionary must not independently introduce:
 
 ---
 
-## 3. Dictionary Status
+# 3. Dictionary Status
 
 The Data Dictionary is a **build-time and living technical reference**.
 
@@ -129,13 +136,11 @@ Documentation must not represent planned structures as implemented.
 
 ---
 
-## 4. Documentation Principle
+# 4. Documentation Principle
 
 The Data Dictionary follows one fundamental rule:
 
 > **Document what the platform actually contains and how it behaves.**
-
-A database object is not considered documented merely because its name has been listed.
 
 Where appropriate, documentation should establish:
 
@@ -161,11 +166,11 @@ The level of documentation should be proportional to the importance and complexi
 
 ---
 
-## 5. Object Classification
+# 5. Object Classification
 
 The Data Dictionary should support documentation of the major OCB data structures.
 
-### 5.1 Operational Objects
+## 5.1 Operational Objects
 
 Where implemented:
 
@@ -174,14 +179,15 @@ Where implemented:
 * columns;
 * primary keys;
 * foreign keys;
-* constraints;
+* CHECK constraints;
+* UNIQUE constraints;
 * indexes;
 * triggers;
 * stored procedures;
 * functions;
 * operational views.
 
-### 5.2 Financial Core Objects
+## 5.2 Financial Core Objects
 
 Where implemented:
 
@@ -195,7 +201,7 @@ Where implemented:
 
 These objects require particular attention because they participate in the authoritative financial processing path.
 
-### 5.3 Reliability Objects
+## 5.3 Reliability Objects
 
 Where implemented:
 
@@ -208,7 +214,7 @@ Where implemented:
 
 The dictionary should distinguish reliability structures from financial truth structures.
 
-### 5.4 Analytical Objects
+## 5.4 Analytical Objects
 
 Where implemented:
 
@@ -221,7 +227,7 @@ Where implemented:
 * staging structures;
 * ELT support structures.
 
-### 5.5 Warehouse Objects
+## 5.5 Warehouse Objects
 
 Where implemented:
 
@@ -232,7 +238,7 @@ Where implemented:
 * snapshot structures;
 * historical analytical structures.
 
-### 5.6 Data-Mart Objects
+## 5.6 Data-Mart Objects
 
 Where implemented:
 
@@ -245,7 +251,7 @@ Where implemented:
 
 Every data mart must have an explicit analytical purpose and documented grain.
 
-### 5.7 Intelligence Objects
+## 5.7 Intelligence Objects
 
 Where implemented:
 
@@ -257,7 +263,7 @@ Where implemented:
 * rule-support structures;
 * intelligence output structures.
 
-### 5.8 Regulatory Intelligence Objects
+## 5.8 Regulatory Intelligence Objects
 
 Where implemented:
 
@@ -269,14 +275,14 @@ Where implemented:
 
 ---
 
-## 6. Object-Level Documentation Standard
+# 6. Object-Level Documentation Standard
 
 Each significant database object should eventually have the following information.
 
 | Field                | Purpose                                                                |
 | -------------------- | ---------------------------------------------------------------------- |
 | **Object Name**      | Exact database object name                                             |
-| **Object Type**      | Table, view, procedure, function, index, etc.                          |
+| **Object Type**      | Table, view, procedure, function, index, constraint, etc.              |
 | **Schema**           | Owning database schema                                                 |
 | **Layer / Domain**   | Operational, Bronze, Silver, Gold, warehouse, mart, intelligence, etc. |
 | **Purpose**          | Why the object exists                                                  |
@@ -284,8 +290,9 @@ Each significant database object should eventually have the following informatio
 | **Grain**            | Level represented by the object                                        |
 | **Source**           | Originating information                                                |
 | **Relationships**    | Relevant relationships                                                 |
-| **Key Structure**    | Primary/foreign/unique keys                                            |
+| **Key Structure**    | Primary, foreign, unique and other key structures                      |
 | **Constraints**      | Important integrity rules                                              |
+| **Indexes**          | Relevant physical access structures                                    |
 | **Lifecycle**        | Creation/update/deprecation status                                     |
 | **Lineage**          | Upstream and downstream relationships                                  |
 | **Consumers**        | Processes or analytical workloads using it                             |
@@ -296,7 +303,7 @@ Not every field will apply to every object.
 
 ---
 
-## 7. Table Documentation
+# 7. Table Documentation
 
 Every significant table should eventually document:
 
@@ -307,7 +314,7 @@ Every significant table should eventually document:
 * grain;
 * primary key;
 * foreign keys;
-* important constraints;
+* CHECK constraints and other important constraints;
 * indexes;
 * source;
 * loading or population mechanism;
@@ -337,7 +344,7 @@ Ambiguous grain creates a material risk of incorrect analytical results.
 
 ---
 
-## 8. Column Documentation
+# 8. Column Documentation
 
 Significant columns should eventually document:
 
@@ -368,13 +375,13 @@ A field must not be described as a production identity mechanism when it is only
 
 ---
 
-## 9. DATA TYPE STANDARDS
+# 9. Data Type Standards
 
 OCB data types must reflect the business meaning, operational role, and expected behaviour of the data.
 
 The following standards apply to implemented OCB Platform v1.0.0 structures unless a documented source-system or architectural requirement justifies a different implementation.
 
-### 9.1 Monetary Values
+## 9.1 Monetary Values
 
 Financial amounts must use exact numeric data types.
 
@@ -386,17 +393,56 @@ DECIMAL(18,4)
 
 This provides fixed precision and scale suitable for the financial values represented within the v1.0.0 simulation while avoiding the rounding and representation issues associated with approximate floating-point types.
 
-The same monetary precision should be used consistently across related financial structures unless a specific business requirement requires otherwise.
-
 Examples include:
 
 * transaction amounts;
 * loan principal amounts;
 * repayment amounts;
+* remittance amounts;
 * financial consequences;
 * ledger entry amounts.
 
-### 9.2 Rates and Percentages
+### Amount Sign Convention
+
+OCB v1.0.0 uses a **magnitude-based amount model** for the implemented ledger structures.
+
+Amounts are stored as non-negative magnitudes.
+
+Direction is represented separately by the relevant type field.
+
+For example:
+
+```text
+entry_type = DEBIT
+amount     = 100.00
+```
+
+represents a debit of 100.00.
+
+Likewise:
+
+```text
+entry_type = CREDIT
+amount     = 100.00
+```
+
+represents a credit of 100.00.
+
+Therefore, the database CHECK constraints:
+
+```text
+amount >= 0
+```
+
+are consistent with the approved ledger semantics.
+
+The sign of a financial consequence is not inferred from a negative stored amount. Direction is interpreted from the corresponding classification such as `entry_type` or `consequence_type`.
+
+This distinction must be preserved in analytical logic.
+
+---
+
+## 9.2 Rates and Percentages
 
 Rates must use exact decimal types rather than approximate floating-point types.
 
@@ -408,17 +454,27 @@ Example:
 0.1250 = 12.50%
 ```
 
-The physical precision and scale must be sufficient to preserve the required business precision.
-
 For the current SikaCredit loan implementation:
 
 ```text
 DECIMAL(5,4)
 ```
 
-is used for interest rates stored as decimal fractions.
+is used for `interest_rate`.
 
-### 9.3 OCB Internal Identifiers
+The current database CHECK constraint requires:
+
+```text
+interest_rate >= 0
+```
+
+No separate business-level upper-bound CHECK constraint has been implemented in v1.0.0.
+
+The physical `DECIMAL(5,4)` definition nevertheless establishes its own representational limit. This physical limit must not automatically be interpreted as an approved business rule.
+
+---
+
+## 9.3 OCB Internal Identifiers
 
 OCB-generated internal identifiers may use `BIGINT` where the identifier is expected to support high-volume internal relationships or cross-table mapping.
 
@@ -432,7 +488,9 @@ Examples include:
 
 Where an identifier originates from an external institution, the source identifier should normally be preserved using an appropriate character or source-compatible data type rather than being converted solely for convenience.
 
-### 9.4 Source-System Identifiers
+---
+
+## 9.4 Source-System Identifiers
 
 Source-system identifiers must preserve the identifier as supplied by the originating institution.
 
@@ -442,7 +500,9 @@ OCB must not assume that identifiers generated by different institutions share t
 
 Source identifiers remain distinct from OCB-generated identifiers.
 
-### 9.5 Human-Readable Text
+---
+
+## 9.5 Human-Readable Text
 
 `NVARCHAR` should be used where values may contain Unicode or multilingual human-readable text.
 
@@ -456,7 +516,9 @@ Examples include:
 
 `VARCHAR` may be used where the value is a controlled technical code or identifier whose character set does not require Unicode.
 
-### 9.6 Currency Codes
+---
+
+## 9.6 Currency Codes
 
 Currency codes use:
 
@@ -468,7 +530,9 @@ for the three-character currency representation used by OCB v1.0.0.
 
 Currency values should represent controlled reference data rather than unrestricted descriptive text.
 
-### 9.7 Dates
+---
+
+## 9.7 Dates
 
 `DATE` should be used where only the calendar date has business meaning and time-of-day is not required.
 
@@ -477,7 +541,9 @@ Examples include:
 * date of birth;
 * maturity date.
 
-### 9.8 Timestamps
+---
+
+## 9.8 Timestamps
 
 `DATETIME2(3)` is the standard timestamp type for OCB v1.0.0 where millisecond precision is sufficient.
 
@@ -493,7 +559,9 @@ The dictionary should identify whether a timestamp represents, for example:
 
 Timestamp precision must not be increased merely for technical appearance if the additional precision has no business meaning.
 
-### 9.9 NULLability
+---
+
+## 9.9 NULLability
 
 NULLability is a business and data-quality decision, not merely a technical convenience.
 
@@ -501,16 +569,13 @@ A column should be `NOT NULL` when its value is required for the existence, inte
 
 A column may be nullable where the absence of a value has a legitimate business meaning.
 
-Examples include information that:
-
-* may legitimately be unavailable;
-* is optional;
-* is not applicable to every record;
-* is not required at the point the record is created.
+For the implemented SikaCredit loan structure, `disbursement_timestamp` is **NOT NULL** because a loan disbursement event requires a known disbursement timestamp in the v1.0.0 model.
 
 Nullable columns must therefore have a defensible reason for permitting `NULL`.
 
-### 9.10 Data-Type Consistency
+---
+
+## 9.10 Data-Type Consistency
 
 Where the same business concept appears across related OCB structures, compatible data types should normally be used.
 
@@ -524,7 +589,9 @@ Examples include:
 
 Inconsistent physical representation of the same business concept should be avoided unless there is a documented reason.
 
-### 9.11 Physical Design Authority
+---
+
+## 9.11 Physical Design Authority
 
 These standards establish the default physical representation for OCB v1.0.0.
 
@@ -536,15 +603,15 @@ They do not override:
 * SQL Server limitations;
 * justified implementation requirements.
 
-Where an implemented structure requires a deviation from an established standard, the deviation must be documented in the relevant data dictionary entry and escalated through the appropriate engineering governance process where materially significant.
+Where an implemented structure requires a deviation from an established standard, the deviation must be documented in the relevant Data Dictionary entry and escalated through the appropriate engineering governance process where materially significant.
 
 ---
 
-## 10. Key Documentation
+# 10. Key Documentation
 
 The dictionary should document important key structures.
 
-### Primary Keys
+## Primary Keys
 
 Document:
 
@@ -554,50 +621,267 @@ Document:
 * object;
 * purpose.
 
-### Foreign Keys
+The current v1.0.0 implementation uses primary keys to establish the uniqueness of the principal operational records.
 
-Document:
+Notably, `ocb.customer_identity` uses a composite primary key:
 
+```text
+(source_entity, source_customer_id)
+```
+
+This preserves the distinction between source-system identity namespaces.
+
+`ocb_customer_id` is separately used as the OCB canonical customer identifier.
+
+---
+
+## Foreign Keys
+
+Foreign keys must document:
+
+* constraint name;
 * child object;
 * child column;
 * referenced object;
 * referenced column;
-* relationship purpose.
+* relationship purpose;
+* delete/update behaviour where relevant;
+* implementation status.
 
-### Business Keys
+The current v1.0.0 implementation contains the following approved foreign-key relationships.
 
-Where applicable, distinguish business identifiers from technical database identifiers.
+| Constraint                          | Child                   | Child Column      | Parent                | Parent Column     |
+| ----------------------------------- | ----------------------- | ----------------- | --------------------- | ----------------- |
+| `FK_ocb_customer_identity_customer` | `ocb.customer_identity` | `ocb_customer_id` | `ocb.customer`        | `ocb_customer_id` |
+| `FK_ananse_transaction_customer`    | `ananse.transaction`    | `customer_id`     | `ananse.customer`     | `customer_id`     |
+| `FK_ananse_transaction_wallet`      | `ananse.transaction`    | `wallet_id`       | `wallet.wallet`       | `wallet_id`       |
+| `FK_sikacredit_loan_customer`       | `sikacredit.loan`       | `customer_id`     | `sikacredit.customer` | `customer_id`     |
+| `FK_sikacredit_repayment_loan`      | `sikacredit.repayment`  | `loan_id`         | `sikacredit.loan`     | `loan_id`         |
+| `FK_oman_remit_remittance_customer` | `oman_remit.remittance` | `customer_id`     | `oman_remit.customer` | `customer_id`     |
 
-### Analytical Integration Keys
+These relationships establish referential integrity between the implemented operational structures.
 
-Where applicable, explicitly identify controlled analytical integration keys such as the synthetic canonical `user_id`.
+### OCB Customer Identity Relationship
 
-Such a key must not be documented as evidence that independent institutions natively share a production identity system.
+The `ocb.customer_identity` relationship is particularly important.
+
+The source identity remains represented by:
+
+```text
+(source_entity, source_customer_id)
+```
+
+while:
+
+```text
+ocb_customer_id
+```
+
+provides the OCB-level canonical customer reference.
+
+The foreign key therefore connects a source-system identity mapping to an OCB customer record without replacing the originating source identifier.
+
+This does **not** imply that the participating institutions share a native production customer identity system.
+
+### Cascading Behaviour
+
+The current v1.0.0 foreign keys do **not** implement:
+
+```text
+ON DELETE CASCADE
+ON UPDATE CASCADE
+```
+
+No cascading delete or update behaviour should therefore be inferred from the existence of these relationships.
+
+### Referential Integrity
+
+Foreign keys prevent child records from referencing non-existent parent records.
+
+They do not by themselves establish:
+
+* business eligibility;
+* valid state transitions;
+* valid transaction combinations;
+* financial sufficiency;
+* chronological correctness beyond explicitly implemented constraints;
+* identity resolution logic.
+
+Those responsibilities remain separate.
 
 ---
 
-## 11. Constraint Documentation
+# 11. Constraint Documentation
 
-Important constraints should be documented where they materially contribute to integrity.
+Constraints should be documented according to their actual role in protecting data integrity.
+
+The dictionary must distinguish between:
+
+```text
+Structural constraints
+        ↓
+Referential constraints
+        ↓
+Domain constraints
+        ↓
+Higher-level business rules
+```
+
+Not every business rule should be implemented as a database constraint.
+
+A CHECK constraint should only be documented and implemented where there is an approved architectural or business justification for enforcing the rule at the database level.
+
+---
+
+## 11.1 NOT NULL Constraints
+
+`NOT NULL` is used where the value is required for the interpretation or validity of the record.
 
 Examples include:
 
-* NOT NULL constraints;
-* UNIQUE constraints;
-* CHECK constraints;
-* foreign keys;
-* controlled status values;
-* financial amount rules;
-* temporal rules;
-* state-transition controls.
+* customer identifiers;
+* transaction identifiers;
+* transaction timestamps;
+* transaction amounts;
+* loan principal amounts;
+* repayment amounts;
+* financial-event identifiers;
+* ledger entry amounts.
 
-Database constraints should complement business rules.
-
-The Data Dictionary should not assume that every business rule can or must be enforced through a database constraint.
+NULLability must not be treated merely as a technical preference.
 
 ---
 
-## 12. Index Documentation
+## 11.2 Foreign Key Constraints
+
+Foreign keys enforce referential integrity between approved parent and child structures.
+
+The implemented v1.0.0 foreign keys are documented in Section 10.
+
+---
+
+## 11.3 CHECK Constraints
+
+The current OCB Platform v1.0.0 implementation contains the following approved CHECK constraints.
+
+| Constraint                                       | Object                         | Rule                                     | Purpose                                            |
+| ------------------------------------------------ | ------------------------------ | ---------------------------------------- | -------------------------------------------------- |
+| `CK_ananse_transaction_amount`                   | `ananse.transaction`           | `amount >= 0`                            | Prevents negative transaction magnitudes           |
+| `CK_sikacredit_loan_principal_amount`            | `sikacredit.loan`              | `principal_amount >= 0`                  | Prevents negative loan principal magnitudes        |
+| `CK_sikacredit_loan_interest_rate`               | `sikacredit.loan`              | `interest_rate >= 0`                     | Prevents negative interest rates                   |
+| `CK_sikacredit_loan_maturity_after_disbursement` | `sikacredit.loan`              | `maturity_date > disbursement_timestamp` | Ensures maturity occurs after disbursement         |
+| `CK_sikacredit_repayment_amount`                 | `sikacredit.repayment`         | `repayment_amount >= 0`                  | Prevents negative repayment magnitudes             |
+| `CK_oman_remit_remittance_amount`                | `oman_remit.remittance`        | `amount >= 0`                            | Prevents negative remittance magnitudes            |
+| `CK_ledger_financial_consequence_amount`         | `ledger.financial_consequence` | `amount >= 0`                            | Prevents negative financial-consequence magnitudes |
+| `CK_ledger_entry_amount`                         | `ledger.entry`                 | `amount >= 0`                            | Prevents negative ledger-entry magnitudes          |
+
+These are the **implemented v1.0.0 CHECK constraints**.
+
+---
+
+## 11.4 Financial Amount Constraints
+
+The amount constraints enforce non-negative magnitudes:
+
+```text
+amount >= 0
+```
+
+This is intentional.
+
+OCB v1.0.0 follows the approved **Model A ledger representation**, in which financial direction is represented separately from the amount.
+
+For example:
+
+```text
+entry_type = DEBIT
+amount     = 500.00
+```
+
+and:
+
+```text
+entry_type = CREDIT
+amount     = 500.00
+```
+
+are both valid representations.
+
+The database does not store:
+
+```text
+DEBIT  = -500.00
+CREDIT = +500.00
+```
+
+as the primary representation.
+
+Consequently, analytical calculations requiring signed values must derive the sign from the relevant entry/consequence classification.
+
+The CHECK constraint protects the magnitude representation; it does not determine financial direction.
+
+---
+
+## 11.5 Temporal Constraint
+
+SikaCredit loans implement:
+
+```text
+maturity_date > disbursement_timestamp
+```
+
+through:
+
+```text
+CK_sikacredit_loan_maturity_after_disbursement
+```
+
+This ensures that the contractual maturity date occurs after the recorded loan disbursement timestamp.
+
+The rule is deliberately strict:
+
+```text
+maturity_date = disbursement date
+```
+
+does not satisfy the constraint.
+
+The database therefore prevents a loan from being represented as maturing on or before its disbursement timestamp.
+
+This is a database-level temporal integrity rule.
+
+It does not establish other loan lifecycle rules such as:
+
+* whether a loan may be repaid before maturity;
+* whether a loan may be cancelled;
+* whether interest may exceed a particular regulatory threshold;
+* whether a repayment may exceed the outstanding balance.
+
+Those are separate business rules and are not implied by this CHECK constraint.
+
+---
+
+## 11.6 Constraints Not Currently Implemented
+
+The following types of rules were considered but are **not automatically treated as implemented merely because they may be logically desirable**:
+
+* upper bounds for `interest_rate`;
+* transaction type/status combinations;
+* transaction-specific amount limits;
+* repayment limits relative to outstanding loan balances;
+* remittance-specific amount limits;
+* additional date relationships;
+* lifecycle/state-transition rules;
+* regulatory thresholds;
+* institution-specific business policies.
+
+Such rules require explicit architectural or business justification before being converted into database constraints.
+
+Their absence from the database must not be interpreted as an oversight unless they have been formally approved as required controls.
+
+---
+
+# 12. Index Documentation
 
 Indexes should be documented where they are material to the platform's performance or access patterns.
 
@@ -619,7 +903,7 @@ The presence of an index must not be treated as proof that a query is optimized.
 
 ---
 
-## 13. View Documentation
+# 13. View Documentation
 
 Views should document:
 
@@ -637,7 +921,7 @@ Where a view represents a financial or analytical transformation, the transforma
 
 ---
 
-## 14. Stored Procedure and Function Documentation
+# 14. Stored Procedure and Function Documentation
 
 Where implemented, procedures and functions should document:
 
@@ -655,9 +939,11 @@ Where implemented, procedures and functions should document:
 
 Financial processing procedures require stronger documentation because they may participate directly in the authoritative financial processing path.
 
+The table deployment procedure is an implementation/development utility and must not be confused with a financial transaction-processing procedure.
+
 ---
 
-## 15. Financial Core Documentation
+# 15. Financial Core Documentation
 
 Financial truth structures require additional documentation.
 
@@ -687,9 +973,11 @@ For each relevant structure, document:
 
 The Data Dictionary must not allow an analytical representation to appear to be an alternative authoritative financial source.
 
+For ledger structures, the dictionary must also preserve the approved amount-sign convention described in Section 9.1 and Section 11.4.
+
 ---
 
-## 16. Temporal Documentation
+# 16. Temporal Documentation
 
 Temporal semantics must be documented for important time-related attributes.
 
@@ -701,19 +989,22 @@ Where applicable, distinguish:
 * ingestion timestamp;
 * extraction timestamp;
 * settlement timestamp;
-* effective timestamp.
+* effective timestamp;
+* maturity date.
 
 The dictionary should state what each timestamp represents.
 
 Similar-looking timestamps must not be treated as interchangeable without justification.
 
+Where database-level temporal constraints have been implemented, those constraints should also be documented.
+
 ---
 
-## 17. Bronze / Silver / Gold Documentation
+# 17. Bronze / Silver / Gold Documentation
 
 Analytical objects should identify their layer and responsibility.
 
-### Bronze
+## Bronze
 
 Document:
 
@@ -724,7 +1015,7 @@ Document:
 * ingestion metadata;
 * load information.
 
-### Silver
+## Silver
 
 Document:
 
@@ -736,7 +1027,7 @@ Document:
 * temporal treatment;
 * quality classification.
 
-### Gold
+## Gold
 
 Document:
 
@@ -755,7 +1046,7 @@ They must not automatically be interpreted as requiring unnecessary physical dup
 
 ---
 
-## 18. Fact Table Documentation
+# 18. Fact Table Documentation
 
 Every implemented fact structure must have an explicit grain.
 
@@ -776,6 +1067,7 @@ For example:
 
 ```text
 Grain:
+
 One row represents one ______.
 ```
 
@@ -790,7 +1082,7 @@ The dictionary should identify measures that:
 
 ---
 
-## 19. Dimension Documentation
+# 19. Dimension Documentation
 
 Each implemented dimension should document:
 
@@ -810,7 +1102,7 @@ Where historical changes matter, the dictionary should identify how those change
 
 ---
 
-## 20. Analytical Grain and Aggregation
+# 20. Analytical Grain and Aggregation
 
 The Data Dictionary must explicitly document the grain of analytical structures.
 
@@ -843,7 +1135,7 @@ This is a data-integrity requirement, not merely a documentation preference.
 
 ---
 
-## 21. Data-Mart Documentation
+# 21. Data-Mart Documentation
 
 Every implemented data mart should document:
 
@@ -866,7 +1158,7 @@ Its analytical purpose must be identifiable.
 
 ---
 
-## 22. Lineage Documentation
+# 22. Lineage Documentation
 
 Where practical, significant analytical structures should preserve lineage through:
 
@@ -898,7 +1190,7 @@ Lineage must be sufficiently clear to support investigation and reconciliation.
 
 ---
 
-## 23. Source and Provenance
+# 23. Source and Provenance
 
 Where applicable, document:
 
@@ -924,37 +1216,35 @@ They do not imply production APIs, streaming infrastructure, or institutional in
 
 ---
 
-## 24. Implementation Status
+# 24. Implementation Status
 
 Data Dictionary entries should use an appropriate implementation status.
 
-Recommended values are:
-
-### Planned
+## Planned
 
 The structure is approved or anticipated but has not yet been implemented.
 
-### Implemented
+## Implemented
 
 The structure exists in the repository/database and has been validated to the applicable completion standard.
 
-### Simplified
+## Simplified
 
 The implemented structure intentionally represents a simplified version of the conceptual requirement.
 
-### Observational
+## Observational
 
 The structure represents information intentionally observable within the sandbox rather than reproducing an institution's complete internal system.
 
-### Conceptual
+## Conceptual
 
 The structure describes an architectural concept without a corresponding v1.0.0 implementation.
 
-### Deferred
+## Deferred
 
 The structure belongs to a future version.
 
-### Deprecated
+## Deprecated
 
 The structure is no longer part of the active implementation but remains historically relevant.
 
@@ -962,7 +1252,7 @@ The status must never overstate implementation fidelity.
 
 ---
 
-## 25. Relationship to ADRs
+# 25. Relationship to ADRs
 
 The Data Dictionary documents technical structures.
 
@@ -982,14 +1272,16 @@ The Data Dictionary must not become a substitute for ADRs.
 
 ---
 
-## 26. Relationship to Testing & Validation
+# 26. Relationship to Testing & Validation
 
 The Data Dictionary should provide references to relevant validation evidence where appropriate.
 
 Validation may include:
 
 * schema validation;
-* constraint tests;
+* primary-key validation;
+* foreign-key validation;
+* CHECK-constraint validation;
 * referential-integrity tests;
 * reconciliation;
 * data-quality tests;
@@ -1000,9 +1292,16 @@ Validation may include:
 
 A documented structure must not be considered fully validated merely because the object was successfully created.
 
+For implemented constraints, validation evidence should demonstrate that:
+
+1. the constraint exists;
+2. it is attached to the intended object;
+3. its definition matches the approved rule;
+4. invalid values are rejected where appropriate.
+
 ---
 
-## 27. Change Control
+# 27. Change Control
 
 Changes to implemented data structures must trigger review of the relevant documentation.
 
@@ -1022,7 +1321,7 @@ Material architectural changes must follow the established governance and change
 
 ---
 
-## 28. Naming Consistency
+# 28. Naming Consistency
 
 Data Dictionary entries must use the actual repository/database names.
 
@@ -1040,9 +1339,11 @@ Physical Object
 
 Naming conventions must remain consistent with the project's repository and SQL naming standards.
 
+Constraint names should also be documented exactly as implemented because they form part of the database's technical structure and validation evidence.
+
 ---
 
-## 29. Documentation Location
+# 29. Documentation Location
 
 The framework is maintained under:
 
@@ -1072,7 +1373,7 @@ The foundation phase does not require them.
 
 ---
 
-## 30. Completion Standard
+# 30. Completion Standard
 
 The Data Dictionary framework is complete for the foundation phase when:
 
@@ -1084,6 +1385,10 @@ The Data Dictionary framework is complete for the foundation phase when:
 * table documentation requirements are established;
 * column documentation requirements are established;
 * key and constraint documentation requirements are established;
+* implemented foreign-key relationships are documented;
+* implemented CHECK constraints are documented;
+* financial amount-sign semantics are documented;
+* temporal constraint semantics are documented;
 * index documentation requirements are established;
 * view/procedure/function documentation requirements are established;
 * financial-core documentation requirements are established;
@@ -1101,11 +1406,11 @@ The framework does **not** require the complete database to be documented at thi
 
 ---
 
-## 31. Core Principle
+# 31. Core Principle
 
 The Data Dictionary follows one fundamental rule:
 
-> **A data structure is not adequately documented until its purpose, meaning, grain, relationships, lineage, and implementation status can be understood without guessing.**
+> **A data structure is not adequately documented until its purpose, meaning, grain, relationships, constraints, lineage, and implementation status can be understood without guessing.**
 
 The objective is not to produce documentation volume.
 
@@ -1113,6 +1418,6 @@ The objective is to make the actual OCB data architecture understandable and def
 
 The dictionary should evolve with the implementation.
 
-It should document what exists, distinguish what is planned from what is implemented, and preserve the relationship between business meaning and technical representation.
+It should document what exists, distinguish what is planned from what is implemented, preserve the relationship between business meaning and technical representation, and accurately record the integrity controls actually enforced by the database.
 
 **Define the data. Document the structure. Preserve the lineage.**
