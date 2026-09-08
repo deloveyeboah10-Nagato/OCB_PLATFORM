@@ -1,13 +1,9 @@
 # WP-2.3-T04 — Define Ledger Structures
 
 **Programme:** OCB Platform v1.0.0
-
 **Work Package:** WP-2.3 — Operational Schema Design
-
 **Ticket:** WP-2.3-T04
-
 **Status:** **APPROVED**
-
 **Decision Type:** Operational ledger structure definition
 
 ---
@@ -16,7 +12,7 @@
 
 This ticket defines the **physical-schema-level structure and responsibility of ledger objects** within the OCB Platform v1.0.0.
 
-The purpose is to establish how financial consequences are represented within the `ledger` schema while preserving the distinction between:
+The purpose is to establish how valid financial consequences are represented within the `ledger` schema while preserving the distinction between:
 
 * originating institutional financial activity;
 * financial events;
@@ -24,19 +20,16 @@ The purpose is to establish how financial consequences are represented within th
 * ledger postings;
 * resulting financial state.
 
-This ticket defines the **ledger data structures required by the operational schema architecture**.
+This ticket defines the **operational ledger structures required by the schema architecture**.
 
-It does **not** implement the ledger or define the complete financial posting engine.
+It does **not** implement the ledger posting engine or define the complete ledger-processing model.
 
-Detailed ledger processing belongs to **WP-2.6 — Ledger Architecture** and **Programme 3 — Financial Transaction & Ledger Engine**.
+Detailed ledger behaviour, posting rules, reconciliation, integrity controls, and processing mechanics belong to:
 
----
+* **WP-2.6 — Ledger Architecture**; and
+* **Programme 3 — Financial Transaction & Ledger Engine**.
 
-# 2. Ledger Architectural Role
-
-The ledger is the financial-accounting representation of valid financial consequences.
-
-The governing flow is:
+The governing financial chain is:
 
 ```text
 INSTITUTIONAL ACTIVITY
@@ -47,28 +40,72 @@ EVENT OUTCOME
         ↓
 VALID FINANCIAL CONSEQUENCE
         ↓
-LEDGER POSTING
+LEDGER ENTRY
         ↓
 FINANCIAL STATE
 ```
 
-The ledger therefore does not replace the originating event.
+---
+
+# 2. Ledger Architectural Role
+
+The ledger provides the **accounting representation of valid financial consequences** produced by recognised financial events.
+
+It does not replace the originating institutional activity.
 
 For example:
 
 ```text
 ananse.transaction
         ↓
-Cash-in
+Financial Event: Cash-in
         ↓
-Successful financial consequence
+Valid Financial Consequence: Wallet Credit
         ↓
 ledger.entry
         ↓
-Wallet credit
+Wallet Financial Position
 ```
 
-The originating transaction and the resulting ledger representation remain distinct objects.
+Likewise:
+
+```text
+sikacredit.loan
+        ↓
+Financial Event: Loan Disbursement
+        ↓
+Valid Financial Consequence: Loan Principal Creation
+        ↓
+ledger.entry
+        ↓
+Outstanding Principal
+```
+
+The distinction is therefore:
+
+```text
+Institutional Activity
+        ↓
+What the institution recorded
+
+Financial Event
+        ↓
+What OCB recognised as a financial event
+
+Financial Consequence
+        ↓
+What financially changed
+
+Ledger Entry
+        ↓
+How that consequence is represented in the ledger
+
+Financial State
+        ↓
+What financial position is subsequently true
+```
+
+None of these structures replaces the others.
 
 ---
 
@@ -80,188 +117,316 @@ The physical schema established in WP-2.3-T01 is:
 ledger
 ```
 
-The schema is owned by the **OCB Platform financial core**.
+The `ledger` schema belongs to the **OCB Platform financial core**.
 
-It is not owned by Ananse Telecom, SikaCredit, or Oman Remit.
+It is not institutionally owned by:
 
-The ledger provides a common accounting representation for financial consequences originating from the approved institutional financial events.
+* Ananse Telecom;
+* SikaCredit; or
+* Oman Remit.
+
+The ledger provides a common accounting representation for valid financial consequences arising from the approved institutional financial events.
+
+The physical location of the ledger therefore represents **financial-core responsibility**, not ownership of the originating institutional activity.
 
 ---
 
 # 4. Core Ledger Object
 
-The primary operational ledger structure is:
+The principal operational ledger structure is:
 
 ```text
 ledger.entry
 ```
 
-Conceptually:
+One row represents:
+
+> **One ledger posting representing one defined accounting consequence.**
+
+The conceptual structure is:
 
 ```text
 ledger.entry
--------------------------
+─────────────────────────────
 ledger_entry_id
-event_reference
+financial_consequence_id
+financial_event_id
 transaction_reference
-wallet_reference
-account_reference
+financial_object_type
+financial_object_id
 entry_type
 amount
 currency
 entry_timestamp
 ```
 
-The exact physical column definitions, data types, constraints, and implementation details are established through the subsequent physical implementation and ledger-architecture work.
+The exact physical column definitions, data types, constraints, indexes, and implementation details are established during the relevant physical implementation and ledger-architecture work.
 
 ---
 
 # 5. Ledger Entry Identity
 
-Each ledger entry requires its own identifier:
+Each ledger entry requires its own stable identifier:
 
 ```text
 ledger_entry_id
 ```
 
-The ledger-entry identifier identifies the **accounting representation**.
+The identifier uniquely identifies the **ledger posting**.
 
 It must not be reused as:
 
 ```text
 transaction_id
-event_id
+financial_event_id
+financial_consequence_id
 wallet_id
 customer_id
+loan_id
+repayment_id
 ```
 
-The distinction is:
+The identity hierarchy is:
 
 ```text
 transaction_id
         ↓
-identifies originating transaction
+Originating institutional activity
 
-event_id
+financial_event_id
         ↓
-identifies financial event
+OCB financial-event identity
+
+financial_consequence_id
+        ↓
+Specific financial effect
 
 ledger_entry_id
         ↓
-identifies ledger posting
+Accounting representation
 ```
 
-This preserves traceability without collapsing distinct financial objects.
+This separation preserves independent identity while allowing complete traceability.
 
 ---
 
-# 6. Financial Event Reference
+# 6. Financial Consequence Reference
 
-A ledger entry must retain a reference to the financial event that produced the financial consequence.
+Each ledger entry must retain a reference to the financial consequence it represents.
+
+The relationship is:
+
+```text
+financial_event
+        │
+        │ 1 : many
+        ↓
+financial_consequence
+        │
+        │ 1 : many
+        ↓
+ledger.entry
+```
+
+This establishes an important architectural distinction:
+
+> A financial consequence and a ledger entry are related objects and are not assumed to be the same object.
+
+For the simple v1.0.0 cases, a financial consequence may produce a single ledger entry.
+
+However, the physical model must not permanently assume that:
+
+```text
+1 financial consequence = exactly 1 ledger entry
+```
+
+because accounting representation may require more than one posting.
+
+The approved structural relationship is therefore:
+
+```text
+1 financial consequence
+        ↓
+0..many ledger entries
+```
+
+where the zero case may be permitted during controlled processing states, while the final authoritative posting model is governed by WP-2.6 and Programme 3.
+
+---
+
+# 7. Financial Event Reference
+
+A ledger entry must retain a reference to the recognised financial event that ultimately produced the ledger consequence.
 
 Conceptually:
 
 ```text
 financial_event
-       │
-       │ produces
-       ↓
+        ↓
+financial_consequence
+        ↓
 ledger.entry
 ```
 
-The ledger therefore requires an event reference capable of answering:
+This permits investigation in both directions:
 
-> **Which recognised financial event produced this ledger consequence?**
+```text
+Financial Event
+        ↓
+Financial Consequence
+        ↓
+Ledger Entry
+```
 
-This is essential for event-to-ledger traceability and later reconciliation.
+and:
 
-The event reference must not be interpreted as making the ledger entry the event itself.
+```text
+Ledger Entry
+        ↓
+Financial Consequence
+        ↓
+Financial Event
+```
+
+The financial-event reference therefore supports:
+
+* event-to-ledger traceability;
+* reconciliation;
+* historical reconstruction;
+* investigation;
+* ledger integrity testing.
+
+The ledger entry does not become the financial event merely because it references it.
 
 ---
 
-# 7. Transaction Reference
+# 8. Transaction Reference
 
-Where the originating financial event is associated with an operational transaction, the ledger entry must retain the relevant transaction reference.
+Where the financial event originates from an operational transaction, the ledger entry may retain the relevant transaction reference.
 
 Conceptually:
 
 ```text
-transaction
-     ↓
-financial event
-     ↓
-ledger entry
+Institutional Transaction
+        ↓
+Financial Event
+        ↓
+Financial Consequence
+        ↓
+Ledger Entry
 ```
 
-This permits investigation from:
+This is applicable, for example, to Ananse transactions.
+
+However, a transaction reference is **not universally applicable**.
+
+For example:
 
 ```text
-Transaction
-    ↓
-Event
-    ↓
-Ledger Consequence
+SikaCredit Loan
+        ↓
+Loan Disbursement Event
+        ↓
+Financial Consequence
+        ↓
+Ledger Entry
 ```
 
-and, where required:
+may not have an Ananse transaction identifier.
 
-```text
-Ledger Consequence
-    ↓
-Event
-    ↓
-Originating Transaction
-```
+Therefore:
 
-The transaction reference therefore supports traceability rather than ownership transfer.
+> `transaction_reference` is conditional and must not be treated as a universal ledger foreign key to `ananse.transaction`.
+
+The ledger must support traceability without creating artificial cross-domain dependencies.
 
 ---
 
-# 8. Financial Object Reference
+# 9. Financial Object Reference
 
-The ledger entry must identify the financial object whose position is affected by the posting.
+A ledger entry must identify the financial object whose financial position is affected by the posting where such an object exists within the approved v1.0.0 model.
 
-For v1.0.0, the principal observable financial object is the Ananse wallet.
-
-Conceptually:
+The conceptual structure is:
 
 ```text
 ledger.entry
-      ↓
-affected financial object
-      ↓
-wallet.wallet
+        ↓
+financial_object_type
+        ↓
+financial_object_id
 ```
 
-The ledger structure therefore requires an appropriate financial-object reference.
-
-For wallet-affecting entries:
+For wallet-affecting consequences:
 
 ```text
-ledger.entry
-      ↓
+financial_object_type = Wallet
+financial_object_id   = wallet_id
+```
+
+The wallet remains an **Ananse-owned financial object** even though it is physically located in the `wallet` schema.
+
+The ledger therefore:
+
+```text
+represents the financial consequence
+```
+
+but does not:
+
+```text
+own the wallet
+```
+
+Similarly, a SikaCredit loan consequence may identify the relevant SikaCredit loan-related financial object without implying that the ledger owns the loan.
+
+---
+
+# 10. Financial Object Reference Is Conditional
+
+Not every ledger entry necessarily affects the same type of financial object.
+
+The physical structure must therefore avoid assuming that:
+
+```text
 wallet_id
 ```
 
-The ledger does not become the owner of the wallet.
+is universally applicable.
 
-The ownership relationship remains:
+The conceptual requirement is:
 
 ```text
-ANANSE
-   ↓
-WALLET
-
-LEDGER
-   ↓
-REPRESENTS FINANCIAL CONSEQUENCE
+financial_object_type
+financial_object_id
 ```
+
+rather than an unconditional wallet-specific reference.
+
+Examples include:
+
+```text
+Wallet
+    ↓
+wallet_id
+```
+
+or:
+
+```text
+Loan
+    ↓
+loan_id
+```
+
+where supported by the approved financial model.
+
+The precise supported object vocabulary is governed by the financial-state architecture and subsequent WP-2.6 decisions.
 
 ---
 
-# 9. Debit and Credit Semantics
+# 11. Debit and Credit Semantics
 
-Ledger entries must distinguish the direction of the financial posting.
+Ledger entries must distinguish the direction of the accounting posting.
 
 The operational structure therefore requires an entry classification capable of representing:
 
@@ -274,20 +439,20 @@ Conceptually:
 
 ```text
 entry_type
------------
+──────────
 DEBIT
 CREDIT
 ```
 
-The interpretation of debit and credit is determined by the financial-accounting model established in WP-2.6.
+The existence of the debit/credit classification is an operational structural requirement.
 
-This ticket establishes that the ledger must be capable of representing both sides of financial consequences where required.
+However, the complete accounting interpretation of debit and credit belongs to **WP-2.6 — Ledger Architecture**.
 
-It does not yet prescribe the complete posting algorithm.
+T04 therefore establishes the capability to represent both posting directions without prematurely defining the complete posting algorithm.
 
 ---
 
-# 10. Monetary Value
+# 12. Monetary Value
 
 Each ledger entry represents a defined monetary consequence.
 
@@ -298,19 +463,33 @@ amount
 currency
 ```
 
-The amount must represent the monetary value of the specific ledger consequence.
+The amount must represent the monetary value of the specific ledger posting.
 
-The currency identifies the monetary denomination in which that value is expressed.
+The currency identifies the denomination in which that value is expressed.
 
-The ledger must not silently convert amounts into another currency merely because analytical processing may later require a common reporting currency.
+Financial amounts must use exact numeric representation in the eventual SQL Server implementation.
 
-Currency conversion rules belong to the relevant financial-event and analytical architecture.
+Approximate floating-point representation must not be used for authoritative monetary values.
+
+Currency conversion is outside the scope of the ledger structure unless explicitly introduced by a later approved architecture.
 
 ---
 
-# 11. Timestamp
+# 13. Ledger Timestamp
 
-Each ledger entry requires a timestamp representing when the ledger consequence is established within the authoritative financial processing sequence.
+Each ledger entry requires a timestamp representing its position within the authoritative financial-posting sequence.
+
+Conceptually:
+
+```text
+event_timestamp
+        ↓
+When the source activity occurred
+
+ledger_entry_timestamp
+        ↓
+When the financial consequence was posted
+```
 
 This must remain distinct from:
 
@@ -319,216 +498,245 @@ event_timestamp
 ingestion_timestamp
 observation_timestamp
 processing_timestamp
+recorded_at
 ```
+
+The distinction is necessary for:
+
+* temporal reconstruction;
+* reconciliation;
+* processing-latency analysis;
+* historical investigation.
+
+The precise timestamp semantics and processing rules are governed by the subsequent ledger architecture.
+
+---
+
+# 14. Financial Event → Consequence → Ledger Relationship
+
+The approved structural chain is:
+
+```text
+financial_event
+        │
+        │ 1 : many
+        ↓
+financial_consequence
+        │
+        │ 1 : many
+        ↓
+ledger.entry
+```
+
+Therefore:
+
+```text
+1 Financial Event
+        ↓
+0..many Financial Consequences
+        ↓
+0..many Ledger Entries
+```
+
+This provides sufficient structural flexibility without collapsing the three concepts.
+
+A simple event may therefore produce:
+
+```text
+1 Event
+   ↓
+1 Consequence
+   ↓
+1 Ledger Entry
+```
+
+while a P2P transfer may produce:
+
+```text
+1 Event
+   ↓
+2 Consequences
+   ↓
+2 Ledger Entries
+```
+
+The architecture does not require the number of ledger entries to equal the number of financial consequences.
+
+That relationship is determined by the accounting model.
+
+---
+
+# 15. P2P Transfer
+
+P2P Transfer remains one authoritative financial event.
+
+The event produces two financial consequences:
+
+```text
+P2P Transfer
+      │
+      ├── Sender Debit
+      │
+      └── Receiver Credit
+```
+
+These consequences may then produce corresponding ledger postings:
+
+```text
+P2P Transfer
+      │
+      ├── Sender Debit
+      │       ↓
+      │    ledger.entry
+      │
+      └── Receiver Credit
+              ↓
+           ledger.entry
+```
+
+Therefore:
+
+```text
+1 P2P Transfer
+        ↓
+2 Financial Consequences
+        ↓
+At least 2 corresponding ledger postings
+```
+
+The exact posting rules, balancing requirements, and accounting treatment are deferred to WP-2.6.
+
+The critical principle remains:
+
+> P2P Send and P2P Receive are not separate authoritative financial events.
+
+---
+
+# 16. Failed and Rejected Events
+
+A failed or rejected financial event must not generate a valid authoritative financial consequence merely because the event record exists.
+
+The relationship is:
+
+```text
+Financial Event
+        ↓
+Failed / Rejected
+        ↓
+No valid financial consequence
+        ↓
+No authoritative ledger posting
+```
+
+The failed or rejected event may remain recorded for:
+
+* historical analysis;
+* operational investigation;
+* fraud and anomaly analysis;
+* failure-rate measurement;
+* reconciliation.
+
+The ledger represents valid financial consequences, not every attempted activity.
+
+---
+
+# 17. Successful Events
+
+A successful event may produce one or more valid financial consequences according to the approved event catalogue.
 
 Conceptually:
 
 ```text
-EVENT TIMESTAMP
-      ↓
-when the source event occurred
-
-LEDGER TIMESTAMP
-      ↓
-when its financial consequence was posted
+Successful Event
+        ↓
+Valid Financial Consequence
+        ↓
+Ledger Posting
 ```
 
-The distinction is necessary for temporal reconstruction and reconciliation.
+However, successful status alone must not be interpreted as an unrestricted instruction to post.
+
+The authoritative posting decision remains governed by the financial-event semantics and the ledger-posting architecture.
 
 ---
 
-# 12. Ledger and Financial State
+# 18. Ledger and Financial State
 
-The ledger provides the authoritative financial-consequence record from which defined financial positions can be reconstructed or reconciled.
+The ledger provides the accounting representation from which defined financial positions may be reconstructed or reconciled.
 
 For example:
 
 ```text
 Successful Cash-in
         ↓
-Credit ledger entry
+Wallet Credit Consequence
         ↓
-Wallet financial consequence
+Credit Ledger Entry
         ↓
-Wallet position
+Wallet Financial Position
 ```
 
-For a debit:
+For cash-out:
 
 ```text
 Successful Cash-out
         ↓
-Debit ledger entry
+Wallet Debit Consequence
         ↓
-Wallet financial consequence
+Debit Ledger Entry
         ↓
-Wallet position
+Wallet Financial Position
 ```
 
-The ledger therefore participates in:
+For loan activity:
 
 ```text
-EVENT
-  ↓
-CONSEQUENCE
-  ↓
-LEDGER
-  ↓
-STATE
+Loan Disbursement
+        ↓
+Loan Principal Creation
+        ↓
+Ledger Posting
+        ↓
+Outstanding Principal
 ```
-
-It does not replace the financial-state representation itself.
-
----
-
-# 13. P2P Transfer
-
-P2P Transfer requires particular treatment.
-
-The authoritative business event remains:
-
-```text
-P2P Transfer
-```
-
-It produces two financial consequences:
-
-```text
-P2P Transfer
-      │
-      ├── Sender consequence
-      │       ↓
-      │     DEBIT
-      │
-      └── Receiver consequence
-              ↓
-            CREDIT
-```
-
-The ledger must therefore permit both consequences to be represented while maintaining their relationship to the **same authoritative P2P Transfer event**.
-
-Conceptually:
-
-```text
-P2P Transfer
-     │
-     ├───────────────┐
-     ↓               ↓
-ledger.entry      ledger.entry
-DEBIT             CREDIT
-sender wallet     receiver wallet
-```
-
-This preserves the event-level semantics established in WP-1.3 and WP-2.1.
-
----
-
-# 14. Failed Events
-
-A failed or rejected financial event must not generate a valid financial consequence merely because an event record exists.
-
-Therefore:
-
-```text
-Financial Event
-      ↓
-Failed / Rejected
-      ↓
-No valid financial consequence
-      ↓
-No authoritative financial posting
-```
-
-The event remains available for historical and analytical purposes.
-
-The ledger must represent **financial consequences**, not every attempted activity.
-
-This is consistent with the state model:
-
-> Failed financial activity does not alter authoritative financial position where no valid financial consequence exists.
-
----
-
-# 15. Ledger Traceability
-
-The ledger structure must support traceability across the financial chain:
-
-```text
-SOURCE ACTIVITY
-      ↓
-FINANCIAL EVENT
-      ↓
-EVENT OUTCOME
-      ↓
-FINANCIAL CONSEQUENCE
-      ↓
-LEDGER ENTRY
-      ↓
-FINANCIAL STATE
-```
-
-A material ledger posting must therefore be explainable back to its originating financial event.
-
-This establishes the foundation for:
-
-* financial reconciliation;
-* event-to-state reconstruction;
-* transaction investigation;
-* ledger integrity testing;
-* regulatory evidence;
-* historical reconstruction.
-
----
-
-# 16. Ledger Does Not Become a Generic Transaction Table
-
-The ledger must not be used as a replacement for institutional transaction tables.
 
 The distinction remains:
 
 ```text
-ananse.transaction
-        ↓
-institutional activity
-
-ledger.entry
-        ↓
-financial consequence / accounting posting
+Ledger Entry
+        ≠
+Financial Position
 ```
 
-Likewise:
+The ledger represents financial consequence.
 
-```text
-sikacredit.loan
-        ↓
-institutional lending activity
+The financial-state model represents the resulting position.
 
-ledger.entry
-        ↓
-financial consequence where applicable
-```
+---
 
-and:
+# 19. Ledger Does Not Become a Generic Transaction Table
 
-```text
-oman_remit.remittance
-        ↓
-institutional remittance activity
+The ledger must not be used as a replacement for institutional operational tables.
 
-ledger.entry
-        ↓
-financial consequence where applicable
-```
+The distinction remains:
+
+| Structure                      | Meaning                                                |
+| ------------------------------ | ------------------------------------------------------ |
+| `ananse.transaction`           | Ananse institutional transaction activity              |
+| `sikacredit.loan`              | SikaCredit lending activity                            |
+| `sikacredit.repayment`         | SikaCredit repayment activity                          |
+| `oman_remit.remittance`        | Oman Remit remittance activity                         |
+| `ledger.financial_event`       | OCB financial-event representation                     |
+| `ledger.financial_consequence` | Financial effect produced by the event                 |
+| `ledger.entry`                 | Accounting representation of the financial consequence |
 
 The ledger therefore remains downstream of recognised financial activity.
 
 ---
 
-# 17. Institutional Boundary
+# 20. Institutional Boundary
 
-Ledger structures do not collapse institutional boundaries.
-
-The originating event remains owned by its source institution.
+Ledger structures do not transfer institutional ownership.
 
 For example:
 
@@ -539,135 +747,220 @@ ANANSE
           ↓
       Financial Event
           ↓
-       Ledger Entry
+      Financial Consequence
+          ↓
+      Ledger Entry
 ```
 
-The ledger represents the financial consequence within the OCB financial core.
+The transaction remains Ananse-owned.
 
-It does not mean:
+Likewise:
 
 ```text
-OCB owns Ananse transaction
+ANANSE
+   │
+   └── Wallet
 ```
 
-or:
+The wallet remains Ananse-owned even though it resides physically in:
 
 ```text
-ledger owns Ananse wallet
+wallet
 ```
 
-Ownership and financial representation remain distinct.
-
----
-
-# 18. Ledger Entry vs Financial State
-
-The distinction between ledger entries and financial positions is mandatory.
-
-| Object             | Represents                                                       |
-| ------------------ | ---------------------------------------------------------------- |
-| Financial event    | What financially occurred                                        |
-| Ledger entry       | The accounting representation of the valid financial consequence |
-| Financial position | What is subsequently true                                        |
-| Analytical state   | What OCB derives from available financial information            |
+The ledger represents the financial consequence affecting that wallet but does not own the wallet.
 
 Therefore:
 
 ```text
-Ledger Entry
-      ≠
-Financial Position
+Physical Schema Placement
+        ≠
+Institutional Ownership
 ```
-
-and:
-
-```text
-Ledger Entry
-      ≠
-Financial Event
-```
-
-The ledger is an intermediate authoritative representation of financial consequence.
 
 ---
 
-# 19. Minimum Structural Requirements
+# 21. Ledger Authority Boundary
+
+The ledger is authoritative **for the accounting representation of valid financial consequences within the OCB financial core**.
+
+It is not authoritative for:
+
+```text
+Source institutional activity
+```
+
+which remains with the relevant institution.
+
+It is not itself the authoritative representation of:
+
+```text
+Financial State
+```
+
+where the state model maintains the resulting position.
+
+The authority model is therefore:
+
+```text
+Institutional Source
+        ↓
+Authoritative for source activity
+
+OCB Financial Event
+        ↓
+Authoritative OCB representation of recognised financial event
+
+Financial Consequence
+        ↓
+Authoritative representation of financial effect
+
+Ledger
+        ↓
+Authoritative accounting representation of that effect
+
+Financial State
+        ↓
+Authoritative resulting position within its defined state model
+```
+
+Each layer has a distinct responsibility.
+
+---
+
+# 22. Ledger Traceability
+
+Every authoritative ledger posting must ultimately be explainable through the financial chain:
+
+```text
+SOURCE ACTIVITY
+        ↓
+FINANCIAL EVENT
+        ↓
+FINANCIAL CONSEQUENCE
+        ↓
+LEDGER ENTRY
+        ↓
+FINANCIAL STATE
+```
+
+This provides the foundation for:
+
+* financial reconciliation;
+* event-to-state reconstruction;
+* transaction investigation;
+* ledger integrity testing;
+* regulatory evidence;
+* historical reconstruction.
+
+A ledger posting that cannot be explained through the approved financial-event and consequence chain represents a ledger-integrity problem.
+
+---
+
+# 23. Minimum Structural Requirements
 
 The v1.0.0 ledger structure must support, at minimum:
 
-| Requirement                            | Purpose                             |
-| -------------------------------------- | ----------------------------------- |
-| `ledger_entry_id`                      | Unique ledger-entry identity        |
-| Event reference                        | Trace entry to financial event      |
-| Transaction reference where applicable | Trace entry to originating activity |
-| Financial-object reference             | Identify affected financial object  |
-| Debit/credit classification            | Represent posting direction         |
-| Amount                                 | Represent monetary consequence      |
-| Currency                               | Identify monetary denomination      |
-| Ledger timestamp                       | Preserve posting chronology         |
+| Requirement                                 | Purpose                                             |
+| ------------------------------------------- | --------------------------------------------------- |
+| `ledger_entry_id`                           | Unique ledger-entry identity                        |
+| `financial_consequence_id`                  | Identify the consequence represented by the posting |
+| `financial_event_id`                        | Trace the posting to the recognised financial event |
+| Transaction reference where applicable      | Trace to originating operational transaction        |
+| Financial-object reference where applicable | Identify the affected financial object              |
+| Debit/credit classification                 | Represent posting direction                         |
+| Amount                                      | Represent monetary value                            |
+| Currency                                    | Identify monetary denomination                      |
+| Ledger timestamp                            | Preserve posting chronology                         |
 
-Additional control, provenance, and reconciliation attributes may be introduced where justified by later implementation requirements.
+Additional attributes may be introduced where justified by:
+
+* reconciliation;
+* provenance;
+* integrity controls;
+* auditability;
+* ledger processing requirements.
+
+Such additions must not contradict the approved responsibility boundaries.
 
 ---
 
-# 20. Relationship to WP-2.3-T03
+# 24. Relationship to WP-2.3-T03
 
-WP-2.3-T03 establishes the **financial event structures**.
-
-This ticket establishes the corresponding **ledger representation of financial consequences**.
-
-The relationship is:
+WP-2.3-T03 establishes:
 
 ```text
-WP-2.3-T03
-Financial Event Structure
-        ↓
-WP-2.3-T04
-Ledger Structure
+ledger.financial_event
+ledger.financial_consequence
 ```
 
-The two structures must remain separate.
+This ticket establishes:
 
-A financial event records the recognised activity.
+```text
+ledger.entry
+```
 
-A ledger entry records its valid accounting consequence.
+The resulting relationship is:
+
+```text
+Financial Event
+      │
+      │ 1 : many
+      ↓
+Financial Consequence
+      │
+      │ 1 : many
+      ↓
+Ledger Entry
+```
+
+The three structures remain distinct.
+
+A financial event records the recognised financial activity.
+
+A financial consequence records what financially changed.
+
+A ledger entry records the accounting representation of that change.
 
 ---
 
-# 21. Relationship to WP-2.6
+# 25. Relationship to WP-2.6
 
-This ticket does **not** replace WP-2.6.
+T04 does **not** replace WP-2.6.
 
-WP-2.3-T04 establishes the operational schema boundary and minimum ledger structure required by the database architecture.
+T04 establishes the operational schema boundary and minimum ledger structure.
 
-WP-2.6 will subsequently establish the complete ledger architecture, including:
+WP-2.6 will establish the complete ledger architecture, including:
 
 * authoritative ledger behaviour;
 * debit/credit semantics;
+* posting rules;
 * event-to-ledger linkage;
-* transaction-to-ledger linkage;
+* consequence-to-ledger linkage;
+* ledger balancing;
 * reconciliation;
 * ledger integrity;
-* event-to-ledger traceability.
+* temporal ordering;
+* event-to-state traceability.
 
-The separation is deliberate:
+The architectural progression is:
 
 ```text
 WP-2.3-T04
-STRUCTURE
-      ↓
+LEDGER STRUCTURE
+        ↓
 WP-2.6
 LEDGER ARCHITECTURE
-      ↓
-WP-3.4
+        ↓
+PROGRAMME 3
 LEDGER POSTING ENGINE
 ```
 
 ---
 
-# 22. v1.0.0 Boundary
+# 26. v1.0.0 Boundary
 
-The ledger structure does **not** introduce:
+The v1.0.0 ledger structure does not introduce:
 
 * institutional internal ledgers;
 * correspondent accounts;
@@ -677,21 +970,23 @@ The ledger structure does **not** introduce:
 * external payment-rail ledgers;
 * SWIFT structures;
 * real-time ledger streaming;
-* external accounting integrations.
+* external accounting integrations;
+* general-purpose accounting modules.
 
 The ledger represents only the financial consequences required by the approved OCB v1.0.0 financial model.
 
 ---
 
-# 23. Resulting Structure
+# 27. Resulting Operational Schema Architecture
 
-The operational schema architecture is therefore:
+The resulting architecture is:
 
 ```text
 OCB_PLATFORM
 │
-├── ledger
-│   └── entry
+├── ocb
+│   ├── customer
+│   └── customer_identity
 │
 ├── ananse
 │   ├── customer
@@ -709,9 +1004,10 @@ OCB_PLATFORM
 ├── wallet
 │   └── wallet
 │
-├── ocb
-│   ├── customer
-│   └── customer_identity
+├── ledger
+│   ├── financial_event
+│   ├── financial_consequence
+│   └── entry
 │
 └── ref
     └── [defined in T05]
@@ -724,16 +1020,16 @@ Institutional Activity
         ↓
 Financial Event
         ↓
-Valid Financial Consequence
+Financial Consequence
         ↓
-ledger.entry
+Ledger Entry
         ↓
-Financial Position
+Financial State
 ```
 
 ---
 
-# 24. Decision
+# 28. Decision
 
 The OCB Platform v1.0.0 will maintain a dedicated:
 
@@ -741,22 +1037,55 @@ The OCB Platform v1.0.0 will maintain a dedicated:
 ledger
 ```
 
-schema containing the operational ledger structure:
+schema containing the operational financial-core structures:
 
 ```text
+ledger.financial_event
+ledger.financial_consequence
 ledger.entry
 ```
 
-The ledger entry will provide a distinct accounting representation of valid financial consequences and will maintain traceability to the originating financial event and, where applicable, transaction and affected financial object.
+The ledger entry will provide a distinct accounting representation of valid financial consequences.
 
-The ledger will support debit and credit representation, monetary value, currency, chronology, and financial-object reference.
+The ledger structure will maintain traceability to:
 
-The ledger will not replace institutional activity, financial events, or financial-state structures.
+* the originating financial event;
+* the financial consequence represented by the posting;
+* the originating transaction where applicable;
+* the affected financial object where applicable.
 
-Detailed ledger behaviour, reconciliation, and posting mechanics remain governed by **WP-2.6** and **Programme 3**.
+The ledger will support:
+
+* debit and credit representation;
+* monetary value;
+* currency;
+* posting chronology;
+* financial-object identification;
+* event and consequence traceability.
+
+The ledger will not replace:
+
+* institutional activity;
+* financial events;
+* financial consequences; or
+* financial-state structures.
+
+The approved cardinality is:
+
+```text
+Financial Event
+      ↓ 0..many
+Financial Consequence
+      ↓ 0..many
+Ledger Entry
+```
+
+with the final posting requirements and validity rules governed by WP-2.6 and Programme 3.
+
+Detailed ledger behaviour, reconciliation, integrity, and posting mechanics remain outside T04.
 
 ---
 
-## Core Principle
+# 29. Core Principle
 
-> **The ledger records the accounting representation of a valid financial consequence; it does not become the originating financial event, the institutional transaction, or the financial position itself. Every authoritative ledger consequence must remain traceable to the financial activity that produced it and to the financial state it affects.**
+> **The ledger records the accounting representation of a valid financial consequence. It does not become the originating institutional activity, the financial event, the financial consequence itself, or the resulting financial position. Every authoritative ledger posting must remain traceable through the financial chain that explains why the posting exists and what financial state it affects.**

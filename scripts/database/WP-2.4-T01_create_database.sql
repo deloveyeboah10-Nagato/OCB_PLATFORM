@@ -9,7 +9,6 @@ GO
     If [ocb_platform] already exists, this script leaves it unchanged.
 
 */
-
 IF DB_ID(N'ocb_platform') IS NULL
 BEGIN
     CREATE DATABASE [ocb_platform];
@@ -18,7 +17,11 @@ END;
 GO
 
 -- Verifying that the DB state is ONLINE
-
-SELECT name, state_desc FROM sys.databases
+SELECT
+    name,
+    state_desc
+FROM sys.databases
 WHERE name = N'ocb_platform';
 GO
+
+

@@ -1,0 +1,9 @@
+transaction_channel_id,transaction_channel_code,transaction_channel_name
+1,USSD,Ussd
+2,MOBILE_APP,Mobile App
+3,QR,Qr
+4,AGENT,Agent
+5,POS,Pos
+6,WEB,Web
+7,API,Api
+8,THIRD_PARTY,Third Party

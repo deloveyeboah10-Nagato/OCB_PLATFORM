@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Purpose
+# 1. Purpose
 
 This ticket performs the final consistency review of the logical relational model established through **WP-2.2-T01 to T06**.
 
@@ -18,17 +18,20 @@ The review confirms that:
 * attributes belong to the correct entity and grain;
 * primary identifiers are consistent;
 * foreign keys reference the correct parent entities;
+* all **12 authoritative physical foreign-key relationships** are represented;
 * cardinalities agree with the FK structure;
 * normalization decisions agree with the entity model;
+* institutional boundaries remain intact;
+* identity resolution remains correctly separated from source-system ownership;
 * no contradictory relational logic remains.
 
-This is a **consistency validation**, not an opportunity to introduce new entities or attributes.
+This is a **consistency validation**, not an opportunity to introduce new entities, attributes, identifiers, or relationships.
 
 ---
 
-# 2. Entity Consistency
+# 2. Authoritative Entity Set
 
-The authoritative entity set is:
+The authoritative logical entity set remains:
 
 ```text
 OCB_CUSTOMER
@@ -46,7 +49,9 @@ OMAN_REMIT_CUSTOMER
 OMAN_REMIT_REMITTANCE
 ```
 
-All entities defined in T01 remain represented through T02–T06.
+All entities established in T01 remain represented consistently through T02–T06.
+
+No entity has been added, removed, renamed, or repurposed by the subsequent logical-model tickets.
 
 **Result: ✅ Consistent**
 
@@ -69,18 +74,32 @@ All entities defined in T01 remain represented through T02–T06.
 
 No entity has conflicting primary-key definitions.
 
+The identifiers remain appropriate to their respective entity grains.
+
 **Result: ✅ Consistent**
 
 ---
 
 # 4. Foreign-Key Consistency
 
-The FK structure established in T04 is:
+The reconciled logical model recognizes the **12 authoritative foreign-key relationships implemented in the physical deployment**.
+
+## 4.1 OCB
 
 ```text
 OCB_CUSTOMER_IDENTITY.ocb_customer_id
         ↓
 OCB_CUSTOMER.ocb_customer_id
+```
+
+---
+
+## 4.2 Ananse
+
+```text
+ANANSE_WALLET.customer_id
+        ↓
+ANANSE_CUSTOMER.customer_id
 ```
 
 ```text
@@ -96,6 +115,34 @@ ANANSE_WALLET.wallet_id
 ```
 
 ```text
+ANANSE_TRANSACTION.transaction_type_id
+        ↓
+REF_TRANSACTION_TYPE.transaction_type_id
+```
+
+```text
+ANANSE_TRANSACTION.transaction_status_id
+        ↓
+REF_TRANSACTION_STATUS.transaction_status_id
+```
+
+```text
+ANANSE_TRANSACTION.transaction_channel_id
+        ↓
+REF_TRANSACTION_CHANNEL.transaction_channel_id
+```
+
+```text
+ANANSE_TRANSACTION.currency_id
+        ↓
+REF_CURRENCY.currency_id
+```
+
+---
+
+## 4.3 SikaCredit
+
+```text
 SIKACREDIT_LOAN.customer_id
         ↓
 SIKACREDIT_CUSTOMER.customer_id
@@ -107,25 +154,52 @@ SIKACREDIT_REPAYMENT.loan_id
 SIKACREDIT_LOAN.loan_id
 ```
 
+---
+
+## 4.4 Oman Remit
+
 ```text
 OMAN_REMIT_REMITTANCE.customer_id
         ↓
 OMAN_REMIT_CUSTOMER.customer_id
 ```
 
-Every FK references the corresponding parent PK.
+```text
+OMAN_REMIT_REMITTANCE.country_id
+        ↓
+REF_COUNTRY.country_id
+```
+
+---
+
+# 5. Complete FK Consistency Register
+
+|  # | Child Entity            | FK Attribute             | Parent Entity             | Parent Key               | Consistent |
+| -: | ----------------------- | ------------------------ | ------------------------- | ------------------------ | ---------- |
+|  1 | `OCB_CUSTOMER_IDENTITY` | `ocb_customer_id`        | `OCB_CUSTOMER`            | `ocb_customer_id`        | ✅          |
+|  2 | `ANANSE_WALLET`         | `customer_id`            | `ANANSE_CUSTOMER`         | `customer_id`            | ✅          |
+|  3 | `ANANSE_TRANSACTION`    | `customer_id`            | `ANANSE_CUSTOMER`         | `customer_id`            | ✅          |
+|  4 | `ANANSE_TRANSACTION`    | `wallet_id`              | `ANANSE_WALLET`           | `wallet_id`              | ✅          |
+|  5 | `ANANSE_TRANSACTION`    | `transaction_type_id`    | `REF_TRANSACTION_TYPE`    | `transaction_type_id`    | ✅          |
+|  6 | `ANANSE_TRANSACTION`    | `transaction_status_id`  | `REF_TRANSACTION_STATUS`  | `transaction_status_id`  | ✅          |
+|  7 | `ANANSE_TRANSACTION`    | `transaction_channel_id` | `REF_TRANSACTION_CHANNEL` | `transaction_channel_id` | ✅          |
+|  8 | `ANANSE_TRANSACTION`    | `currency_id`            | `REF_CURRENCY`            | `currency_id`            | ✅          |
+|  9 | `SIKACREDIT_LOAN`       | `customer_id`            | `SIKACREDIT_CUSTOMER`     | `customer_id`            | ✅          |
+| 10 | `SIKACREDIT_REPAYMENT`  | `loan_id`                | `SIKACREDIT_LOAN`         | `loan_id`                | ✅          |
+| 11 | `OMAN_REMIT_REMITTANCE` | `customer_id`            | `OMAN_REMIT_CUSTOMER`     | `customer_id`            | ✅          |
+| 12 | `OMAN_REMIT_REMITTANCE` | `country_id`             | `REF_COUNTRY`             | `country_id`             | ✅          |
+
+**Total authoritative foreign-key relationships: 12.**
 
 **Result: ✅ Consistent**
 
 ---
 
-# 5. Attribute-to-Entity Consistency
+# 6. Attribute-to-Entity Consistency
 
-The attributes defined in T02 remain consistent with the entity grain.
+The attributes defined in T02 remain aligned with their respective entity grains.
 
-### Customer-level
-
-Customer attributes remain within:
+## Customer-level
 
 ```text
 ANANSE_CUSTOMER
@@ -133,142 +207,248 @@ SIKACREDIT_CUSTOMER
 OMAN_REMIT_CUSTOMER
 ```
 
-### Activity-level
+contain institutional customer attributes.
 
-Activity attributes remain within:
+## Wallet-level
+
+```text
+ANANSE_WALLET
+```
+
+contains the Ananse wallet identity and customer relationship.
+
+## Transaction-level
 
 ```text
 ANANSE_TRANSACTION
-OMAN_REMIT_REMITTANCE
 ```
 
-### Lending-level
+contains transaction identifiers, relational reference identifiers, transaction attributes, amount, currency, location, channel, and device information.
 
-Loan and repayment attributes remain separated:
+## Lending-level
 
 ```text
 SIKACREDIT_LOAN
 SIKACREDIT_REPAYMENT
 ```
 
-### Wallet-level
+separate loan-level attributes from repayment-level activity.
 
-Wallet remains independently represented:
+## Remittance-level
 
 ```text
-ANANSE_WALLET
+OMAN_REMIT_REMITTANCE
 ```
 
-### Identity-level
+contains remittance-level attributes and its customer/country relationships.
 
-OCB identity mapping remains separated:
+## Identity-level
 
 ```text
 OCB_CUSTOMER
 OCB_CUSTOMER_IDENTITY
 ```
 
-**Result: ✅ Consistent**
-
----
-
-# 6. Cardinality Consistency
-
-The T05 cardinalities agree with the T04 FK structure.
-
-| Relationship                     | Cardinality | Consistent |
-| -------------------------------- | ----------: | ---------- |
-| OCB Customer → OCB Identity      |  `1 : 0..N` | ✅          |
-| Ananse Customer → Transaction    |  `1 : 0..N` | ✅          |
-| Ananse Wallet → Transaction      |  `1 : 0..N` | ✅          |
-| SikaCredit Customer → Loan       |  `1 : 0..N` | ✅          |
-| SikaCredit Loan → Repayment      |  `1 : 0..N` | ✅          |
-| Oman Remit Customer → Remittance |  `1 : 0..N` | ✅          |
-
-No relationship has a cardinality that conflicts with its FK structure.
+remain responsible for OCB-resolved identity and source-identity mapping.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 7. Institutional Separation
+# 7. Cardinality Consistency
 
-The three institutional domains remain independent:
+The cardinality model established in T05 must be interpreted against the complete FK structure established in T04.
+
+The six principal business-entity cardinalities remain:
+
+| Parent Entity         | Child Entity            | Cardinality |
+| --------------------- | ----------------------- | ----------: |
+| `OCB_CUSTOMER`        | `OCB_CUSTOMER_IDENTITY` |  `1 : 0..N` |
+| `ANANSE_CUSTOMER`     | `ANANSE_TRANSACTION`    |  `1 : 0..N` |
+| `ANANSE_WALLET`       | `ANANSE_TRANSACTION`    |  `1 : 0..N` |
+| `SIKACREDIT_CUSTOMER` | `SIKACREDIT_LOAN`       |  `1 : 0..N` |
+| `SIKACREDIT_LOAN`     | `SIKACREDIT_REPAYMENT`  |  `1 : 0..N` |
+| `OMAN_REMIT_CUSTOMER` | `OMAN_REMIT_REMITTANCE` |  `1 : 0..N` |
+
+The five reference-table relationships introduced through the physical FK reconciliation are lookup/reference relationships:
+
+```text
+ANANSE_TRANSACTION
+    → REF_TRANSACTION_TYPE
+
+ANANSE_TRANSACTION
+    → REF_TRANSACTION_STATUS
+
+ANANSE_TRANSACTION
+    → REF_TRANSACTION_CHANNEL
+
+ANANSE_TRANSACTION
+    → REF_CURRENCY
+
+OMAN_REMIT_REMITTANCE
+    → REF_COUNTRY
+```
+
+Their inclusion does not alter the business-object cardinalities defined in T05.
+
+**Result: ✅ Consistent**
+
+---
+
+# 8. Reference-Relationship Consistency
+
+The addition of the reference-table FKs is consistent with the attribute model established in T02.
+
+For Ananse:
+
+```text
+transaction_type_id
+        ↓
+ref.transaction_type
+```
+
+```text
+transaction_status_id
+        ↓
+ref.transaction_status
+```
+
+```text
+transaction_channel_id
+        ↓
+ref.transaction_channel
+```
+
+```text
+currency_id
+        ↓
+ref.currency
+```
+
+For Oman Remit:
+
+```text
+country_id
+        ↓
+ref.country
+```
+
+These relationships establish controlled reference domains without introducing new business entities into the institutional model.
+
+**Result: ✅ Consistent**
+
+---
+
+# 9. Institutional Separation
+
+The three institutional domains remain independently represented.
 
 ```text
 ANANSE
 ├── CUSTOMER
 ├── WALLET
 └── TRANSACTION
+```
 
+```text
 SIKACREDIT
 ├── CUSTOMER
 ├── LOAN
 └── REPAYMENT
+```
 
-OMAN REMIT
+```text
+OMAN_REMIT
 ├── CUSTOMER
 └── REMITTANCE
 ```
 
-No institutional entity has been incorrectly merged with another institutional entity.
+No institutional customer entity has been merged with another institution.
+
+No institutional identifier has been redefined as an OCB identifier.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 8. Identity Resolution Consistency
+# 10. Identity-Resolution Consistency
 
-OCB identity resolution remains separate from institutional source entities.
+OCB identity resolution remains separated from institutional source ownership.
 
-The model is:
+The model remains:
 
 ```text
                     OCB_CUSTOMER
                          │
-                         │
-                OCB_CUSTOMER_IDENTITY
+                         │ 1 : 0..N
+                         ▼
+               OCB_CUSTOMER_IDENTITY
                     /       |       \
                    /        |        \
-             ANANSE     SIKACREDIT   OMAN
-            CUSTOMER     CUSTOMER     REMIT
+              ANANSE   SIKACREDIT   OMAN_REMIT
+             CUSTOMER    CUSTOMER     CUSTOMER
 ```
 
-The institutional customer entities do not require an `ocb_customer_id` column.
+The mapping is represented through:
 
-This preserves the source-system boundary established in T01.
+```text
+(source_entity, source_customer_id)
+```
+
+with:
+
+```text
+ocb_customer_id
+```
+
+as the FK to the OCB-resolved identity.
+
+Institutional customer entities therefore do not require an `ocb_customer_id` column.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 9. Wallet Boundary Consistency
+# 11. Wallet Boundary Consistency
 
-The logical model maintains the agreed distinction:
+The wallet remains a distinct Ananse financial object.
 
 ```text
 ANANSE_CUSTOMER
-       │
-       │
+        │
+        │ customer_id
+        ▼
 ANANSE_WALLET
-       │
-       │
+        │
+        │ wallet_id
+        ▼
 ANANSE_TRANSACTION
 ```
 
-The wallet is not merged into Ananse Customer.
+The transaction also maintains its direct customer relationship:
 
-The wallet is not merged into Ananse Transaction.
+```text
+ANANSE_TRANSACTION.customer_id
+        ↓
+ANANSE_CUSTOMER.customer_id
+```
 
-Transactions reference both the customer and wallet because these represent distinct relational objects.
+This is intentional.
+
+The two relationships answer different questions:
+
+* **Who owns the transaction?**
+* **Which wallet was used by the transaction?**
+
+The logical model therefore does not collapse customer, wallet, and transaction into a single entity.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 10. SikaCredit Repayment Consistency
+# 12. SikaCredit Repayment Consistency
 
-The repayment model remains:
+The lending hierarchy remains:
 
 ```text
 SIKACREDIT_CUSTOMER
@@ -278,58 +458,100 @@ SIKACREDIT_CUSTOMER
                 └── SIKACREDIT_REPAYMENT
 ```
 
-A loan may therefore have multiple repayment records.
-
-This is consistent with:
-
-* the separate `repayment_id`;
-* `loan_id` as FK;
-* `repayment_amount`;
-* `repayment_timestamp`;
-* `repayment_location`;
-* the `1 : 0..N` loan-to-repayment cardinality.
-
-**Result: ✅ Consistent**
-
----
-
-# 11. OCB Financial-Core Boundary
-
-The logical model does not incorrectly force institutional activities into the Ananse wallet or ledger.
-
-The architectural flow remains:
+This agrees with:
 
 ```text
-ANANSE ACTIVITY
-SIKACREDIT ACTIVITY
-OMAN REMIT ACTIVITY
-        │
-        ↓
-FINANCIAL CONSEQUENCE
-        │
-        ↓
-LEDGER POSTING
-        │
-        ↓
-ANANSE WALLET
-        │
-        ↓
-FINANCIAL STATE
+loan_id
 ```
 
-The institutional source entities describe the originating activity.
+as the repayment FK and:
 
-The financial-core architecture describes the resulting financial state.
+```text
+repayment_id
+```
+
+as the independent repayment identifier.
+
+The `1 : 0..N` relationship permits a loan to exist before any repayment occurs.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 12. Attribute Exclusion Consistency
+# 13. Oman Remit Consistency
 
-The exclusions agreed in T02 remain respected.
+The Oman Remit structure remains:
 
-The current model does not reintroduce:
+```text
+OMAN_REMIT_CUSTOMER
+        │
+        │ customer_id
+        ▼
+OMAN_REMIT_REMITTANCE
+        │
+        │ country_id
+        ▼
+REF_COUNTRY
+```
+
+The customer relationship and country reference relationship are both represented through physical foreign keys.
+
+The descriptive country attributes retained in the remittance representation remain at remittance grain.
+
+**Result: ✅ Consistent**
+
+---
+
+# 14. Normalization Consistency
+
+The conclusions of T06 remain valid.
+
+The logical model:
+
+* maintains coherent entity boundaries;
+* preserves entity grain;
+* eliminates repeating groups;
+* separates customers from activities;
+* separates wallets from transactions;
+* separates loans from repayments;
+* maintains institutional attribute ownership;
+* maintains a separate OCB identity-resolution boundary.
+
+The model also contains deliberately retained physical descriptive attributes alongside reference identifiers in selected deployed tables.
+
+Therefore the correct characterization remains:
+
+> **3NF-oriented logical entity design with controlled physical redundancy in the approved deployment.**
+
+The physical redundancy does not require restructuring of the logical entities.
+
+**Result: ✅ Consistent**
+
+---
+
+# 15. Device Identifier Consistency
+
+`device_id` remains part of:
+
+```text
+ANANSE_TRANSACTION
+```
+
+It is maintained at transaction grain.
+
+It is not promoted to customer grain or wallet grain.
+
+This is consistent with the requirement to preserve transaction-level device information for intelligence and anomaly analysis.
+
+**Result: ✅ Consistent**
+
+---
+
+# 16. Exclusion Consistency
+
+The exclusions established in T02 remain excluded from the model.
+
+The following have not been reintroduced:
 
 * wallet type;
 * customer status;
@@ -341,54 +563,134 @@ The current model does not reintroduce:
 * receiver ID;
 * counterparty reference;
 * unnecessary effective dates;
-* separate remittance type.
+* separate remittance type;
+* SikaCredit currency reference FK not present in the physical deployment.
+
+No additional attributes are implied by this consistency review.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 13. Device Identifier Consistency
+# 17. Financial-Core Boundary Consistency
 
-`device_id` is present in:
+The logical institutional model does not create direct foreign-key relationships between institutional activities and financial-core objects merely because those objects are analytically related.
+
+The architectural distinction remains:
 
 ```text
-ANANSE_TRANSACTION
+INSTITUTIONAL ACTIVITY
+        │
+        ↓
+FINANCIAL CONSEQUENCE
+        │
+        ↓
+LEDGER POSTING
+        │
+        ↓
+FINANCIAL STATE
 ```
 
-and is treated as a transaction-level attribute.
+This flow describes the financial architecture.
 
-This is consistent with the requirement to preserve device information for transaction intelligence and analytical use.
+It does **not** imply that the entities in the flow are all directly related by foreign keys in the institutional logical model.
+
+Consequently, this review does not introduce direct FKs between:
+
+* Oman Remit and Ananse Wallet;
+* SikaCredit and Ananse Wallet;
+* institutional transactions and OCB Customer;
+* institutional activities and ledger entries.
+
+Those relationships belong to the financial-consequence and ledger architecture.
 
 **Result: ✅ Consistent**
 
 ---
 
-# 14. Final Consistency Assessment
+# 18. Contradiction Check
 
-| Area                           | Result             |
-| ------------------------------ | ------------------ |
-| Entity definitions             | ✅ Consistent       |
-| Attributes                     | ✅ Consistent       |
-| Primary identifiers            | ✅ Consistent       |
-| Foreign keys                   | ✅ Consistent       |
-| Cardinalities                  | ✅ Consistent       |
-| Normalization                  | ✅ Consistent       |
-| Institutional boundaries       | ✅ Consistent       |
-| Identity-resolution model      | ✅ Consistent       |
-| Wallet model                   | ✅ Consistent       |
-| Repayment model                | ✅ Consistent       |
-| Financial-core boundary        | ✅ Consistent       |
-| Previously excluded attributes | ✅ Not reintroduced |
-| Device identifier              | ✅ Present          |
+The final review confirms the following:
+
+| Consistency Area           | Result                         |
+| -------------------------- | ------------------------------ |
+| Entity set                 | ✅ No contradiction             |
+| Attribute ownership        | ✅ No contradiction             |
+| Primary identifiers        | ✅ No contradiction             |
+| Foreign-key relationships  | ✅ 12 FKs reconciled            |
+| Reference relationships    | ✅ Consistent                   |
+| Cardinalities              | ✅ Consistent                   |
+| Entity grain               | ✅ Consistent                   |
+| Normalization decision     | ✅ Consistent                   |
+| Institutional boundaries   | ✅ Consistent                   |
+| OCB identity resolution    | ✅ Consistent                   |
+| Ananse wallet model        | ✅ Consistent                   |
+| SikaCredit repayment model | ✅ Consistent                   |
+| Oman Remit model           | ✅ Consistent                   |
+| Device identifier          | ✅ Present and correctly placed |
+| Excluded attributes        | ✅ Not reintroduced             |
+| Financial-core boundary    | ✅ Preserved                    |
 
 ---
 
-# 15. Final Decision
+# 19. Final Consistency Assessment
 
-The WP-2.2 logical model has passed its internal consistency review.
+The WP-2.2 logical model is internally consistent across T01–T06.
 
-The model established through T01–T06 is internally coherent and ready to proceed to the next architectural stage.
+The final model contains:
+
+**10 logical business entities**
+
+and recognizes:
+
+**12 authoritative physical foreign-key relationships.**
+
+The logical model and physical deployment are therefore reconciled at the identifier and relationship level.
+
+No unresolved contradiction remains between:
+
+```text
+Entity
+    ↓
+Attributes
+    ↓
+Primary Keys
+    ↓
+Foreign Keys
+    ↓
+Cardinality
+    ↓
+Normalization
+```
+
+---
+
+# 20. Final Decision
+
+The WP-2.2 logical model has passed its final internal consistency review.
+
+The authoritative model is now:
+
+```text
+10 logical entities
+12 authoritative foreign-key relationships
+6 principal business cardinality relationships
+5 reference-table relationships
+```
+
+The model preserves:
+
+* institutional ownership;
+* entity-specific identifiers;
+* explicit relational dependencies;
+* source identity mapping;
+* wallet separation;
+* transaction grain;
+* loan/repayment separation;
+* reference-domain control;
+* controlled physical redundancy;
+* the financial-core architectural boundary.
 
 No additional entity, attribute, primary key, foreign key, or cardinality is introduced by this ticket.
 
-**WP-2.2-T07 — REVISED AND LOCKED.**
+**WP-2.2-T07 — REVISED, RECONCILED AND LOCKED.**

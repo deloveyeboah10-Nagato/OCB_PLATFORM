@@ -1,18 +1,22 @@
 # WP-2.2-T01 — Define Relational Entities
 
 **Programme:** OCB Platform v1.0.0
+
 **Work Package:** WP-2.2 — Logical Data Model
+
 **Ticket:** WP-2.2-T01
+
 **Status:** **REVISED / LOCKED**
+
 **Decision Type:** Logical data-model definition
 
 ---
 
-## 1. Purpose
+# 1. Purpose
 
 This ticket defines the relational entities required to represent the OCB Platform's institutional activity, cross-institutional identity, and financial-domain structure.
 
-The entities are defined according to the **final post-T01 architectural decisions** established during WP-2.2.
+The entities are defined according to the **final post-T01 architectural decisions** and reconciled against the finalized WP-2.4 physical database deployment.
 
 The model distinguishes:
 
@@ -25,11 +29,13 @@ The model distinguishes:
 
 The model does not merge institutional activities merely because they may ultimately produce a financial consequence.
 
+The logical entity model establishes the entities and their responsibilities. Exact column definitions, primary-key structures, foreign-key implementation, cardinality, normalization, and physical implementation are reconciled in the subsequent WP-2.2 tickets.
+
 ---
 
 # 2. Relational Entity Set
 
-The OCB Platform logical model contains the following relational entities:
+The OCB Platform logical domain model contains the following relational entities:
 
 | Domain     | Entity                  |
 | ---------- | ----------------------- |
@@ -44,7 +50,9 @@ The OCB Platform logical model contains the following relational entities:
 | Oman Remit | `OMAN_REMIT_CUSTOMER`   |
 | Oman Remit | `OMAN_REMIT_REMITTANCE` |
 
-These are the authoritative relational entities for the current logical model.
+These are the authoritative **domain entities** for the current logical model.
+
+The platform also contains supporting financial-core and reference entities in the physical database, including ledger and reference structures. Their detailed logical treatment is governed by the corresponding WP-2.2 tickets and does not alter the domain entity register defined here.
 
 ---
 
@@ -56,7 +64,7 @@ Represents OCB's **resolved cross-institutional identity**.
 
 It is not a duplicate of any institutional customer record.
 
-Its purpose is to provide a stable OCB identity to which source-system identities can be resolved.
+Its purpose is to provide a stable OCB identity to which source-system customer identities can be resolved.
 
 Primary identifier:
 
@@ -93,7 +101,13 @@ Primary identifier:
 (source_entity, source_customer_id)
 ```
 
+The `ocb_customer_id` associates the source-system identity with the corresponding OCB-resolved identity.
+
 This allows one OCB customer to be associated with customer identities held by multiple institutions without replacing those institutional identities.
+
+The source customer identifiers remain owned by their respective source systems.
+
+No direct foreign key is required from `source_customer_id` to the institutional customer tables because the source systems use independent identifier domains.
 
 ---
 
@@ -117,7 +131,7 @@ The Ananse customer is distinct from both the Ananse wallet and Ananse transacti
 
 ## 4.2 `ANANSE_WALLET`
 
-Represents the Ananse wallet.
+Represents an Ananse customer wallet.
 
 The wallet is a separate financial object from the customer and from individual transactions.
 
@@ -127,7 +141,29 @@ Primary identifier:
 wallet_id
 ```
 
-A customer may have a wallet, and a wallet may accumulate many financial activities over time.
+The wallet is associated with its owning Ananse customer through:
+
+```text
+customer_id
+```
+
+Therefore, the logical relationship is:
+
+```text
+ANANSE_CUSTOMER
+       │
+       │ customer_id
+       ▼
+ANANSE_WALLET
+       │
+       │ wallet_id
+       ▼
+ANANSE_TRANSACTION
+```
+
+The physical database implements this ownership relationship through the Ananse wallet's `customer_id` foreign key to `ananse.customer(customer_id)`.
+
+A wallet may accumulate many financial activities over time.
 
 Wallet state and ledger consequences are handled through the financial architecture rather than being conflated with the customer entity.
 
@@ -152,7 +188,20 @@ customer_id
 wallet_id
 ```
 
-and contains transaction-level attributes such as:
+The transaction also participates in controlled reference structures for:
+
+```text
+transaction_type_id
+transaction_status_id
+transaction_channel_id
+currency_id
+```
+
+The transaction retains its source-level descriptive representations of these classifications where required by the source data model.
+
+These descriptive values do not replace the relational reference identifiers.
+
+The transaction contains transaction-level attributes such as:
 
 * transaction type;
 * transaction status;
@@ -195,7 +244,7 @@ loan_id
 
 The loan represents the lending relationship and its associated loan-level financial attributes.
 
-A loan may have multiple repayment records.
+A loan belongs to a SikaCredit customer and may have multiple repayment records.
 
 ---
 
@@ -270,6 +319,16 @@ The remittance contains remittance-level attributes including:
 * destination country;
 * transaction channel.
 
+The relational country identifier:
+
+```text
+country_id
+```
+
+represents the **origin country** of the remittance.
+
+The destination country is Ghana within the current simulation boundary and is therefore represented as the destination-country attribute rather than as a second country foreign-key relationship.
+
 The receiving party is not represented as a separate Oman Remit customer merely because the remittance ultimately results in funds reaching an Ananse account.
 
 ---
@@ -314,6 +373,8 @@ OMAN_REMIT_CUSTOMER
 
 even where OCB subsequently determines that these institutional identities belong to the same real-world customer.
 
+The institutional customer identifiers remain source-system identifiers and are not replaced by the OCB identifier.
+
 ---
 
 # 8. Identity Resolution Boundary
@@ -324,15 +385,35 @@ The logical relationship is:
 
 ```text
                  OCB_CUSTOMER
-                       │
-                       │
-                       ▼
+                      │
+                      │ ocb_customer_id
+                      ▼
              OCB_CUSTOMER_IDENTITY
-                 │       │       │
-                 ▼       ▼       ▼
-              ANANSE   SIKA    OMAN
-             CUSTOMER  CUSTOMER  REMIT
+                │       │       │
+                │       │       │
+                ▼       ▼       ▼
+             ANANSE   SIKACREDIT  OMAN_REMIT
+             CUSTOMER  CUSTOMER    CUSTOMER
 ```
+
+An institutional customer identity may therefore resolve to an OCB customer identity without changing the source-system primary key.
+
+For example, the same underlying synthetic person may possess independent source-system identifiers:
+
+```text
+ANANSE CUSTOMER       → AN-C-000123
+SIKACREDIT CUSTOMER   → SC-C-000123
+OMAN REMIT CUSTOMER   → OR-C-000123
+```
+
+while all three source identities may resolve through `OCB_CUSTOMER_IDENTITY` to the same:
+
+```text
+OCB_CUSTOMER
+→ ocb_customer_id
+```
+
+The exact generated identifier values are determined by the generator and are not prescribed by this logical entity-definition ticket.
 
 Institutional customer records remain source-owned.
 
@@ -353,10 +434,10 @@ FINANCIAL CONSEQUENCE
         ↓
 LEDGER POSTING
         ↓
-ANANSE WALLET
-        ↓
 FINANCIAL STATE
 ```
+
+For Ananse activity, the wallet provides the institutional financial object through which transaction activity is associated with the customer's financial position.
 
 The institutional entities describe the **source activities**.
 
@@ -382,7 +463,7 @@ should directly become a child of:
 ANANSE_WALLET
 ```
 
-The cross-institutional financial relationship will be represented through the financial-consequence and ledger architecture where the appropriate linkage is established.
+The cross-institutional financial relationship is represented through the financial-consequence and ledger architecture where the appropriate linkage is established.
 
 No unsupported relational entity or foreign key is introduced merely to represent the business narrative.
 
@@ -395,7 +476,7 @@ No unsupported relational entity or foreign key is introduced merely to represen
 | `OCB_CUSTOMER`          | OCB-resolved cross-institutional identity   | `ocb_customer_id`                     |
 | `OCB_CUSTOMER_IDENTITY` | Source-to-OCB identity mapping              | `(source_entity, source_customer_id)` |
 | `ANANSE_CUSTOMER`       | Ananse customer identity and attributes     | `customer_id`                         |
-| `ANANSE_WALLET`         | Ananse wallet                               | `wallet_id`                           |
+| `ANANSE_WALLET`         | Ananse customer wallet                      | `wallet_id`                           |
 | `ANANSE_TRANSACTION`    | Ananse transaction/activity                 | `transaction_id`                      |
 | `SIKACREDIT_CUSTOMER`   | SikaCredit customer identity and attributes | `customer_id`                         |
 | `SIKACREDIT_LOAN`       | SikaCredit loan                             | `loan_id`                             |
@@ -403,13 +484,46 @@ No unsupported relational entity or foreign key is introduced merely to represen
 | `OMAN_REMIT_CUSTOMER`   | Oman Remit customer identity and attributes | `customer_id`                         |
 | `OMAN_REMIT_REMITTANCE` | Oman Remit remittance activity              | `remittance_id`                       |
 
+### Entity relationship implications established by this ticket
+
+```text
+OCB_CUSTOMER
+    │
+    └──< OCB_CUSTOMER_IDENTITY
+
+
+ANANSE_CUSTOMER
+    │
+    └──< ANANSE_WALLET
+             │
+             └──< ANANSE_TRANSACTION
+
+
+ANANSE_CUSTOMER
+    └──< ANANSE_TRANSACTION
+
+
+SIKACREDIT_CUSTOMER
+    │
+    └──< SIKACREDIT_LOAN
+             │
+             └──< SIKACREDIT_REPAYMENT
+
+
+OMAN_REMIT_CUSTOMER
+    │
+    └──< OMAN_REMIT_REMITTANCE
+```
+
+These relationship implications establish the entity-level structure. The authoritative column-level PK/FK inventory is finalized in the subsequent WP-2.2 logical-model tickets and must reconcile exactly with the WP-2.4 physical deployment.
+
 ---
 
 # 12. Supersession of Previous T01
 
 This revised T01 supersedes the earlier WP-2.2-T01 entity definition.
 
-The later WP-2.2 architectural decisions are now consolidated into the authoritative entity model above.
+The later WP-2.2 architectural decisions and the finalized WP-2.4 physical deployment are consolidated into the authoritative entity model above.
 
 Subsequent WP-2.2 tickets must use this entity register as their baseline.
 
@@ -417,8 +531,19 @@ No subsequent ticket may silently introduce, remove, merge, or split an entity w
 
 ---
 
-## Final Decision
+# Final Decision
 
-The authoritative relational entity model for OCB Platform v1.0.0 is the **post-T01 model consolidated in this revised T01**.
+The authoritative relational entity model for OCB Platform v1.0.0 is the **post-T01 model consolidated in this revised T01 and reconciled with the finalized physical deployment**.
+
+In particular:
+
+* `ANANSE_WALLET` is an entity separate from `ANANSE_CUSTOMER`.
+* `ANANSE_WALLET` is owned by an Ananse customer through `customer_id`.
+* `ANANSE_TRANSACTION` belongs to both its customer and wallet.
+* OCB identity resolution remains separate from source-system customer identity.
+* Source customer identifiers remain source-owned.
+* Oman Remit's `country_id` represents **origin country**.
+* No unsupported cross-institutional FK is introduced.
+* Reference-layer identifiers and ledger relationships are reconciled through the subsequent logical-model tickets rather than being invented at the entity-definition level.
 
 **WP-2.2-T01 — REVISED AND LOCKED.**

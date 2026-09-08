@@ -1,0 +1,28 @@
+{
+  "version": "OCB-SIM-1.0.2",
+  "source_tables": [
+    "ananse.customer",
+    "wallet.wallet",
+    "ananse.transaction",
+    "sikacredit.customer",
+    "sikacredit.loan",
+    "sikacredit.repayment",
+    "oman_remit.customer",
+    "oman_remit.remittance"
+  ],
+  "reference_tables": [
+    "ref.transaction_type",
+    "ref.transaction_status",
+    "ref.transaction_channel",
+    "ref.currency",
+    "ref.country"
+  ],
+  "control_outputs": [
+    "p2p_transfer_legs.csv",
+    "synthetic_identity_ground_truth.csv",
+    "scenario_assignments.csv",
+    "behavioural_state_ground_truth.csv",
+    "validation.json"
+  ],
+  "total_source_records": 788522
+}

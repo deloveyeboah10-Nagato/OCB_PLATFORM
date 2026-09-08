@@ -1,0 +1,43 @@
+{
+  "simulation_version": "OCB-SIM-1.0.2",
+  "population": {
+    "ananse": 3000,
+    "sikacredit": 800,
+    "oman_remit": 500
+  },
+  "period": {
+    "start": "2023-01-01",
+    "end": "2025-12-31",
+    "years": 3,
+    "quarters": 12
+  },
+  "seed": "OCB2020",
+  "numeric_seed": 2255779,
+  "hard_record_ceiling": 1000000,
+  "baseline_reference_records": 868670,
+  "physical_authority": [
+    "WP-2.4 physical deployment",
+    "WP-2.2",
+    "WP-2.3"
+  ],
+  "p2p": {
+    "authoritative_event": "P2P_TRANSFER",
+    "successful_legs": [
+      "P2P_SEND",
+      "P2P_RECEIVE"
+    ],
+    "send": "DEBIT",
+    "receive": "CREDIT"
+  },
+  "behaviour": {
+    "weekday_weekend": true,
+    "payday": true,
+    "fourteen_day_cycle": true,
+    "ghana_holidays": true,
+    "thirteenth_month": true,
+    "customer_lifecycle": true,
+    "quarterly_bursts": "5-10% active customers; 1-7 days; 1.5x-4x",
+    "long_tail": true,
+    "scenarios": "S01-S15"
+  }
+}

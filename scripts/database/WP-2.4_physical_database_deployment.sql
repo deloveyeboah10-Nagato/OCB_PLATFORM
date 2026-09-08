@@ -1,791 +1,621 @@
 USE [ocb_platform];
 GO
 
-/*========================================================================================================================
-  STEP 1 — TABLE DEPLOYMENT SCRIPT
+/*========================================================================================================================*
 
-  WARNING:
-      This deployment script is DESTRUCTIVE.
+    OCB PLATFORM v1.0.0
 
-      Existing OCB Platform tables will be dropped before they are recreated.
-      Any data stored in those tables will be permanently deleted.
+    BRONZE SOURCE-LAYER TABLE DEPLOYMENT
 
-  BACKUP:
-      Ensure that any required database or table data has been backed up before
-      running this script.
+    Purpose:
+        Establish the Bronze layer for ingestion of the frozen synthetic source
+        dataset and controlled reference data.
 
-  PURPOSE:
-      Establish a clean and consistent OCB Platform v1.0.0 database structure
-      for development and simulation.
-========================================================================================================================*/
+    Architecture:
 
-CREATE OR ALTER PROCEDURE dbo.ocb_platform_tables_deployment
-AS
+        FROZEN GENERATOR OUTPUT
+                    ↓
+                 BRONZE
+                    ↓
+                 SILVER
+                    ↓
+                  GOLD
+                    ↓
+              INTELLIGENCE
+
+    Bronze principle:
+        Bronze preserves the generated source-world evidence with minimal
+        transformation.
+
+    Bronze contains:
+
+        LOAD PROVENANCE
+            load_batch
+
+        REFERENCE DATA
+            ref_transaction_type
+            ref_transaction_status
+            ref_transaction_channel
+            ref_currency
+            ref_country
+
+        ANANSE
+            ananse_customer
+            ananse_wallet
+            ananse_transaction
+
+        SIKACREDIT
+            sikacredit_customer
+            sikacredit_loan
+            sikacredit_repayment
+
+        OMAN REMIT
+            oman_remit_customer
+            oman_remit_remittance
+
+    Bronze does NOT contain:
+
+        ocb_customer
+        ocb_customer_identity
+
+    OCB customer identity is established in Silver from the Bronze source
+    customer records.
+
+    Provenance:
+
+        load_batch records are maintained separately from source data.
+
+        load_id
+        source_entity
+        source_file_name
+        load_timestamp
+
+    Important:
+
+        - Bronze contains no OCB identity-resolution results.
+        - No Silver tables are created here.
+        - No Gold tables are created here.
+        - No analytical/business rules are applied here.
+        - No source columns are added to the generator source contract.
+        - Source customer IDs remain unchanged.
+        - Bronze source tables preserve source-world relationships.
+
+    Expected Bronze tables:
+
+        14 total
+
+        1   load_batch
+        5   reference
+        3   Ananse
+        3   SikaCredit
+        2   Oman Remit
+
+*========================================================================================================================*/
+/*========================================================================================================================*
+
+    1. CREATE BRONZE SCHEMA
+
+*========================================================================================================================*/
+IF NOT EXISTS (
+        SELECT
+            1
+        FROM sys.schemas
+        WHERE name = N'bronze'
+        )
 BEGIN
-
-    SET NOCOUNT ON;
-
-    DECLARE
-        @start_time DATETIME2(3),
-        @end_time   DATETIME2(3);
-
-    SET @start_time = SYSDATETIME();
-
-    PRINT '=========================================================================================================================';
-    PRINT '>>> STARTING OCB_PLATFORM TABLE DEPLOYMENT <<<';
-    PRINT '>>> DEVELOPMENT DEPLOYMENT: EXISTING TABLES WILL BE DROPPED <<<';
-    PRINT '-------------------------------------------------------------------------------------------------------------------------';
-
-
-    /*====================================================================================================================
-      DROP EXISTING TABLES
-
-      Tables are dropped before recreation so that the database structure
-      always matches the approved OCB Platform schema.
-    ====================================================================================================================*/
-
-    DROP TABLE IF EXISTS ledger.[entry];
-    DROP TABLE IF EXISTS ledger.[financial_consequence];
-    DROP TABLE IF EXISTS ledger.[financial_event];
-
-    DROP TABLE IF EXISTS sikacredit.[repayment];
-    DROP TABLE IF EXISTS sikacredit.[loan];
-
-    DROP TABLE IF EXISTS oman_remit.[remittance];
-
-    DROP TABLE IF EXISTS ananse.[transaction];
-
-    DROP TABLE IF EXISTS ocb.[customer_identity];
-
-    DROP TABLE IF EXISTS ananse.[customer];
-    DROP TABLE IF EXISTS sikacredit.[customer];
-    DROP TABLE IF EXISTS oman_remit.[customer];
-
-    DROP TABLE IF EXISTS ocb.[customer];
-
-    DROP TABLE IF EXISTS wallet.[wallet];
-
-    DROP TABLE IF EXISTS ref.[transaction_type];
-    DROP TABLE IF EXISTS ref.[transaction_status];
-    DROP TABLE IF EXISTS ref.[transaction_channel];
-    DROP TABLE IF EXISTS ref.[currency];
-    DROP TABLE IF EXISTS ref.[country];
-
-    PRINT '>> EXISTING TABLES DROPPED';
-    PRINT '-------------------------------------------------------------------------------------------------------------------------';
-
-
-    /*====================================================================================================================
-      CREATE OCB TABLES
-    ====================================================================================================================*/
-
-    CREATE TABLE ocb.[customer]
-    (
-        ocb_customer_id BIGINT IDENTITY(1,1) NOT NULL,
-
-        CONSTRAINT PK_ocb_customer
-            PRIMARY KEY (ocb_customer_id)
-    );
-
-
-    CREATE TABLE ocb.[customer_identity]
-    (
-        ocb_customer_id    BIGINT NOT NULL,
-        source_entity      NVARCHAR(50) NOT NULL,
-        source_customer_id VARCHAR(100) NOT NULL,
-        created_at         DATETIME2(3) NOT NULL,
-
-        CONSTRAINT PK_ocb_customer_identity
-            PRIMARY KEY (source_entity, source_customer_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE ANANSE TELECOM TABLES
-    ====================================================================================================================*/
-
-    CREATE TABLE ananse.[customer]
-    (
-        customer_id   VARCHAR(100) NOT NULL,
-        first_name    NVARCHAR(150) NOT NULL,
-        last_name     NVARCHAR(150) NOT NULL,
-        date_of_birth DATE NOT NULL,
-        nationality   NVARCHAR(150) NOT NULL,
-        occupation    NVARCHAR(150) NULL,
-        phone_number  VARCHAR(30) NOT NULL,
-        email         NVARCHAR(150) NULL,
-        created_at    DATETIME2(3) NOT NULL,
-
-        CONSTRAINT PK_ananse_customer
-            PRIMARY KEY (customer_id)
-    );
-
-
-    CREATE TABLE ananse.[transaction]
-    (
-        transaction_id         VARCHAR(100) NOT NULL,
-        customer_id            VARCHAR(100) NOT NULL,
-        wallet_id              BIGINT NOT NULL,
-
-        transaction_status_id  BIGINT NOT NULL,
-        transaction_type_id    BIGINT NOT NULL,
-        transaction_channel_id BIGINT NOT NULL,
-        currency_id            BIGINT NOT NULL,
-
-        transaction_type       VARCHAR(100) NOT NULL,
-        transaction_status     VARCHAR(100) NOT NULL,
-        transaction_timestamp  DATETIME2(3) NOT NULL,
-        transaction_location   NVARCHAR(150) NOT NULL,
-        transaction_channel    VARCHAR(100) NOT NULL,
-        device_id              VARCHAR(100) NOT NULL,
-        amount                 DECIMAL(18,4) NOT NULL,
-        currency               CHAR(3) NOT NULL,
-
-        CONSTRAINT PK_ananse_transaction
-            PRIMARY KEY (transaction_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE WALLET TABLE
-    ====================================================================================================================*/
-
-    CREATE TABLE wallet.[wallet]
-    (
-        wallet_id BIGINT NOT NULL,
-
-        CONSTRAINT PK_wallet_wallet
-            PRIMARY KEY (wallet_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE SIKACREDIT TABLES
-    ====================================================================================================================*/
-
-    CREATE TABLE sikacredit.[customer]
-    (
-        customer_id   VARCHAR(100) NOT NULL,
-        first_name    NVARCHAR(150) NOT NULL,
-        last_name     NVARCHAR(150) NOT NULL,
-        date_of_birth DATE NOT NULL,
-        nationality   NVARCHAR(150) NOT NULL,
-        occupation    NVARCHAR(150) NULL,
-        phone_number  VARCHAR(30) NOT NULL,
-        email         NVARCHAR(150) NULL,
-        created_at    DATETIME2(3) NOT NULL,
-
-        CONSTRAINT PK_sikacredit_customer
-            PRIMARY KEY (customer_id)
-    );
-
-
-    CREATE TABLE sikacredit.[loan]
-    (
-        loan_id               VARCHAR(100) NOT NULL,
-        customer_id           VARCHAR(100) NOT NULL,
-        disbursement_timestamp DATETIME2(3) NOT NULL,
-        disbursement_location NVARCHAR(150) NOT NULL,
-        maturity_date         DATE NOT NULL,
-        principal_amount      DECIMAL(18,4) NOT NULL,
-        interest_rate         DECIMAL(5,4) NOT NULL,
-        currency              CHAR(3) NOT NULL,
-
-        CONSTRAINT PK_sikacredit_loan
-            PRIMARY KEY (loan_id)
-    );
-
-
-    CREATE TABLE sikacredit.[repayment]
-    (
-        repayment_id        VARCHAR(100) NOT NULL,
-        loan_id             VARCHAR(100) NOT NULL,
-        repayment_amount    DECIMAL(18,4) NOT NULL,
-        repayment_timestamp DATETIME2(3) NOT NULL,
-        repayment_location  NVARCHAR(150) NOT NULL,
-
-        CONSTRAINT PK_sikacredit_repayment
-            PRIMARY KEY (repayment_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE OMAN REMIT TABLES
-    ====================================================================================================================*/
-
-    CREATE TABLE oman_remit.[customer]
-    (
-        customer_id   VARCHAR(100) NOT NULL,
-        first_name    NVARCHAR(150) NOT NULL,
-        last_name     NVARCHAR(150) NOT NULL,
-        date_of_birth DATE NOT NULL,
-        nationality   NVARCHAR(150) NOT NULL,
-        occupation    NVARCHAR(150) NULL,
-        phone_number  VARCHAR(30) NOT NULL,
-        email         NVARCHAR(150) NULL,
-        created_at    DATETIME2(3) NOT NULL,
-
-        CONSTRAINT PK_oman_remit_customer
-            PRIMARY KEY (customer_id)
-    );
-
-
-    CREATE TABLE oman_remit.[remittance]
-    (
-        remittance_id        VARCHAR(100) NOT NULL,
-        customer_id          VARCHAR(100) NOT NULL,
-        country_id           BIGINT NOT NULL,
-        remittance_status    VARCHAR(50) NOT NULL,
-        remittance_timestamp DATETIME2(3) NOT NULL,
-        transaction_location NVARCHAR(150) NOT NULL,
-        amount               DECIMAL(18,4) NOT NULL,
-        currency             CHAR(3) NOT NULL,
-        origin_country       NVARCHAR(150) NOT NULL,
-        destination_country  NVARCHAR(150) NOT NULL,
-        transaction_channel  VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_oman_remit_remittance
-            PRIMARY KEY (remittance_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE LEDGER TABLES
-    ====================================================================================================================*/
-
-    CREATE TABLE ledger.[financial_event]
-    (
-        financial_event_id BIGINT NOT NULL,
-        source_entity      NVARCHAR(50) NOT NULL,
-        source_event_id    VARCHAR(100) NOT NULL,
-        event_type         VARCHAR(100) NOT NULL,
-        event_timestamp    DATETIME2(3) NOT NULL,
-        event_status       VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ledger_financial_event
-            PRIMARY KEY (financial_event_id)
-    );
-
-
-    CREATE TABLE ledger.[financial_consequence]
-    (
-        financial_consequence_id BIGINT NOT NULL,
-        financial_event_id       BIGINT NOT NULL,
-        consequence_type         VARCHAR(100) NOT NULL,
-        amount                   DECIMAL(18,4) NOT NULL,
-        currency                 CHAR(3) NOT NULL,
-        wallet_id                BIGINT NOT NULL,
-        customer_id              VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ledger_financial_consequence
-            PRIMARY KEY (financial_consequence_id)
-    );
-
-
-    CREATE TABLE ledger.[entry]
-    (
-        ledger_entry_id          BIGINT NOT NULL,
-        financial_consequence_id BIGINT NOT NULL,
-        financial_event_id       BIGINT NOT NULL,
-        transaction_id           VARCHAR(100) NOT NULL,
-        wallet_id                BIGINT NOT NULL,
-        account_reference        VARCHAR(100) NOT NULL,
-        entry_type               VARCHAR(100) NOT NULL,
-        amount                   DECIMAL(18,4) NOT NULL,
-        currency                 CHAR(3) NOT NULL,
-        entry_timestamp          DATETIME2(3) NOT NULL,
-
-        CONSTRAINT PK_ledger_entry
-            PRIMARY KEY (ledger_entry_id)
-    );
-
-
-    /*====================================================================================================================
-      CREATE REFERENCE TABLES
-
-      Reference IDs are the stable relational identifiers.
-      Business codes remain available as controlled business identifiers.
-    ====================================================================================================================*/
-
-    CREATE TABLE ref.[transaction_type]
-    (
-        transaction_type_id   BIGINT IDENTITY(1,1) NOT NULL,
-        transaction_type_code VARCHAR(20) NOT NULL,
-        transaction_type_name VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ref_transaction_type_id
-            PRIMARY KEY (transaction_type_id)
-    );
-
-
-    CREATE TABLE ref.[transaction_status]
-    (
-        transaction_status_id   BIGINT IDENTITY(1,1) NOT NULL,
-        transaction_status_code VARCHAR(20) NOT NULL,
-        transaction_status_name VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ref_transaction_status_id
-            PRIMARY KEY (transaction_status_id)
-    );
-
-
-    CREATE TABLE ref.[transaction_channel]
-    (
-        transaction_channel_id   BIGINT IDENTITY(1,1) NOT NULL,
-        transaction_channel_code VARCHAR(20) NOT NULL,
-        transaction_channel_name VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ref_transaction_channel_id
-            PRIMARY KEY (transaction_channel_id)
-    );
-
-
-    CREATE TABLE ref.[currency]
-    (
-        currency_id   BIGINT IDENTITY(1,1) NOT NULL,
-        currency_code CHAR(3) NOT NULL,
-        currency_name VARCHAR(100) NOT NULL,
-
-        CONSTRAINT PK_ref_currency_id
-            PRIMARY KEY (currency_id)
-    );
-
-
-    CREATE TABLE ref.[country]
-    (
-        country_id   BIGINT IDENTITY(1,1) NOT NULL,
-        country_code CHAR(3) NOT NULL,
-        country_name NVARCHAR(150) NOT NULL,
-
-        CONSTRAINT PK_ref_country_id
-            PRIMARY KEY (country_id)
-    );
-
-
-    SET @end_time = SYSDATETIME();
-
-    PRINT '>> TABLE CREATION COMPLETE';
-    PRINT '>> TOTAL BATCH DURATION: '
-        + CAST(DATEDIFF(millisecond, @start_time, @end_time) AS NVARCHAR(20))
-        + ' ms';
-
-    PRINT '=========================================================================================================================';
-
+    PRINT '>> bronze schema not found. Creating...';
+
+    EXEC ('CREATE SCHEMA [bronze]');
+
+    PRINT '>> bronze schema created successfully.';
+END
+ELSE
+BEGIN
+    PRINT '>> bronze schema already exists. No action required.';
 END;
 GO
 
+/*========================================================================================================================*
 
-/*========================================================================================================================
-  EXECUTE TABLE DEPLOYMENT
-========================================================================================================================*/
+    2. DROP EXISTING BRONZE TABLES
 
-EXEC dbo.ocb_platform_tables_deployment;
+    Development deployment.
+
+    Tables are dropped in child-to-parent dependency order.
+
+    WARNING:
+        Existing Bronze data will be permanently deleted.
+
+*========================================================================================================================*/
+DROP TABLE IF EXISTS bronze.[ananse_transaction];
+
+DROP TABLE IF EXISTS bronze.[ananse_wallet];
+
+DROP TABLE IF EXISTS bronze.[ananse_customer];
+
+DROP TABLE IF EXISTS bronze.[sikacredit_repayment];
+
+DROP TABLE IF EXISTS bronze.[sikacredit_loan];
+
+DROP TABLE IF EXISTS bronze.[sikacredit_customer];
+
+DROP TABLE IF EXISTS bronze.[oman_remit_remittance];
+
+DROP TABLE IF EXISTS bronze.[oman_remit_customer];
+
+DROP TABLE IF EXISTS bronze.[ref_transaction_channel];
+
+DROP TABLE IF EXISTS bronze.[ref_transaction_status];
+
+DROP TABLE IF EXISTS bronze.[ref_transaction_type];
+
+DROP TABLE IF EXISTS bronze.[ref_currency];
+
+DROP TABLE IF EXISTS bronze.[ref_country];
+
+DROP TABLE IF EXISTS bronze.[load_batch];
+
+PRINT '>> EXISTING BRONZE TABLES DROPPED';
 GO
 
+PRINT '===============================================================';
+PRINT '>>> BRONZE SOURCE-LAYER DEPLOYMENT STARTED <<<';
+PRINT '===============================================================';
+GO
 
-/*========================================================================================================================
-  TABLE DEPLOYMENT VERIFICATION
+/*========================================================================================================================*
 
-  Purpose:
-      Confirms that the expected OCB Platform tables were created.
+    3. BRONZE LOAD-BATCH PROVENANCE
 
-  Checks:
-      1. Total deployed table count.
-      2. Tables currently present.
-      3. Primary key assigned to each table.
+    One row identifies one source-data load.
 
-  This verification is NON-DESTRUCTIVE.
-========================================================================================================================*/
+    These fields constitute the Bronze load provenance record:
 
+        load_id
+        source_entity
+        source_file_name
+        load_timestamp
 
-/* 1. Check total expected table count */
+    The source CSV itself is not modified to contain these fields.
 
-DECLARE @expected_table_count INT = 18;
+*========================================================================================================================*/
+CREATE TABLE bronze.[load_batch] (
+    load_id BIGINT IDENTITY(1, 1) NOT NULL,
+    source_entity VARCHAR(100) NOT NULL,
+    source_file_name NVARCHAR(255) NOT NULL,
+    load_timestamp DATETIME2(3) NOT NULL
+    CONSTRAINT DF_bronze_load_batch_load_timestamp
+    DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_bronze_load_batch PRIMARY KEY (load_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    4. REFERENCE — TRANSACTION TYPE
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ref_transaction_type] (
+    transaction_type_id BIGINT NOT NULL,
+    transaction_type_code VARCHAR(20) NOT NULL,
+    transaction_type_name VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_ref_transaction_type PRIMARY KEY (transaction_type_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    5. REFERENCE — TRANSACTION STATUS
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ref_transaction_status] (
+    transaction_status_id BIGINT NOT NULL,
+    transaction_status_code VARCHAR(20) NOT NULL,
+    transaction_status_name VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_ref_transaction_status PRIMARY KEY (transaction_status_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    6. REFERENCE — TRANSACTION CHANNEL
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ref_transaction_channel] (
+    transaction_channel_id BIGINT NOT NULL,
+    transaction_channel_code VARCHAR(20) NOT NULL,
+    transaction_channel_name VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_ref_transaction_channel PRIMARY KEY (transaction_channel_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    7. REFERENCE — CURRENCY
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ref_currency] (
+    currency_id BIGINT NOT NULL,
+    currency_code CHAR(3) NOT NULL,
+    currency_name VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_ref_currency PRIMARY KEY (currency_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    8. REFERENCE — COUNTRY
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ref_country] (
+    country_id BIGINT NOT NULL,
+    country_code CHAR(3) NOT NULL,
+    country_name NVARCHAR(150) NOT NULL,
+    CONSTRAINT PK_bronze_ref_country PRIMARY KEY (country_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    9. ANANSE CUSTOMER
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ananse_customer] (
+    customer_id VARCHAR(100) NOT NULL,
+    first_name NVARCHAR(150) NOT NULL,
+    last_name NVARCHAR(150) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    nationality NVARCHAR(150) NOT NULL,
+    occupation NVARCHAR(150) NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    email NVARCHAR(150) NULL,
+    created_at DATETIME2(3) NOT NULL,
+    CONSTRAINT PK_bronze_ananse_customer PRIMARY KEY (customer_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    10. SIKACREDIT CUSTOMER
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[sikacredit_customer] (
+    customer_id VARCHAR(100) NOT NULL,
+    first_name NVARCHAR(150) NOT NULL,
+    last_name NVARCHAR(150) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    nationality NVARCHAR(150) NOT NULL,
+    occupation NVARCHAR(150) NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    email NVARCHAR(150) NULL,
+    created_at DATETIME2(3) NOT NULL,
+    CONSTRAINT PK_bronze_sikacredit_customer PRIMARY KEY (customer_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    11. OMAN REMIT CUSTOMER
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[oman_remit_customer] (
+    customer_id VARCHAR(100) NOT NULL,
+    first_name NVARCHAR(150) NOT NULL,
+    last_name NVARCHAR(150) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    nationality NVARCHAR(150) NOT NULL,
+    occupation NVARCHAR(150) NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    email NVARCHAR(150) NULL,
+    created_at DATETIME2(3) NOT NULL,
+    CONSTRAINT PK_bronze_oman_remit_customer PRIMARY KEY (customer_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    12. ANANSE WALLET
+
+    Depends on:
+        bronze.ananse_customer
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ananse_wallet] (
+    wallet_id BIGINT NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_ananse_wallet PRIMARY KEY (wallet_id),
+    CONSTRAINT FK_bronze_ananse_wallet_customer FOREIGN KEY (customer_id)
+    REFERENCES bronze.[ananse_customer](customer_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    13. SIKACREDIT LOAN
+
+    Depends on:
+        bronze.sikacredit_customer
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[sikacredit_loan] (
+    loan_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    disbursement_timestamp DATETIME2(3) NOT NULL,
+    disbursement_location NVARCHAR(150) NOT NULL,
+    maturity_date DATE NOT NULL,
+    principal_amount DECIMAL(18, 4) NOT NULL,
+    interest_rate DECIMAL(5, 4) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    CONSTRAINT PK_bronze_sikacredit_loan PRIMARY KEY (loan_id),
+    CONSTRAINT FK_bronze_sikacredit_loan_customer FOREIGN KEY (customer_id)
+    REFERENCES bronze.[sikacredit_customer](customer_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    14. OMAN REMIT REMITTANCE
+
+    Depends on:
+        bronze.oman_remit_customer
+        bronze.ref_country
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[oman_remit_remittance] (
+    remittance_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    country_id BIGINT NOT NULL,
+    remittance_status VARCHAR(50) NOT NULL,
+    remittance_timestamp DATETIME2(3) NOT NULL,
+    transaction_location NVARCHAR(150) NOT NULL,
+    amount DECIMAL(18, 4) NOT NULL,
+    currency CHAR(3) NOT NULL,
+    transaction_channel VARCHAR(100) NOT NULL,
+    CONSTRAINT PK_bronze_oman_remit_remittance PRIMARY KEY (remittance_id),
+    CONSTRAINT FK_bronze_oman_remit_remittance_customer FOREIGN KEY (customer_id)
+    REFERENCES bronze.[oman_remit_customer](customer_id),
+    CONSTRAINT FK_bronze_oman_remit_remittance_country FOREIGN KEY (country_id)
+    REFERENCES bronze.[ref_country](country_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    15. ANANSE TRANSACTION
+
+    Structure follows the generator source contract.
+
+    Depends on:
+        bronze.ananse_customer
+        bronze.ananse_wallet
+        bronze.ref_transaction_status
+        bronze.ref_transaction_type
+        bronze.ref_transaction_channel
+        bronze.ref_currency
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[ananse_transaction] (
+    transaction_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    wallet_id BIGINT NOT NULL,
+    transaction_status_id BIGINT NOT NULL,
+    transaction_type_id BIGINT NOT NULL,
+    transaction_channel_id BIGINT NOT NULL,
+    currency_id BIGINT NOT NULL,
+    transaction_timestamp DATETIME2(3) NOT NULL,
+    transaction_location NVARCHAR(150) NOT NULL,
+    device_id VARCHAR(100) NOT NULL,
+    amount DECIMAL(18, 4) NOT NULL,
+    CONSTRAINT PK_bronze_ananse_transaction PRIMARY KEY (transaction_id),
+    CONSTRAINT FK_bronze_ananse_transaction_customer FOREIGN KEY (customer_id)
+    REFERENCES bronze.[ananse_customer](customer_id),
+    CONSTRAINT FK_bronze_ananse_transaction_wallet FOREIGN KEY (wallet_id)
+    REFERENCES bronze.[ananse_wallet](wallet_id),
+    CONSTRAINT FK_bronze_ananse_transaction_transaction_status FOREIGN KEY (transaction_status_id)
+    REFERENCES bronze.[ref_transaction_status](transaction_status_id),
+    CONSTRAINT FK_bronze_ananse_transaction_transaction_type FOREIGN KEY (transaction_type_id)
+    REFERENCES bronze.[ref_transaction_type](transaction_type_id),
+    CONSTRAINT FK_bronze_ananse_transaction_transaction_channel FOREIGN KEY (transaction_channel_id)
+    REFERENCES bronze.[ref_transaction_channel](transaction_channel_id),
+    CONSTRAINT FK_bronze_ananse_transaction_currency FOREIGN KEY (currency_id)
+    REFERENCES bronze.[ref_currency](currency_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    16. SIKACREDIT REPAYMENT
+
+    Depends on:
+        bronze.sikacredit_loan
+
+*========================================================================================================================*/
+CREATE TABLE bronze.[sikacredit_repayment] (
+    repayment_id VARCHAR(100) NOT NULL,
+    loan_id VARCHAR(100) NOT NULL,
+    repayment_amount DECIMAL(18, 4) NOT NULL,
+    repayment_timestamp DATETIME2(3) NOT NULL,
+    repayment_location NVARCHAR(150) NOT NULL,
+    CONSTRAINT PK_bronze_sikacredit_repayment PRIMARY KEY (repayment_id),
+    CONSTRAINT FK_bronze_sikacredit_repayment_loan FOREIGN KEY (loan_id)
+    REFERENCES bronze.[sikacredit_loan](loan_id)
+    );
+GO
+
+/*========================================================================================================================*
+
+    17. BRONZE DEPLOYMENT VERIFICATION
+
+    Expected:
+        14 Bronze tables
+
+            1   load_batch
+            5   Reference
+            3   Ananse
+            3   SikaCredit
+            2   Oman Remit
+
+        Total = 14
+
+*========================================================================================================================*/
+DECLARE @expected_bronze_table_count INT = 14;
 
 SELECT
-    @expected_table_count AS expected_table_count,
-    COUNT(*) AS actual_table_count,
-    CASE
-        WHEN COUNT(*) = @expected_table_count
+    @expected_bronze_table_count AS expected_bronze_table_count,
+    COUNT(*) AS actual_bronze_table_count,
+    CASE 
+        WHEN COUNT(*) = @expected_bronze_table_count
             THEN 'PASS'
-        ELSE 'RE-CHECK TABLE LIST'
-    END AS validation_status
-FROM sys.tables t
-INNER JOIN sys.schemas s
-    ON t.schema_id = s.schema_id
-WHERE s.name IN
-(
-    'ocb',
-    'ananse',
-    'sikacredit',
-    'oman_remit',
-    'wallet',
-    'ledger',
-    'ref'
-);
+        ELSE 'FAIL'
+        END AS validation_status
+FROM sys.tables AS t
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze';
+GO
 
+/*========================================================================================================================*
 
-/* 2. Display deployed tables */
+    18. FOREIGN KEY DEPLOYMENT VERIFICATION
+
+    Expected:
+        12 foreign keys
+
+    Breakdown:
+
+        Ananse Wallet          1
+        SikaCredit Loan        1
+        Oman Remittance        2
+        Ananse Transaction     6
+        SikaCredit Repayment   1
+
+        Total                  11
+
+*========================================================================================================================*/
+DECLARE @expected_foreign_key_count INT = 11;
 
 SELECT
-    s.name AS schema_name,
+    @expected_foreign_key_count AS expected_foreign_key_count,
+    COUNT(*) AS actual_foreign_key_count,
+    CASE 
+        WHEN COUNT(*) = @expected_foreign_key_count
+            THEN 'PASS'
+        ELSE 'FAIL'
+        END AS validation_status
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.tables AS t ON
+        fk.parent_object_id = t.OBJECT_ID
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze';
+GO
+
+/*========================================================================================================================*
+
+    19. DISPLAY DEPLOYED BRONZE TABLES
+
+*========================================================================================================================*/
+SELECT
+    s.name AS SCHEMA_NAME,
     t.name AS table_name
-FROM sys.tables t
-INNER JOIN sys.schemas s
-    ON t.schema_id = s.schema_id
-WHERE s.name IN
-(
-    'ocb',
-    'ananse',
-    'sikacredit',
-    'oman_remit',
-    'wallet',
-    'ledger',
-    'ref'
-)
-ORDER BY
-    s.schema_id,
-    t.name;
+FROM sys.tables AS t
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze'
+ORDER BY t.name;
+GO
 
+/*========================================================================================================================*
 
-/* 3. Display primary keys */
+    20. DISPLAY PRIMARY KEYS
 
+*========================================================================================================================*/
 SELECT
-    s.name AS schema_name,
+    s.name AS SCHEMA_NAME,
     t.name AS table_name,
     i.name AS primary_key_name
-FROM sys.indexes i
-INNER JOIN sys.tables t
-    ON i.object_id = t.object_id
-INNER JOIN sys.schemas s
-    ON t.schema_id = s.schema_id
-WHERE i.is_primary_key = 1
-ORDER BY
-    s.schema_id,
-    t.name;
-
+FROM sys.indexes AS i
+INNER JOIN sys.tables AS t ON
+        i.OBJECT_ID = t.OBJECT_ID
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze'
+        AND i.is_primary_key = 1
+ORDER BY t.name;
 GO
 
+/*========================================================================================================================*
 
-/*========================================================================================================================
-  STEP 2 — FOREIGN KEY IMPLEMENTATION
+    21. DISPLAY FOREIGN KEYS
 
-  Approved existing relationships:
-      1. ocb.customer_identity  → ocb.customer
-      2. ananse.transaction      → ananse.customer
-      3. ananse.transaction      → wallet.wallet
-      4. sikacredit.loan         → sikacredit.customer
-      5. sikacredit.repayment    → sikacredit.loan
-      6. oman_remit.remittance   → oman_remit.customer
-
-  Reference-layer relationships:
-      7.  ananse.transaction     → ref.transaction_type
-      8.  ananse.transaction     → ref.transaction_status
-      9.  ananse.transaction     → ref.transaction_channel
-      10. ananse.transaction     → ref.currency
-      11. oman_remit.remittance  → ref.country
-
-  Total implemented FK relationships: 11
-========================================================================================================================*/
-
-
-/*-----------------------------------------------
-  OCB
-------------------------------------------------*/
-
-ALTER TABLE ocb.[customer_identity]
-ADD CONSTRAINT FK_ocb_customer_identity_customer
-    FOREIGN KEY (ocb_customer_id)
-    REFERENCES ocb.[customer](ocb_customer_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → CUSTOMER
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_customer
-    FOREIGN KEY (customer_id)
-    REFERENCES ananse.[customer](customer_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → TRANSACTION TYPE
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_type_id
-    FOREIGN KEY (transaction_type_id)
-    REFERENCES ref.[transaction_type](transaction_type_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → TRANSACTION STATUS
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_status_id
-    FOREIGN KEY (transaction_status_id)
-    REFERENCES ref.[transaction_status](transaction_status_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → TRANSACTION CHANNEL
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_channel_id
-    FOREIGN KEY (transaction_channel_id)
-    REFERENCES ref.[transaction_channel](transaction_channel_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → CURRENCY
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_currency_id
-    FOREIGN KEY (currency_id)
-    REFERENCES ref.[currency](currency_id);
-
-
-/*-----------------------------------------------
-  ANANSE TRANSACTION → WALLET
-------------------------------------------------*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT FK_ananse_transaction_wallet
-    FOREIGN KEY (wallet_id)
-    REFERENCES wallet.[wallet](wallet_id);
-
-
-/*-----------------------------------------------
-  SIKACREDIT LOAN → CUSTOMER
-------------------------------------------------*/
-
-ALTER TABLE sikacredit.[loan]
-ADD CONSTRAINT FK_sikacredit_loan_customer
-    FOREIGN KEY (customer_id)
-    REFERENCES sikacredit.[customer](customer_id);
-
-
-/*-----------------------------------------------
-  SIKACREDIT REPAYMENT → LOAN
-------------------------------------------------*/
-
-ALTER TABLE sikacredit.[repayment]
-ADD CONSTRAINT FK_sikacredit_repayment_loan
-    FOREIGN KEY (loan_id)
-    REFERENCES sikacredit.[loan](loan_id);
-
-
-/*-----------------------------------------------
-  OMAN REMIT REMITTANCE → CUSTOMER
-------------------------------------------------*/
-
-ALTER TABLE oman_remit.[remittance]
-ADD CONSTRAINT FK_oman_remit_remittance_customer
-    FOREIGN KEY (customer_id)
-    REFERENCES oman_remit.[customer](customer_id);
-
-
-/*-----------------------------------------------
-  OMAN REMIT REMITTANCE → ORIGIN COUNTRY
-------------------------------------------------*/
-
-ALTER TABLE oman_remit.[remittance]
-ADD CONSTRAINT FK_oman_remit_remittance_country
-    FOREIGN KEY (country_id)
-    REFERENCES ref.[country](country_id);
-
-GO
-
-
-/*========================================================================================================================
-  FOREIGN KEY VERIFICATION
-
-  Verifies all foreign keys currently deployed on OCB Platform tables.
-
-  Expected:
-      11 foreign keys.
-
-  This verification is NON-DESTRUCTIVE.
-========================================================================================================================*/
-
+*========================================================================================================================*/
 SELECT
-    s.name AS schema_name,
-    t.name AS table_name,
     fk.name AS foreign_key_name,
-    OBJECT_SCHEMA_NAME(fk.referenced_object_id) referenced_schema_name,
-    OBJECT_NAME(fk.referenced_object_id) referenced_table_name
-FROM sys.foreign_keys fk
-INNER JOIN sys.schemas s
-    ON fk.schema_id = s.schema_id
-INNER JOIN sys.tables t
-    ON fk.parent_object_id = t.object_id
-ORDER BY
-    s.name,
-    t.name,
-    fk.name;
-
+    SCHEMA_NAME(parent_table.SCHEMA_ID) AS child_schema,
+    parent_table.name AS child_table,
+    parent_column.name AS child_column,
+    SCHEMA_NAME(referenced_table.SCHEMA_ID) AS parent_schema,
+    referenced_table.name AS parent_table,
+    referenced_column.name AS parent_column
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.foreign_key_columns AS fkc ON
+        fk.OBJECT_ID = fkc.constraint_object_id
+INNER JOIN sys.tables AS parent_table ON
+        fk.parent_object_id = parent_table.OBJECT_ID
+INNER JOIN sys.columns AS parent_column ON
+        parent_column.OBJECT_ID = fkc.parent_object_id
+            AND parent_column.column_id = fkc.parent_column_id
+INNER JOIN sys.tables AS referenced_table ON
+        fk.referenced_object_id = referenced_table.OBJECT_ID
+INNER JOIN sys.columns AS referenced_column ON
+        referenced_column.OBJECT_ID = fkc.referenced_object_id
+            AND referenced_column.column_id = fkc.referenced_column_id
+WHERE SCHEMA_NAME(parent_table.SCHEMA_ID) = 'bronze'
+ORDER BY child_table,
+    foreign_key_name;
 GO
 
+/*========================================================================================================================*
 
-/*========================================================================================================================
-  STEP 3 — CHECK CONSTRAINT IMPLEMENTATION
-========================================================================================================================*/
+    22. BRONZE DEPLOYMENT SUMMARY
 
+*========================================================================================================================*/
+SELECT
+    'Bronze Tables' AS validation_item,
+    14 AS expected_value,
+    COUNT(*) AS actual_value,
+    CASE 
+        WHEN COUNT(*) = 14
+            THEN 'PASS'
+        ELSE 'FAIL'
+        END AS validation_status
+FROM sys.tables AS t
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze'
 
-/*===============================================================
-  ANANSE TELECOM
-================================================================*/
-
-ALTER TABLE ananse.[transaction]
-ADD CONSTRAINT CK_ananse_transaction_amount
-CHECK (amount >= 0);
-
-
-/*===============================================================
-  SIKACREDIT
-================================================================*/
-
-ALTER TABLE sikacredit.[loan]
-ADD CONSTRAINT CK_sikacredit_loan_principal_amount
-CHECK (principal_amount >= 0);
-
-ALTER TABLE sikacredit.[loan]
-ADD CONSTRAINT CK_sikacredit_loan_interest_rate
-CHECK (interest_rate >= 0);
-
-ALTER TABLE sikacredit.[loan]
-ADD CONSTRAINT CK_sikacredit_loan_maturity_after_disbursement
-CHECK (maturity_date > disbursement_timestamp);
-
-ALTER TABLE sikacredit.[repayment]
-ADD CONSTRAINT CK_sikacredit_repayment_amount
-CHECK (repayment_amount >= 0);
-
-
-/*===============================================================
-  OMAN REMIT
-================================================================*/
-
-ALTER TABLE oman_remit.[remittance]
-ADD CONSTRAINT CK_oman_remit_remittance_amount
-CHECK (amount >= 0);
-
-
-/*===============================================================
-  LEDGER
-================================================================*/
-
-ALTER TABLE ledger.[financial_consequence]
-ADD CONSTRAINT CK_ledger_financial_consequence_amount
-CHECK (amount >= 0);
-
-ALTER TABLE ledger.[entry]
-ADD CONSTRAINT CK_ledger_entry_amount
-CHECK (amount >= 0);
-
-GO
-
-
-/*========================================================================================================================
-  CHECK CONSTRAINT VERIFICATION
-
-  Expected:
-      8 CHECK constraints.
-========================================================================================================================*/
+UNION ALL
 
 SELECT
-    s.name AS schema_name,
-    t.name AS table_name,
-    cc.name AS constraint_check_name,
-    cc.definition AS check_definition
-FROM sys.check_constraints cc
-INNER JOIN sys.schemas s
-    ON cc.schema_id = s.schema_id
-INNER JOIN sys.tables t
-    ON cc.parent_object_id = t.object_id
-ORDER BY
-    s.name,
-    t.name,
-    cc.name;
+    'Bronze Foreign Keys',
+    11,
+    COUNT(*),
+    CASE 
+        WHEN COUNT(*) = 11
+            THEN 'PASS'
+        ELSE 'FAIL'
+        END
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.tables AS t ON
+        fk.parent_object_id = t.OBJECT_ID
+INNER JOIN sys.schemas AS s ON
+        t.SCHEMA_ID = s.SCHEMA_ID
+WHERE s.name = 'bronze';
+GO
 
+PRINT '===============================================================';
+PRINT '>>> BRONZE SOURCE-LAYER DEPLOYMENT COMPLETE <<<';
+PRINT '===============================================================';
 GO
 
 
-/*========================================================================================================================
-  T09 — INDEX VERIFICATION
-
-  Purpose:
-      Verifies indexes currently present on the approved OCB Platform v1.0.0
-      tables following implementation of primary-key and unique constraints.
-
-  No additional workload-specific nonclustered indexes are introduced
-  at this stage.
-========================================================================================================================*/
-
-DECLARE @expected_tables_schemas TABLE
-(
-    schema_name SYSNAME,
-    table_name  SYSNAME
-);
-
-INSERT INTO @expected_tables_schemas
-VALUES
-    ('ocb',         'customer'),
-    ('ocb',         'customer_identity'),
-    ('ananse',      'customer'),
-    ('ananse',      'transaction'),
-    ('wallet',      'wallet'),
-    ('sikacredit',  'customer'),
-    ('sikacredit',  'loan'),
-    ('sikacredit',  'repayment'),
-    ('oman_remit',  'customer'),
-    ('oman_remit',  'remittance'),
-    ('ledger',      'financial_event'),
-    ('ledger',      'financial_consequence'),
-    ('ledger',      'entry'),
-    ('ref',         'transaction_type'),
-    ('ref',         'transaction_status'),
-    ('ref',         'transaction_channel'),
-    ('ref',         'currency'),
-    ('ref',         'country');
-
-
-SELECT
-    ts.schema_name,
-    ts.table_name,
-    i.name AS index_name,
-    i.type_desc AS index_type,
-    c.name AS column_name,
-    ic.column_id,
-    ic.key_ordinal,
-    ic.is_included_column AS coverage_column,
-    i.index_id,
-    i.is_unique,
-    i.is_primary_key,
-    i.is_unique_constraint
-FROM @expected_tables_schemas ts
-INNER JOIN sys.tables t
-    ON ts.table_name = t.name
-INNER JOIN sys.schemas s
-    ON ts.schema_name = s.name
-    AND t.schema_id = s.schema_id
-INNER JOIN sys.indexes i
-    ON t.object_id = i.object_id
-INNER JOIN sys.index_columns ic
-    ON t.object_id = ic.object_id
-    AND i.index_id = ic.index_id
-INNER JOIN sys.columns c
-    ON ic.column_id = c.column_id
-    AND t.object_id = c.object_id
-WHERE i.is_disabled = 0
-ORDER BY
-    s.schema_id,
-    t.name,
-    i.index_id,
-    ic.key_ordinal;
-
-GO

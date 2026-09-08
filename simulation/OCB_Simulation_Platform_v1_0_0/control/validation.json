@@ -1,0 +1,45 @@
+{
+  "generator_version": "OCB-SIM-1.0.2",
+  "seed": "OCB2020",
+  "numeric_seed": 2255779,
+  "population": {
+    "ananse": 3000,
+    "sikacredit": 800,
+    "oman_remit": 500
+  },
+  "period": {
+    "start": "2023-01-01",
+    "end": "2025-12-31"
+  },
+  "quarters": 12,
+  "hard_record_ceiling": 1000000,
+  "total_source_records": 788522,
+  "hard_ceiling_pass": true,
+  "institution_rows": {
+    "ananse_transactions": 772381,
+    "sikacredit_loans": 867,
+    "sikacredit_repayments": 2683,
+    "oman_remittances": 12591
+  },
+  "p2p_successful_events": 163066,
+  "p2p_two_leg_integrity": true,
+  "p2p_leg_rows": 326132,
+  "scenario_assignments": 189,
+  "scenario_families": {
+    "S03": 18,
+    "S08": 13,
+    "S02": 15,
+    "S05": 14,
+    "S11": 17,
+    "S04": 7,
+    "S10": 18,
+    "S01": 8,
+    "S14": 13,
+    "S09": 20,
+    "S15": 13,
+    "S12": 20,
+    "S13": 5,
+    "S06": 4,
+    "S07": 4
+  }
+}

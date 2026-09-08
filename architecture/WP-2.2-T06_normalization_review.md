@@ -8,35 +8,54 @@
 
 ---
 
-## 1. Purpose
+# 1. Purpose
 
-This ticket reviews the logical relational model established through **WP-2.2-T01 to T05** for structural normalization and unnecessary duplication.
+This ticket reviews the logical relational model established through **WP-2.2-T01 to T05** for structural normalization, attribute dependency, repeating groups, unnecessary duplication, and consistency with the **approved physical deployment structure**.
 
-The review confirms that each entity represents a coherent business object or relationship, attributes remain at the appropriate grain, and repeating groups are not embedded within single records.
+The review is performed against the **corrected post-T01 model** and the reconciled attribute and foreign-key definitions established in:
 
-The review is performed against the **corrected post-T01 model**.
+* **WP-2.2-T02 — Define Attributes**
+* **WP-2.2-T03 — Define Primary Identifiers**
+* **WP-2.2-T04 — Define Foreign-Key Relationships**
+* **WP-2.2-T05 — Define Cardinality**
+
+The review distinguishes between:
+
+1. the **logical entity model** and its normalization characteristics; and
+2. deliberate **physical-source attributes retained for deployment and analytical purposes**.
+
+The objective is not to claim theoretical purity where the physical deployment deliberately retains source-level descriptive attributes.
+
+The objective is to confirm that:
+
+* entities have coherent business grains;
+* attributes remain with their owning entities;
+* repeating groups are eliminated;
+* relational dependencies are explicit;
+* foreign-key relationships are structurally sound;
+* source-owned attributes are not improperly consolidated;
+* physical deployment decisions are accurately reflected in the logical baseline.
 
 ---
 
 # 2. Normalization Standard
 
-The logical model is designed to satisfy the practical requirements of **Third Normal Form (3NF)**:
+The logical model is evaluated using a **3NF-oriented relational design standard**.
 
-1. Each entity represents a defined object or relationship.
-2. Each attribute contains a single logical value.
-3. Non-key attributes depend on the whole primary key.
-4. Non-key attributes do not depend on other non-key attributes.
-5. Repeating groups and multi-valued attributes are represented through related records rather than repeated columns.
+The review considers the following principles:
 
-The objective is not theoretical normalization for its own sake.
+1. Each entity represents a defined business object or relationship.
+2. Each attribute represents a single logical value.
+3. Attributes belong to the grain of the entity in which they are stored.
+4. Non-key attributes depend on the entity's identifying key.
+5. Repeating groups and arbitrary multi-valued attributes are represented as related records.
+6. Relationships between entities are represented through explicit foreign keys where required.
+7. Source-owned attributes are not unnecessarily transferred between institutional entities.
+8. Deliberate physical duplication is explicitly identified rather than incorrectly classified as normalization.
 
-The objective is to preserve:
+The standard is therefore:
 
-* clear entity ownership;
-* correct grain;
-* historical integrity;
-* analytical usability;
-* controlled relational coupling.
+> **Normalized logical entity boundaries, with explicitly documented physical-source attributes where required by the approved deployment.**
 
 ---
 
@@ -45,29 +64,52 @@ The objective is to preserve:
 ## 3.1 `OCB_CUSTOMER`
 
 ```text
-PK: ocb_customer_id
+PK:
+ocb_customer_id
 ```
 
-The entity contains only the OCB-resolved identity.
+`OCB_CUSTOMER` represents the OCB-resolved cross-institutional identity.
 
-No institutional demographic attributes are duplicated here.
+It does not contain:
 
-**Result: Normalized.**
+* Ananse demographic attributes;
+* SikaCredit demographic attributes;
+* Oman Remit demographic attributes;
+* transaction attributes;
+* loan attributes;
+* remittance attributes.
+
+This preserves a clear identity boundary.
+
+**Result: ✅ Normalized.**
 
 ---
 
 ## 3.2 `OCB_CUSTOMER_IDENTITY`
 
 ```text
-PK: (source_entity, source_customer_id)
-FK: ocb_customer_id
+PK:
+(source_entity, source_customer_id)
+
+FK:
+ocb_customer_id
 ```
 
-The source-system identity is represented once and mapped to the corresponding OCB identity.
+The entity represents the mapping between an institutional source identity and the corresponding OCB-resolved identity.
 
-The composite key prevents the same source identity from being represented repeatedly.
+The composite primary key ensures that:
 
-**Result: Normalized.**
+```text
+(source_entity, source_customer_id)
+```
+
+identifies one source-system customer identity.
+
+The `ocb_customer_id` attribute establishes the relationship to the OCB-resolved identity.
+
+No institutional customer demographic attributes are duplicated into this mapping entity.
+
+**Result: ✅ Normalized.**
 
 ---
 
@@ -76,268 +118,614 @@ The composite key prevents the same source identity from being represented repea
 ## 4.1 `ANANSE_CUSTOMER`
 
 ```text
-PK: customer_id
+PK:
+customer_id
 ```
 
-Customer attributes depend on the Ananse customer identifier.
+The entity contains only Ananse customer-level attributes.
 
-Transaction-level attributes are not stored here.
+Customer attributes such as:
 
-**Result: Normalized.**
+```text
+first_name
+last_name
+date_of_birth
+nationality
+occupation
+phone_number
+email
+created_at
+```
+
+belong to the customer grain.
+
+Transaction-level and wallet-level attributes are not embedded within the customer entity.
+
+**Result: ✅ Normalized.**
 
 ---
 
 ## 4.2 `ANANSE_WALLET`
 
 ```text
-PK: wallet_id
+PK:
+wallet_id
+
+FK:
+customer_id
 ```
 
-The wallet is maintained as a separate entity rather than embedding wallet information into customer or transaction records.
+The wallet is represented as a distinct financial object.
 
-**Result: Normalized.**
+The relationship:
+
+```text
+ANANSE_WALLET.customer_id
+        ↓
+ANANSE_CUSTOMER.customer_id
+```
+
+establishes wallet ownership by the Ananse customer.
+
+Wallet attributes are not embedded in the customer or transaction entities.
+
+**Result: ✅ Normalized.**
 
 ---
 
 ## 4.3 `ANANSE_TRANSACTION`
 
 ```text
-PK: transaction_id
-FK: customer_id
-FK: wallet_id
+PK:
+transaction_id
+
+FKs:
+customer_id
+wallet_id
+transaction_type_id
+transaction_status_id
+transaction_channel_id
+currency_id
 ```
 
-Transaction-specific attributes depend on the transaction identifier.
+The transaction entity represents one transaction/activity record.
 
-The transaction does not repeat customer demographic information or wallet-level information.
+Transaction-level attributes remain at transaction grain.
 
-`device_id` remains a transaction-level attribute because the device associated with an individual transaction is part of the activity record.
+The relational dependencies are explicitly represented through:
 
-**Result: Normalized.**
+```text
+customer_id
+wallet_id
+transaction_type_id
+transaction_status_id
+transaction_channel_id
+currency_id
+```
+
+These establish the following relationships:
+
+```text
+customer_id
+    ↓
+ananse.customer
+
+wallet_id
+    ↓
+wallet.wallet
+
+transaction_type_id
+    ↓
+ref.transaction_type
+
+transaction_status_id
+    ↓
+ref.transaction_status
+
+transaction_channel_id
+    ↓
+ref.transaction_channel
+
+currency_id
+    ↓
+ref.currency
+```
+
+The transaction does not contain customer demographic attributes or wallet-level attributes.
+
+`device_id` remains transaction-level because the device associated with a transaction is an attribute of the activity record rather than the customer or wallet.
+
+**Result: ✅ Normalized entity boundary.**
 
 ---
 
-# 5. SikaCredit Normalization Review
+# 5. Reference-Attribute Duplication in `ANANSE_TRANSACTION`
 
-## 5.1 `SIKACREDIT_CUSTOMER`
+The physical deployment intentionally retains both reference identifiers and corresponding descriptive attributes:
 
 ```text
-PK: customer_id
+transaction_type_id
+transaction_type
+
+transaction_status_id
+transaction_status
+
+transaction_channel_id
+transaction_channel
+
+currency_id
+currency
 ```
 
-Customer attributes depend on the customer identifier.
+This requires an explicit normalization qualification.
 
-Loan and repayment attributes are not embedded in the customer entity.
+From a strict normalized relational perspective, the descriptive values could be derived through the corresponding reference tables.
 
-**Result: Normalized.**
+For example:
+
+```text
+transaction_type_id
+        ↓
+ref.transaction_type
+```
+
+could supply the transaction type description without requiring a second transaction-level descriptive value.
+
+However, the approved physical deployment deliberately retains these descriptive attributes as part of the deployed transaction representation.
+
+Therefore the correct architectural classification is:
+
+> **Deliberate physical redundancy retained for source representation and analytical usability.**
+
+It is **not** evidence that the entity boundaries themselves are incorrectly designed.
+
+Accordingly, the model should not be described as a mathematically pure 3NF implementation at the physical column level.
+
+The logical model remains 3NF-oriented, while the physical deployment contains a documented source-compatible redundancy.
+
+**Result: ⚠️ Intentional physical redundancy — accepted and locked.**
 
 ---
 
-## 5.2 `SIKACREDIT_LOAN`
+# 6. SikaCredit Normalization Review
+
+## 6.1 `SIKACREDIT_CUSTOMER`
 
 ```text
-PK: loan_id
-FK: customer_id
+PK:
+customer_id
 ```
 
-Loan-level attributes depend on the loan identifier.
+Customer-level attributes depend on the SikaCredit customer identifier.
 
-Customer attributes are referenced through `customer_id` rather than duplicated.
+Loan and repayment attributes are not stored in the customer entity.
 
-**Result: Normalized.**
+**Result: ✅ Normalized.**
 
 ---
 
-## 5.3 `SIKACREDIT_REPAYMENT`
+## 6.2 `SIKACREDIT_LOAN`
 
 ```text
-PK: repayment_id
-FK: loan_id
+PK:
+loan_id
+
+FK:
+customer_id
+```
+
+Loan-level attributes remain at loan grain:
+
+```text
+disbursement_timestamp
+disbursement_location
+maturity_date
+principal_amount
+interest_rate
+currency
+```
+
+The customer relationship is represented through:
+
+```text
+customer_id
+```
+
+rather than by duplicating customer attributes.
+
+No currency reference FK is introduced because none exists in the approved physical deployment.
+
+**Result: ✅ Normalized.**
+
+---
+
+## 6.3 `SIKACREDIT_REPAYMENT`
+
+```text
+PK:
+repayment_id
+
+FK:
+loan_id
 ```
 
 Each repayment is represented as an independent record.
 
-This prevents repeating repayment columns such as:
+This eliminates repeating groups such as:
 
 ```text
-repayment_1_amount
-repayment_2_amount
-repayment_3_amount
-```
-
-and supports an arbitrary number of repayments against a loan.
-
-**Result: Normalized.**
-
----
-
-# 6. Oman Remit Normalization Review
-
-## 6.1 `OMAN_REMIT_CUSTOMER`
-
-```text
-PK: customer_id
-```
-
-Customer-level attributes depend on the customer identifier.
-
-Remittance-level attributes are not duplicated within the customer entity.
-
-**Result: Normalized.**
-
----
-
-## 6.2 `OMAN_REMIT_REMITTANCE`
-
-```text
-PK: remittance_id
-FK: customer_id
-```
-
-Remittance-specific attributes depend on the remittance identifier.
-
-Customer information is referenced through the customer relationship rather than duplicated.
-
-**Result: Normalized.**
-
----
-
-# 7. Repeating-Group Review
-
-The model deliberately avoids repeating groups.
-
-For example, SikaCredit repayments are not represented as:
-
-```text
-loan_id
 repayment_1_amount
 repayment_1_timestamp
+
 repayment_2_amount
 repayment_2_timestamp
-...
+
+repayment_3_amount
+repayment_3_timestamp
 ```
 
-Instead:
+The model therefore supports an arbitrary number of repayments per loan.
+
+**Result: ✅ Normalized.**
+
+---
+
+# 7. Oman Remit Normalization Review
+
+## 7.1 `OMAN_REMIT_CUSTOMER`
+
+```text
+PK:
+customer_id
+```
+
+Customer-level attributes remain within the Oman Remit customer entity.
+
+Remittance-level attributes are not embedded within the customer record.
+
+**Result: ✅ Normalized.**
+
+---
+
+## 7.2 `OMAN_REMIT_REMITTANCE`
+
+```text
+PK:
+remittance_id
+
+FKs:
+customer_id
+country_id
+```
+
+The remittance entity represents one remittance activity.
+
+The customer relationship is established through:
+
+```text
+customer_id
+        ↓
+oman_remit.customer.customer_id
+```
+
+The country reference relationship is established through:
+
+```text
+country_id
+        ↓
+ref.country.country_id
+```
+
+The physical deployment also retains:
+
+```text
+origin_country
+destination_country
+currency
+transaction_channel
+remittance_status
+```
+
+as remittance-level attributes.
+
+These remain at the remittance grain and are not repeated customer attributes.
+
+**Result: ✅ Normalized entity boundary, with deliberate physical descriptive attributes retained.**
+
+---
+
+# 8. Repeating-Group Review
+
+No repeating groups are embedded within the current relational entities.
+
+The strongest example is SikaCredit repayment activity.
+
+The model uses:
 
 ```text
 SIKACREDIT_LOAN
         │
         └── SIKACREDIT_REPAYMENT
-                │
-                ├── repayment_id
-                ├── loan_id
-                ├── repayment_amount
-                ├── repayment_timestamp
-                └── repayment_location
 ```
 
-This preserves the one-repayment-per-record grain.
+rather than embedding multiple repayment columns within the loan.
+
+Likewise:
+
+```text
+ANANSE_CUSTOMER
+        │
+        └── ANANSE_WALLET
+                │
+                └── ANANSE_TRANSACTION
+```
+
+represents customer, wallet, and transaction activity at their respective grains.
+
+**Result: ✅ No repeating groups identified.**
 
 ---
 
-# 8. Customer Attribute Duplication
+# 9. Foreign-Key Normalization Review
 
-The fact that each institutional customer entity contains similar attribute names does not constitute an unintended normalization violation.
+The physical deployment contains **12 authoritative foreign-key relationships**.
+
+These relationships are structurally consistent with the logical entity boundaries.
+
+| #  | Child Entity            | FK Attribute             | Parent Entity             | Parent Key               |
+| -- | ----------------------- | ------------------------ | ------------------------- | ------------------------ |
+| 1  | `OCB_CUSTOMER_IDENTITY` | `ocb_customer_id`        | `OCB_CUSTOMER`            | `ocb_customer_id`        |
+| 2  | `ANANSE_TRANSACTION`    | `customer_id`            | `ANANSE_CUSTOMER`         | `customer_id`            |
+| 3  | `ANANSE_WALLET`         | `customer_id`            | `ANANSE_CUSTOMER`         | `customer_id`            |
+| 4  | `ANANSE_TRANSACTION`    | `wallet_id`              | `ANANSE_WALLET`           | `wallet_id`              |
+| 5  | `ANANSE_TRANSACTION`    | `transaction_type_id`    | `REF_TRANSACTION_TYPE`    | `transaction_type_id`    |
+| 6  | `ANANSE_TRANSACTION`    | `transaction_status_id`  | `REF_TRANSACTION_STATUS`  | `transaction_status_id`  |
+| 7  | `ANANSE_TRANSACTION`    | `transaction_channel_id` | `REF_TRANSACTION_CHANNEL` | `transaction_channel_id` |
+| 8  | `ANANSE_TRANSACTION`    | `currency_id`            | `REF_CURRENCY`            | `currency_id`            |
+| 9  | `SIKACREDIT_LOAN`       | `customer_id`            | `SIKACREDIT_CUSTOMER`     | `customer_id`            |
+| 10 | `SIKACREDIT_REPAYMENT`  | `loan_id`                | `SIKACREDIT_LOAN`         | `loan_id`                |
+| 11 | `OMAN_REMIT_REMITTANCE` | `customer_id`            | `OMAN_REMIT_CUSTOMER`     | `customer_id`            |
+| 12 | `OMAN_REMIT_REMITTANCE` | `country_id`             | `REF_COUNTRY`             | `country_id`             |
+
+**Total: 12 authoritative foreign-key relationships.**
+
+These relationships do not introduce repeating groups or inappropriate entity coupling.
+
+**Result: ✅ Structurally normalized relationships.**
+
+---
+
+# 10. Institutional Customer Attribute Duplication
+
+The existence of similarly named attributes across institutional customer entities is intentional.
 
 For example:
 
 ```text
 ANANSE_CUSTOMER.first_name
+
 SIKACREDIT_CUSTOMER.first_name
+
 OMAN_REMIT_CUSTOMER.first_name
 ```
 
-represent **source-owned attributes belonging to different institutional entities**.
+does not represent duplicate attributes within a single entity.
 
-They are not duplicate rows within a single relational entity.
+Each belongs to a separate institutional source domain.
 
-OCB identity resolution may later determine that those records represent the same real-world customer, but that does not transfer ownership of the source attributes to OCB.
+The entities represent:
 
-**Result: Intentional duplication across independent source domains.**
+```text
+ANANSE customer
+SIKACREDIT customer
+OMAN_REMIT customer
+```
+
+rather than a single consolidated operational customer record.
+
+Therefore these attributes remain institution-owned.
+
+**Result: ✅ Intentional cross-domain duplication — accepted.**
 
 ---
 
-# 9. Cross-Institutional Identity Review
+# 11. Cross-Institutional Identity Normalization
 
-The model avoids placing institutional customer attributes directly inside `OCB_CUSTOMER`.
+The model does not place:
+
+```text
+ocb_customer_id
+```
+
+directly into the institutional customer entities.
 
 Instead:
 
 ```text
 OCB_CUSTOMER
       │
-      └── OCB_CUSTOMER_IDENTITY
-              │
-              ├── ANANSE customer
-              ├── SikaCredit customer
-              └── Oman Remit customer
+      │ 1 : 0..N
+      ▼
+OCB_CUSTOMER_IDENTITY
+      │
+      ├── ANANSE customer identity
+      ├── SIKACREDIT customer identity
+      └── OMAN_REMIT customer identity
 ```
 
-This prevents OCB from becoming a duplicate institutional customer table.
+This preserves the distinction between:
 
-Derived OCB analytical attributes may be created downstream when required.
+* institutional customer identity; and
+* OCB-resolved identity.
 
-**Result: Normalized and consistent with the identity-resolution boundary.**
+It also prevents the OCB customer entity from becoming a duplicate of the institutional customer tables.
 
----
-
-# 10. Historical and Transactional Integrity
-
-The model does not overwrite historical transaction activity with current customer attributes.
-
-Customer records and activities are separated so that:
-
-* customer attributes remain customer-level;
-* transactions remain transaction-level;
-* loans remain loan-level;
-* repayments remain repayment-level;
-* remittances remain remittance-level.
-
-This supports the platform's principle that financial activity remains historically observable.
+**Result: ✅ Normalized identity boundary.**
 
 ---
 
-# 11. Normalization Exceptions
+# 12. Historical and Transactional Grain
 
-No intentional denormalization is introduced in the current logical model.
+The model preserves the independent grain of each financial object.
 
-Any later denormalization for analytical performance must occur downstream of the logical source model and must not alter the authoritative operational grain.
+```text
+Customer
+    ↓
+Wallet
+    ↓
+Transaction
+```
+
+and:
+
+```text
+Customer
+    ↓
+Loan
+    ↓
+Repayment
+```
+
+and:
+
+```text
+Customer
+    ↓
+Remittance
+```
+
+This prevents activity-level attributes from being stored at customer grain and prevents multiple activities from being collapsed into a single record.
+
+The model therefore supports historical activity analysis without requiring the customer record to represent the state of every historical transaction.
+
+**Result: ✅ Grain preserved.**
 
 ---
 
-# 12. Final Normalization Assessment
+# 13. Deliberate Physical Redundancy
 
-| Entity                  | Assessment   |
-| ----------------------- | ------------ |
-| `OCB_CUSTOMER`          | ✅ Normalized |
-| `OCB_CUSTOMER_IDENTITY` | ✅ Normalized |
-| `ANANSE_CUSTOMER`       | ✅ Normalized |
-| `ANANSE_WALLET`         | ✅ Normalized |
-| `ANANSE_TRANSACTION`    | ✅ Normalized |
-| `SIKACREDIT_CUSTOMER`   | ✅ Normalized |
-| `SIKACREDIT_LOAN`       | ✅ Normalized |
-| `SIKACREDIT_REPAYMENT`  | ✅ Normalized |
-| `OMAN_REMIT_CUSTOMER`   | ✅ Normalized |
-| `OMAN_REMIT_REMITTANCE` | ✅ Normalized |
+The normalization review identifies one important deliberate physical characteristic.
 
-The logical model satisfies the intended **3NF-oriented design standard**.
+The approved deployment retains descriptive attributes alongside reference identifiers where required by the physical source representation.
+
+The principal example is:
+
+```text
+ANANSE_TRANSACTION
+```
+
+which contains:
+
+```text
+transaction_type_id
+transaction_type
+
+transaction_status_id
+transaction_status
+
+transaction_channel_id
+transaction_channel
+
+currency_id
+currency
+```
+
+Similarly, Oman Remit retains:
+
+```text
+country_id
+origin_country
+destination_country
+```
+
+This is treated as **controlled physical redundancy**, not as a failure to define proper entity boundaries.
+
+The redundancy must not be expanded arbitrarily.
+
+No additional duplicate attributes should be introduced merely for convenience without an explicit architectural decision.
 
 ---
 
-# 13. Final Decision
+# 14. Normalization Assessment
+
+| Entity                  | Assessment                                                                |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `OCB_CUSTOMER`          | ✅ Normalized                                                              |
+| `OCB_CUSTOMER_IDENTITY` | ✅ Normalized                                                              |
+| `ANANSE_CUSTOMER`       | ✅ Normalized                                                              |
+| `ANANSE_WALLET`         | ✅ Normalized                                                              |
+| `ANANSE_TRANSACTION`    | ⚠️ Normalized entity boundary; deliberate physical descriptive redundancy |
+| `SIKACREDIT_CUSTOMER`   | ✅ Normalized                                                              |
+| `SIKACREDIT_LOAN`       | ✅ Normalized                                                              |
+| `SIKACREDIT_REPAYMENT`  | ✅ Normalized                                                              |
+| `OMAN_REMIT_CUSTOMER`   | ✅ Normalized                                                              |
+| `OMAN_REMIT_REMITTANCE` | ⚠️ Normalized entity boundary; deliberate physical descriptive redundancy |
+
+---
+
+# 15. Overall Normalization Conclusion
+
+The logical model satisfies the intended **3NF-oriented entity-design standard**.
+
+Specifically, it:
+
+* maintains coherent entity boundaries;
+* preserves entity grain;
+* separates customers from activities;
+* separates wallets from transactions;
+* separates loans from repayments;
+* eliminates repeating groups;
+* maintains institutional ownership of source attributes;
+* uses explicit foreign-key relationships;
+* incorporates all **12 authoritative physical FK relationships**;
+* maintains a dedicated OCB identity-resolution boundary;
+* avoids unnecessary cross-institutional foreign keys.
+
+The model does, however, contain **deliberate physical redundancy** in certain deployed source representations.
+
+Therefore the technically accurate conclusion is:
+
+> **The logical model is 3NF-oriented and structurally normalized, while the approved physical deployment intentionally retains selected descriptive attributes alongside reference identifiers for source compatibility and analytical usability.**
+
+It would be incorrect to describe the deployed physical tables as a completely pure 3NF implementation.
+
+---
+
+# 16. Normalization Changes Required
+
+No entity restructuring is required.
+
+No primary-key changes are required.
+
+No foreign-key changes are required.
+
+No cardinality changes are required.
+
+No repeating-group remediation is required.
+
+The identified physical redundancy is deliberate and accepted under the approved deployment design.
+
+Any future removal of these duplicated descriptive attributes would constitute a **physical-schema change**, not a correction to the logical entity model, and would require explicit architectural review.
+
+---
+
+# 17. Final Decision
 
 The normalization review confirms that the corrected WP-2.2 logical model:
 
 * maintains clear entity boundaries;
-* preserves entity grain;
+* preserves business grain;
 * avoids repeating groups;
 * separates customers from activities;
-* separates loans from repayments;
 * separates wallets from transactions;
-* maintains source ownership of institutional attributes;
-* uses identity mapping rather than duplicating institutional identity into OCB;
-* introduces no intentional operational denormalization.
+* separates loans from repayments;
+* preserves source ownership;
+* maintains OCB identity resolution separately from institutional customer records;
+* incorporates the **12 authoritative foreign-key relationships**;
+* introduces no unintended entity-level denormalization.
 
-No normalization changes are required at this stage.
+Selected descriptive/reference redundancy remains intentionally present in the physical deployment and is explicitly accepted as a controlled physical-design decision.
 
-**WP-2.2-T06 — REVISED AND LOCKED.**
+**No logical-model normalization changes are required at this stage.**
+
+**WP-2.2-T06 — REVISED, RECONCILED AND LOCKED.**

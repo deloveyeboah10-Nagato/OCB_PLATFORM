@@ -4,6 +4,7 @@
 **Work Package:** WP-2.3 — Operational Schema Design
 **Ticket:** WP-2.3-T02
 **Status:** **APPROVED**
+**Decision Type:** Operational responsibility definition
 
 ---
 
@@ -16,7 +17,9 @@ The purpose is to distinguish:
 * which institution owns an entity or activity;
 * which schema contains the corresponding database objects;
 * which structures represent institutional activity;
-* which structures represent financial state or financial posting.
+* which structures represent wallets and financial state;
+* which structures represent financial events and ledger postings;
+* which structures provide shared platform control.
 
 **Schema separation does not automatically imply separate institutional ownership.**
 
@@ -26,15 +29,15 @@ In particular, the `wallet` schema contains **Ananse-owned wallet objects** even
 
 # 2. Responsibility Model
 
-| Schema       | Operational Responsibility                             |
-| ------------ | ------------------------------------------------------ |
-| `ocb`        | OCB identity resolution                                |
-| `ananse`     | Ananse customer and transaction activity               |
-| `sikacredit` | SikaCredit customer and lending activity               |
-| `oman_remit` | Oman Remit customer and remittance activity            |
-| `wallet`     | **Ananse-owned wallet and associated financial state** |
-| `ledger`     | Financial ledger and postings                          |
-| `ref`        | Shared controlled reference data                       |
+| Schema       | Operational Responsibility                                        |
+| ------------ | ----------------------------------------------------------------- |
+| `ocb`        | OCB identity resolution and OCB-owned control structures          |
+| `ananse`     | Ananse customer and transaction activity                          |
+| `sikacredit` | SikaCredit customer and lending activity                          |
+| `oman_remit` | Oman Remit customer and remittance activity                       |
+| `wallet`     | **Ananse-owned wallet and associated financial-state structures** |
+| `ledger`     | Financial ledger and posting structures                           |
+| `ref`        | Shared controlled reference data                                  |
 
 ---
 
@@ -42,16 +45,17 @@ In particular, the `wallet` schema contains **Ananse-owned wallet objects** even
 
 ### Owns
 
-* OCB-resolved customer identity.
-* Source-to-OCB identity mappings.
+* OCB-resolved customer identities;
+* source-to-OCB identity mappings;
 * OCB-specific identity-resolution control structures.
 
 ### Does not own
 
-* Ananse source customer records.
-* SikaCredit source customer records.
-* Oman Remit source customer records.
-* Institutional transaction, loan, repayment, or remittance activity.
+* Ananse source customer records;
+* SikaCredit source customer records;
+* Oman Remit source customer records;
+* institutional transaction, loan, repayment, or remittance activity;
+* Ananse wallet records.
 
 OCB resolves identities across institutional sources but does not replace the source systems' authoritative customer records.
 
@@ -61,18 +65,20 @@ OCB resolves identities across institutional sources but does not replace the so
 
 ### Owns
 
-* Ananse customer records.
+* Ananse customer records;
 * Ananse transaction activity.
 
 ### Does not contain
 
-* Wallet tables.
-* Ledger tables.
-* SikaCredit activity.
-* Oman Remit activity.
+* wallet tables;
+* ledger tables;
+* SikaCredit activity;
+* Oman Remit activity;
 * OCB identity-resolution tables.
 
 The physical separation of the wallet does **not** mean that Ananse does not own the wallet.
+
+Ananse ownership is therefore broader than the physical contents of the `ananse` SQL Server schema.
 
 ---
 
@@ -80,19 +86,19 @@ The physical separation of the wallet does **not** mean that Ananse does not own
 
 ### Owns
 
-* SikaCredit customer records.
-* Loan records.
-* Repayment records.
+* SikaCredit customer records;
+* loan records;
+* repayment records.
 
 SikaCredit is authoritative for its lending activity.
 
 ### Does not own
 
-* Ananse wallets.
-* Ananse transactions.
-* Oman Remit remittances.
-* OCB identity-resolution records.
-* Ledger postings.
+* Ananse wallets;
+* Ananse transactions;
+* Oman Remit remittances;
+* OCB identity-resolution records;
+* ledger postings.
 
 ---
 
@@ -100,18 +106,18 @@ SikaCredit is authoritative for its lending activity.
 
 ### Owns
 
-* Oman Remit customer records.
-* Remittance records.
+* Oman Remit customer records;
+* remittance records.
 
 Oman Remit is authoritative for its remittance activity.
 
 ### Does not own
 
-* Ananse customer records.
-* Ananse transactions.
-* Ananse wallets.
-* SikaCredit loans or repayments.
-* Ledger postings.
+* Ananse customer records;
+* Ananse transactions;
+* Ananse wallets;
+* SikaCredit loans or repayments;
+* ledger postings;
 * OCB identity-resolution records.
 
 ---
@@ -122,35 +128,35 @@ Oman Remit is authoritative for its remittance activity.
 
 The wallet is an **Ananse-owned financial object**.
 
-The `wallet` schema is therefore not an independent institutional domain.
+The `wallet` schema is therefore **not an independent institutional domain**.
 
 It is a physical database boundary used because wallet and financial-state structures have a distinct architectural responsibility from Ananse's transaction activity.
 
 ### Owns
 
-* Ananse wallet records.
-* Wallet financial-state structures.
+* Ananse wallet records;
+* wallet financial-state structures associated with those wallets.
 
 ### Does not own
 
-* The originating transaction activity.
-* SikaCredit lending activity.
-* Oman Remit remittance activity.
-* OCB identity-resolution records.
+* originating transaction activity;
+* SikaCredit lending activity;
+* Oman Remit remittance activity;
+* OCB identity-resolution records;
+* ledger postings.
 
-The distinction is therefore:
+The institutional ownership model is:
 
-```text id="o8t2pm"
-Ananse ownership
-       │
-       ├── customer
-       ├── transaction
-       └── wallet
+```text
+ANANSE
+├── customer
+├── transaction
+└── wallet
 ```
 
 while the SQL Server schema organization is:
 
-```text id="3sk1mi"
+```text
 ananse
 ├── customer
 └── transaction
@@ -163,24 +169,67 @@ wallet
 
 ---
 
-# 8. `ledger` Schema
+# 8. Wallet Relational Boundary
+
+The physical model establishes a controlled relationship between the Ananse customer and the Ananse-owned wallet.
+
+```text
+ananse.customer
+       │
+       │ customer_id
+       ↓
+wallet.wallet
+```
+
+The wallet therefore remains physically located in the `wallet` schema while maintaining its customer dependency on `ananse.customer`.
+
+This distinction is important:
+
+```text
+Institutional ownership
+        ≠
+SQL Server schema placement
+        ≠
+Foreign-key dependency
+```
+
+A foreign key from `wallet.wallet` to `ananse.customer` does not transfer ownership of the wallet to the `ananse` schema.
+
+---
+
+# 9. `ledger` Schema
 
 ### Owns
 
-* Ledger structures.
-* Financial postings.
-* Financial accounting consequences.
+* ledger structures;
+* ledger entries;
+* financial postings;
+* accounting representation of financial consequences.
 
 ### Does not own
 
-* Source institutional activities.
-* Customer records.
-* Loans.
-* Repayments.
-* Remittances.
-* Wallet ownership.
+* source institutional activities;
+* customer records;
+* loans;
+* repayments;
+* remittances;
+* wallet ownership.
 
-The ledger represents the **financial consequence of activity**, rather than replacing the originating activity.
+The ledger represents the **accounting/posting representation of financial consequences**, rather than replacing the originating institutional activity.
+
+For example:
+
+```text
+ananse.transaction
+        │
+        ↓
+financial consequence
+        │
+        ↓
+ledger posting
+```
+
+The originating transaction remains an Ananse institutional record.
 
 Detailed ledger structures are defined in:
 
@@ -188,7 +237,7 @@ Detailed ledger structures are defined in:
 
 ---
 
-# 9. `ref` Schema
+# 10. `ref` Schema
 
 ### Owns
 
@@ -209,11 +258,11 @@ The detailed reference structures are defined in:
 
 ---
 
-# 10. Institutional Ownership Model
+# 11. Institutional Ownership Model
 
 The institutional ownership model is:
 
-```text id="xqgcsp"
+```text
 ANANSE
 ├── Customer
 ├── Wallet
@@ -232,9 +281,9 @@ OCB
 └── Identity Resolution
 ```
 
-The financial architecture then provides the separate ledger responsibility:
+The financial architecture provides the platform-level financial processing structures:
 
-```text id="s7y2bg"
+```text
 Institutional Activity
         │
         ↓
@@ -247,11 +296,11 @@ Ledger Posting
 Financial State
 ```
 
-For Ananse, the financial state includes the **Ananse-owned wallet**.
+For Ananse, the relevant financial state includes the **Ananse-owned wallet**.
 
 ---
 
-# 11. Physical Schema vs Institutional Ownership
+# 12. Physical Schema vs Institutional Ownership
 
 This distinction is fundamental to the design.
 
@@ -274,7 +323,7 @@ This table resolves the apparent contradiction between **Ananse ownership** and 
 
 ---
 
-# 12. Cross-Schema Access
+# 13. Cross-Schema Access
 
 Schemas may reference or query objects in other schemas where the relationship is architecturally justified.
 
@@ -284,12 +333,15 @@ However:
 
 For example:
 
-```text id="3d8a2r"
+```text
 ananse.transaction
+        │
         ↓
 financial consequence
+        │
         ↓
 ledger
+        │
         ↓
 wallet.wallet
 ```
@@ -300,11 +352,21 @@ The wallet remains Ananse-owned.
 
 The ledger remains a financial-core structure.
 
-These are separate responsibilities even though they participate in the same financial flow.
+These objects participate in a common financial flow without becoming part of the same schema or responsibility boundary.
+
+The established wallet customer dependency is similarly controlled:
+
+```text
+wallet.wallet
+      │
+      │ customer_id FK
+      ↓
+ananse.customer
+```
 
 ---
 
-# 13. Responsibility Matrix
+# 14. Responsibility Matrix
 
 | Responsibility         | OCB | Ananse | SikaCredit | Oman Remit | Wallet Schema | Ledger | Ref |
 | ---------------------- | --: | -----: | ---------: | ---------: | ------------: | -----: | --: |
@@ -319,13 +381,17 @@ These are separate responsibilities even though they participate in the same fin
 | Ledger postings        |     |        |            |            |               |      ✓ |     |
 | Shared reference data  |     |        |            |            |               |        |   ✓ |
 
+The **Wallet Schema** column represents physical placement, while the **Ananse** column represents institutional ownership.
+
+This is intentional.
+
 ---
 
-# 14. Final Responsibility Boundaries
+# 15. Final Responsibility Boundaries
 
-The authoritative model is:
+The authoritative institutional model is:
 
-```text id="b1t7gj"
+```text
 OCB
 └── Identity Resolution
 
@@ -350,9 +416,9 @@ OCB PLATFORM SHARED CONTROL
 └── Reference Data
 ```
 
-With physical schema separation:
+The physical SQL Server organization is:
 
-```text id="4ykqzq"
+```text
 ocb
 ananse
 sikacredit
@@ -364,12 +430,16 @@ ref
 
 ---
 
-# 15. Decision
+# 16. Decision
 
 The platform will distinguish **institutional ownership** from **physical SQL Server schema placement**.
 
 The critical decision is:
 
-> **Ananse owns the wallet. The wallet is nevertheless placed in a separate `wallet` schema because wallet/financial-state structures have a distinct architectural responsibility from Ananse's institutional transaction activity.**
+> **Ananse owns the wallet. The wallet is nevertheless placed in a separate `wallet` schema because wallet and financial-state structures have a distinct architectural responsibility from Ananse's institutional transaction activity.**
+
+The wallet may therefore maintain a foreign-key dependency on `ananse.customer` without being moved into the `ananse` schema.
 
 No schema boundary transfers institutional ownership unless explicitly stated.
+
+**WP-2.3-T02 — APPROVED.**

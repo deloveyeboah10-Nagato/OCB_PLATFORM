@@ -1,0 +1,4 @@
+transaction_status_id,transaction_status_code,transaction_status_name
+1,SUCCESSFUL,Successful
+2,FAILED,Failed
+3,REJECTED,Rejected

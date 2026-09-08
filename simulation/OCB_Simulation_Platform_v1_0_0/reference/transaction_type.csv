@@ -1,0 +1,5 @@
+transaction_type_id,transaction_type_code,transaction_type_name
+1,CASH_IN,Cash In
+2,CASH_OUT,Cash Out
+3,P2P_TRANSFER,P2P Transfer
+4,MERCHANT_PAYMENT,Merchant Payment

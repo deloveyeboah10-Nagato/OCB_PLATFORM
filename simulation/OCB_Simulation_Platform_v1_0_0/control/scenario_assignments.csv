@@ -1,0 +1,190 @@
+synthetic_person_id,source_entity,source_customer_id,scenario_id,scenario_family,severity,difficulty
+P00008,ananse,AN-C000008,S03,Rapid cash-in -> P2P -> cash-out,Low,Contextual
+P00009,ananse,AN-C000009,S08,Loan withdrawal + cash-out velocity,Medium,Detectable
+P00029,ananse,AN-C000029,S02,Midnight / unusual-hour activity,Low,Contextual
+P00052,ananse,AN-C000052,S05,Unusual customer-specific cash-out,Low,Contextual
+P00090,ananse,AN-C000090,S11,Cross-institution behavioural anomaly,Medium,Contextual
+P00110,ananse,AN-C000110,S04,Dormant-account reactivation,Medium,Contextual
+P00115,ananse,AN-C000115,S08,Loan withdrawal + cash-out velocity,Low,Contextual
+P00134,ananse,AN-C000134,S11,Cross-institution behavioural anomaly,Low,Cross-institution
+P00146,ananse,AN-C000146,S02,Midnight / unusual-hour activity,Low,Multi-event
+P00161,ananse,AN-C000161,S11,Cross-institution behavioural anomaly,High,Ambiguous
+P00164,ananse,AN-C000164,S05,Unusual customer-specific cash-out,High,Contextual
+P00165,ananse,AN-C000165,S10,Geographic anomaly,Low,Contextual
+P00203,ananse,AN-C000203,S10,Geographic anomaly,Medium,Detectable
+P00204,ananse,AN-C000204,S01,High transaction velocity,Medium,Multi-event
+P00216,ananse,AN-C000216,S10,Geographic anomaly,Medium,Contextual
+P00285,ananse,AN-C000285,S10,Geographic anomaly,Medium,Multi-event
+P00327,ananse,AN-C000327,S03,Rapid cash-in -> P2P -> cash-out,High,Contextual
+P00341,ananse,AN-C000341,S14,Concentration / exposure,Low,Multi-event
+P00357,ananse,AN-C000357,S09,Repeated failed transactions,Medium,Multi-event
+P00401,ananse,AN-C000401,S11,Cross-institution behavioural anomaly,Low,Cross-institution
+P00409,ananse,AN-C000409,S10,Geographic anomaly,High,Detectable
+P00412,ananse,AN-C000412,S05,Unusual customer-specific cash-out,Low,Detectable
+P00419,ananse,AN-C000419,S02,Midnight / unusual-hour activity,Medium,Contextual
+P00465,ananse,AN-C000465,S11,Cross-institution behavioural anomaly,Low,Contextual
+P00470,ananse,AN-C000470,S15,Multi-stage behavioural sequence,Low,Multi-event
+P00485,ananse,AN-C000485,S12,Identity / attribute overlap,Medium,Contextual
+P00488,ananse,AN-C000488,S04,Dormant-account reactivation,Low,Contextual
+P00505,ananse,AN-C000505,S12,Identity / attribute overlap,Low,Cross-institution
+P00509,ananse,AN-C000509,S08,Loan withdrawal + cash-out velocity,Medium,Contextual
+P00531,ananse,AN-C000531,S02,Midnight / unusual-hour activity,Medium,Ambiguous
+P00541,ananse,AN-C000541,S09,Repeated failed transactions,Low,Multi-event
+P00554,ananse,AN-C000554,S03,Rapid cash-in -> P2P -> cash-out,Medium,Contextual
+P00567,ananse,AN-C000567,S15,Multi-stage behavioural sequence,Medium,Contextual
+P00599,ananse,AN-C000599,S08,Loan withdrawal + cash-out velocity,Low,Contextual
+P00617,ananse,AN-C000617,S04,Dormant-account reactivation,Low,Contextual
+P00635,ananse,AN-C000635,S12,Identity / attribute overlap,Low,Detectable
+P00662,ananse,AN-C000662,S05,Unusual customer-specific cash-out,Low,Contextual
+P00669,ananse,AN-C000669,S12,Identity / attribute overlap,Medium,Multi-event
+P00713,ananse,AN-C000713,S10,Geographic anomaly,Medium,Multi-event
+P00715,ananse,AN-C000715,S11,Cross-institution behavioural anomaly,Low,Detectable
+P00718,ananse,AN-C000718,S09,Repeated failed transactions,High,Multi-event
+P00734,ananse,AN-C000734,S12,Identity / attribute overlap,Low,Multi-event
+P00799,ananse,AN-C000799,S14,Concentration / exposure,Medium,Contextual
+P00831,ananse,AN-C000831,S02,Midnight / unusual-hour activity,Low,Cross-institution
+P00834,ananse,AN-C000834,S08,Loan withdrawal + cash-out velocity,Low,Contextual
+P00843,ananse,AN-C000843,S15,Multi-stage behavioural sequence,Low,Contextual
+P00849,ananse,AN-C000849,S05,Unusual customer-specific cash-out,Low,Ambiguous
+P00854,ananse,AN-C000854,S05,Unusual customer-specific cash-out,High,Multi-event
+P00856,ananse,AN-C000856,S11,Cross-institution behavioural anomaly,Medium,Multi-event
+P00859,ananse,AN-C000859,S14,Concentration / exposure,Low,Contextual
+P00864,ananse,AN-C000864,S03,Rapid cash-in -> P2P -> cash-out,Low,Contextual
+P00876,ananse,AN-C000876,S11,Cross-institution behavioural anomaly,High,Contextual
+P00889,ananse,AN-C000889,S01,High transaction velocity,Low,Contextual
+P00900,ananse,AN-C000900,S08,Loan withdrawal + cash-out velocity,Low,Cross-institution
+P00907,ananse,AN-C000907,S02,Midnight / unusual-hour activity,High,Cross-institution
+P00925,ananse,AN-C000925,S09,Repeated failed transactions,Low,Multi-event
+P00929,ananse,AN-C000929,S03,Rapid cash-in -> P2P -> cash-out,Low,Ambiguous
+P00934,ananse,AN-C000934,S12,Identity / attribute overlap,Medium,Multi-event
+P00984,ananse,AN-C000984,S03,Rapid cash-in -> P2P -> cash-out,Low,Multi-event
+P00990,ananse,AN-C000990,S10,Geographic anomaly,Low,Detectable
+P00991,ananse,AN-C000991,S12,Identity / attribute overlap,Low,Ambiguous
+P00998,ananse,AN-C000998,S03,Rapid cash-in -> P2P -> cash-out,High,Contextual
+P01026,ananse,AN-C001026,S03,Rapid cash-in -> P2P -> cash-out,Low,Cross-institution
+P01035,ananse,AN-C001035,S01,High transaction velocity,Low,Detectable
+P01037,ananse,AN-C001037,S11,Cross-institution behavioural anomaly,Low,Contextual
+P01076,ananse,AN-C001076,S12,Identity / attribute overlap,Low,Contextual
+P01084,ananse,AN-C001084,S05,Unusual customer-specific cash-out,Low,Cross-institution
+P01085,ananse,AN-C001085,S05,Unusual customer-specific cash-out,Low,Contextual
+P01142,ananse,AN-C001142,S14,Concentration / exposure,Low,Contextual
+P01170,ananse,AN-C001170,S04,Dormant-account reactivation,Low,Multi-event
+P01200,ananse,AN-C001200,S10,Geographic anomaly,Medium,Detectable
+P01245,ananse,AN-C001245,S11,Cross-institution behavioural anomaly,Low,Contextual
+P01257,ananse,AN-C001257,S05,Unusual customer-specific cash-out,Medium,Contextual
+P01286,ananse,AN-C001286,S01,High transaction velocity,Medium,Contextual
+P01290,ananse,AN-C001290,S15,Multi-stage behavioural sequence,Low,Contextual
+P01343,ananse,AN-C001343,S15,Multi-stage behavioural sequence,Low,Contextual
+P01345,ananse,AN-C001345,S05,Unusual customer-specific cash-out,Low,Cross-institution
+P01385,ananse,AN-C001385,S08,Loan withdrawal + cash-out velocity,Low,Multi-event
+P01420,ananse,AN-C001420,S09,Repeated failed transactions,Medium,Multi-event
+P01432,ananse,AN-C001432,S09,Repeated failed transactions,Medium,Cross-institution
+P01435,ananse,AN-C001435,S09,Repeated failed transactions,Low,Contextual
+P01438,ananse,AN-C001438,S11,Cross-institution behavioural anomaly,Low,Detectable
+P01441,ananse,AN-C001441,S03,Rapid cash-in -> P2P -> cash-out,Extreme,Detectable
+P01446,ananse,AN-C001446,S10,Geographic anomaly,Low,Detectable
+P01479,ananse,AN-C001479,S01,High transaction velocity,Medium,Contextual
+P01500,ananse,AN-C001500,S14,Concentration / exposure,High,Multi-event
+P01509,ananse,AN-C001509,S14,Concentration / exposure,Low,Contextual
+P01533,ananse,AN-C001533,S09,Repeated failed transactions,Low,Contextual
+P01550,ananse,AN-C001550,S10,Geographic anomaly,Low,Detectable
+P01551,ananse,AN-C001551,S15,Multi-stage behavioural sequence,High,Contextual
+P01552,ananse,AN-C001552,S09,Repeated failed transactions,Low,Multi-event
+P01579,ananse,AN-C001579,S10,Geographic anomaly,Low,Contextual
+P01585,ananse,AN-C001585,S12,Identity / attribute overlap,Low,Ambiguous
+P01628,ananse,AN-C001628,S14,Concentration / exposure,Low,Contextual
+P01633,ananse,AN-C001633,S10,Geographic anomaly,Medium,Cross-institution
+P01659,ananse,AN-C001659,S05,Unusual customer-specific cash-out,Low,Contextual
+P01679,ananse,AN-C001679,S01,High transaction velocity,Medium,Cross-institution
+P01691,ananse,AN-C001691,S15,Multi-stage behavioural sequence,Medium,Detectable
+P01709,ananse,AN-C001709,S11,Cross-institution behavioural anomaly,Low,Detectable
+P01713,ananse,AN-C001713,S09,Repeated failed transactions,Extreme,Contextual
+P01720,ananse,AN-C001720,S10,Geographic anomaly,Medium,Ambiguous
+P01737,ananse,AN-C001737,S05,Unusual customer-specific cash-out,High,Detectable
+P01765,ananse,AN-C001765,S02,Midnight / unusual-hour activity,Low,Contextual
+P01791,ananse,AN-C001791,S02,Midnight / unusual-hour activity,Medium,Detectable
+P01797,ananse,AN-C001797,S10,Geographic anomaly,Low,Detectable
+P01809,ananse,AN-C001809,S11,Cross-institution behavioural anomaly,Low,Contextual
+P01816,ananse,AN-C001816,S08,Loan withdrawal + cash-out velocity,Medium,Detectable
+P01842,ananse,AN-C001842,S15,Multi-stage behavioural sequence,High,Contextual
+P01847,ananse,AN-C001847,S02,Midnight / unusual-hour activity,Low,Cross-institution
+P01858,ananse,AN-C001858,S08,Loan withdrawal + cash-out velocity,Low,Cross-institution
+P01904,ananse,AN-C001904,S12,Identity / attribute overlap,Low,Contextual
+P01925,ananse,AN-C001925,S03,Rapid cash-in -> P2P -> cash-out,High,Cross-institution
+P01928,ananse,AN-C001928,S04,Dormant-account reactivation,Low,Contextual
+P01953,ananse,AN-C001953,S12,Identity / attribute overlap,Low,Multi-event
+P02004,ananse,AN-C002004,S12,Identity / attribute overlap,Low,Multi-event
+P02020,ananse,AN-C002020,S09,Repeated failed transactions,High,Contextual
+P02021,ananse,AN-C002021,S15,Multi-stage behavioural sequence,Medium,Multi-event
+P02031,ananse,AN-C002031,S12,Identity / attribute overlap,Low,Cross-institution
+P02033,ananse,AN-C002033,S14,Concentration / exposure,Low,Contextual
+P02036,ananse,AN-C002036,S09,Repeated failed transactions,High,Multi-event
+P02049,ananse,AN-C002049,S09,Repeated failed transactions,Low,Contextual
+P02051,ananse,AN-C002051,S05,Unusual customer-specific cash-out,Medium,Detectable
+P02078,ananse,AN-C002078,S15,Multi-stage behavioural sequence,Low,Cross-institution
+P02084,ananse,AN-C002084,S08,Loan withdrawal + cash-out velocity,Low,Contextual
+P02097,ananse,AN-C002097,S10,Geographic anomaly,Low,Detectable
+P02104,ananse,AN-C002104,S03,Rapid cash-in -> P2P -> cash-out,High,Contextual
+P02158,ananse,AN-C002158,S14,Concentration / exposure,Low,Detectable
+P02184,ananse,AN-C002184,S11,Cross-institution behavioural anomaly,Extreme,Cross-institution
+P02223,ananse,AN-C002223,S08,Loan withdrawal + cash-out velocity,Low,Detectable
+P02232,ananse,AN-C002232,S01,High transaction velocity,Low,Cross-institution
+P02241,ananse,AN-C002241,S12,Identity / attribute overlap,Medium,Contextual
+P02250,ananse,AN-C002250,S14,Concentration / exposure,High,Multi-event
+P02265,ananse,AN-C002265,S05,Unusual customer-specific cash-out,Low,Contextual
+P02283,ananse,AN-C002283,S08,Loan withdrawal + cash-out velocity,Low,Multi-event
+P02321,ananse,AN-C002321,S03,Rapid cash-in -> P2P -> cash-out,Medium,Cross-institution
+P02392,ananse,AN-C002392,S14,Concentration / exposure,Low,Contextual
+P02393,ananse,AN-C002393,S10,Geographic anomaly,Medium,Multi-event
+P02402,ananse,AN-C002402,S12,Identity / attribute overlap,Low,Multi-event
+P02421,ananse,AN-C002421,S09,Repeated failed transactions,Low,Contextual
+P02448,ananse,AN-C002448,S09,Repeated failed transactions,High,Multi-event
+P02457,ananse,AN-C002457,S09,Repeated failed transactions,High,Contextual
+P02463,ananse,AN-C002463,S11,Cross-institution behavioural anomaly,Low,Contextual
+P02475,ananse,AN-C002475,S14,Concentration / exposure,Medium,Multi-event
+P02493,ananse,AN-C002493,S03,Rapid cash-in -> P2P -> cash-out,Low,Contextual
+P02495,ananse,AN-C002495,S02,Midnight / unusual-hour activity,Low,Cross-institution
+P02502,ananse,AN-C002502,S10,Geographic anomaly,Medium,Contextual
+P02517,ananse,AN-C002517,S02,Midnight / unusual-hour activity,Low,Detectable
+P02530,ananse,AN-C002530,S03,Rapid cash-in -> P2P -> cash-out,Low,Contextual
+P02538,ananse,AN-C002538,S03,Rapid cash-in -> P2P -> cash-out,Low,Detectable
+P02558,ananse,AN-C002558,S03,Rapid cash-in -> P2P -> cash-out,High,Cross-institution
+P02578,ananse,AN-C002578,S09,Repeated failed transactions,Low,Detectable
+P02585,ananse,AN-C002585,S12,Identity / attribute overlap,Medium,Cross-institution
+P02598,ananse,AN-C002598,S12,Identity / attribute overlap,Medium,Detectable
+P02605,ananse,AN-C002605,S08,Loan withdrawal + cash-out velocity,Medium,Contextual
+P02619,ananse,AN-C002619,S03,Rapid cash-in -> P2P -> cash-out,Medium,Contextual
+P02624,ananse,AN-C002624,S11,Cross-institution behavioural anomaly,Low,Contextual
+P02643,ananse,AN-C002643,S12,Identity / attribute overlap,Medium,Detectable
+P02652,ananse,AN-C002652,S10,Geographic anomaly,Low,Multi-event
+P02666,ananse,AN-C002666,S15,Multi-stage behavioural sequence,High,Multi-event
+P02667,ananse,AN-C002667,S02,Midnight / unusual-hour activity,Medium,Multi-event
+P02669,ananse,AN-C002669,S12,Identity / attribute overlap,Low,Multi-event
+P02680,ananse,AN-C002680,S02,Midnight / unusual-hour activity,Medium,Detectable
+P02681,ananse,AN-C002681,S04,Dormant-account reactivation,Medium,Contextual
+P02715,ananse,AN-C002715,S09,Repeated failed transactions,Low,Detectable
+P02721,ananse,AN-C002721,S02,Midnight / unusual-hour activity,Medium,Multi-event
+P02744,ananse,AN-C002744,S12,Identity / attribute overlap,High,Ambiguous
+P02800,ananse,AN-C002800,S09,Repeated failed transactions,High,Multi-event
+P02809,ananse,AN-C002809,S04,Dormant-account reactivation,Low,Cross-institution
+P02818,ananse,AN-C002818,S02,Midnight / unusual-hour activity,Low,Detectable
+P02887,ananse,AN-C002887,S09,Repeated failed transactions,Low,Detectable
+P02898,ananse,AN-C002898,S15,Multi-stage behavioural sequence,Low,Contextual
+P02925,ananse,AN-C002925,S15,Multi-stage behavioural sequence,Medium,Multi-event
+P02952,ananse,AN-C002952,S11,Cross-institution behavioural anomaly,High,Multi-event
+P02955,ananse,AN-C002955,S03,Rapid cash-in -> P2P -> cash-out,Low,Detectable
+P02968,ananse,AN-C002968,S01,High transaction velocity,Low,Cross-institution
+P02989,ananse,AN-C002989,S14,Concentration / exposure,Medium,Detectable
+P02852,sikacredit,SC-C000099,S13,Unusual repayment behaviour,Medium,Multi-event
+P01988,sikacredit,SC-C000263,S13,Unusual repayment behaviour,Low,Detectable
+P01454,sikacredit,SC-C000357,S06,Loan disbursement -> rapid withdrawal,Medium,Ambiguous
+P02770,sikacredit,SC-C000398,S06,Loan disbursement -> rapid withdrawal,High,Contextual
+P03019,sikacredit,SC-C000459,S13,Unusual repayment behaviour,Medium,Contextual
+P03057,sikacredit,SC-C000497,S06,Loan disbursement -> rapid withdrawal,Medium,Detectable
+P03285,sikacredit,SC-C000725,S13,Unusual repayment behaviour,Medium,Multi-event
+P03326,sikacredit,SC-C000766,S13,Unusual repayment behaviour,Medium,Contextual
+P03356,sikacredit,SC-C000796,S06,Loan disbursement -> rapid withdrawal,High,Cross-institution
+P00522,oman_remit,OR-C000092,S07,Remittance -> rapid cash-out,Medium,Detectable
+P00188,oman_remit,OR-C000093,S07,Remittance -> rapid cash-out,Low,Detectable
+P02544,oman_remit,OR-C000139,S07,Remittance -> rapid cash-out,High,Multi-event
+P01617,oman_remit,OR-C000183,S07,Remittance -> rapid cash-out,Low,Contextual

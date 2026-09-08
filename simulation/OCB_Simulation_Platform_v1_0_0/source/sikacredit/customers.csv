@@ -1,0 +1,801 @@
+customer_id,first_name,last_name,date_of_birth,nationality,occupation,phone_number,email,created_at
+SC-C000001,Kofi,Agyeman,1961-12-08,Ghanaian,Other,+233339895542,kofi.agyeman8166@example.test,2023-06-17 15:29:04.000
+SC-C000002,Fiifi,Quaye,1965-11-12,Ghanaian,Trader,+233464266527,fiifi.quaye1925@example.test,2024-02-18 18:07:04.000
+SC-C000003,Mavis,Adjei,1983-03-11,Ghanaian,Public Servant,+233599618552,mavis.adjei4872@example.test,2025-03-09 11:26:36.000
+SC-C000004,Samuel,Asare,1964-05-13,Ghanaian,Artisan,+233564349160,samuel.asare6430@example.test,2024-09-04 13:48:30.000
+SC-C000005,Grace,Agyeman,2003-07-13,Ghanaian,Trader,+233249875056,grace.agyeman5995@example.test,2024-08-04 13:41:54.000
+SC-C000006,Kojo,Boateng,1975-07-14,Ghanaian,Driver,+233300305464,kojo.boateng9858@example.test,2024-04-15 18:01:50.000
+SC-C000007,Kwadwo,Darko,1979-05-17,Ghanaian,Artisan,+233236575424,kwadwo.darko6348@example.test,2025-04-01 08:02:47.000
+SC-C000008,Yaa,Arthur,1975-06-10,Ghanaian,Health Worker,+233406981297,yaa.arthur6208@example.test,2024-02-13 15:32:01.000
+SC-C000009,Kwadwo,Adjei,2000-03-07,Ghanaian,Public Servant,+233583263327,kwadwo.adjei3484@example.test,2024-03-30 12:20:46.000
+SC-C000010,Yaw,Quaye,1974-11-24,Ghanaian,Student,+233336059549,yaw.quaye9852@example.test,2024-03-17 17:44:36.000
+SC-C000011,Angela,Mensah,1989-03-02,Ghanaian,Teacher,+233274524767,angela.mensah7301@example.test,2024-11-15 09:48:51.000
+SC-C000012,Ama,Boateng,1991-02-17,Ghanaian,Professional,+233344740748,ama.boateng6456@example.test,2023-08-18 15:26:55.000
+SC-C000013,Efua,Owusu,2000-07-27,Ghanaian,Artisan,+233302855385,efua.owusu7430@example.test,2023-08-25 11:26:18.000
+SC-C000014,Mavis,Agyeman,1980-04-07,Ghanaian,Teacher,+233226121494,mavis.agyeman1980@example.test,2025-06-08 16:29:30.000
+SC-C000015,Grace,Agyeman,1983-05-22,Ghanaian,Professional,+233475712390,grace.agyeman8382@example.test,2023-08-25 14:27:20.000
+SC-C000016,Samuel,Appiah,1989-11-15,Ghanaian,Teacher,+233368687552,samuel.appiah9847@example.test,2024-12-19 11:25:45.000
+SC-C000017,Daniel,Owusu,2003-04-11,Ghanaian,Driver,+233461554807,daniel.owusu6597@example.test,2023-08-22 08:12:56.000
+SC-C000018,Ama,Arthur,2002-01-14,Ghanaian,Public Servant,+233384713293,ama.arthur8406@example.test,2024-11-02 15:15:59.000
+SC-C000019,Ama,Boateng,1969-12-17,Ghanaian,Teacher,+233216223674,ama.boateng9268@example.test,2023-06-12 14:38:04.000
+SC-C000020,Abena,Darko,1986-08-13,Ghanaian,Student,+233535797094,abena.darko921@example.test,2023-03-19 13:46:09.000
+SC-C000021,Afia,Boateng,1965-08-11,Ghanaian,Health Worker,+233208167252,afia.boateng5527@example.test,2023-09-15 15:25:07.000
+SC-C000022,Angela,Agyeman,1974-12-12,Ghanaian,Health Worker,+233515067895,angela.agyeman1692@example.test,2024-04-11 16:13:17.000
+SC-C000023,Akosua,Agyeman,2001-03-10,Ghanaian,Public Servant,+233265077441,akosua.agyeman6028@example.test,2024-01-09 12:47:15.000
+SC-C000024,Kwabena,Adjei,1965-02-16,Ghanaian,Artisan,+233346436346,kwabena.adjei1403@example.test,2024-06-27 16:27:35.000
+SC-C000025,Ama,Agyeman,1965-06-07,Ghanaian,Other,+233349135621,ama.agyeman3871@example.test,2024-03-06 18:37:57.000
+SC-C000026,Efua,Agyeman,1964-10-21,Ghanaian,Health Worker,+233246384168,efua.agyeman6881@example.test,2025-05-31 08:26:02.000
+SC-C000027,Abena,Mensah,1977-09-06,Ghanaian,Trader,+233255721168,abena.mensah4068@example.test,2024-10-06 09:17:16.000
+SC-C000028,Kwabena,Osei,1982-05-23,Ghanaian,Trader,+233346457409,kwabena.osei857@example.test,2024-12-02 09:04:06.000
+SC-C000029,Kwabena,Osei,1977-10-01,Ghanaian,Self Employed,+233286220811,kwabena.osei3291@example.test,2024-04-27 12:05:03.000
+SC-C000030,Kwabena,Agyeman,1994-10-27,Ghanaian,Public Servant,+233220871447,kwabena.agyeman8912@example.test,2024-11-13 12:19:11.000
+SC-C000031,Kwadwo,Asare,1971-03-17,Ghanaian,Public Servant,+233585523618,kwadwo.asare3060@example.test,2023-11-04 16:53:52.000
+SC-C000032,Kofi,Quaye,1999-01-07,Ghanaian,Farmer,+233271275071,kofi.quaye7367@example.test,2025-01-22 11:54:56.000
+SC-C000033,Akosua,Darko,1974-05-08,Ghanaian,Public Servant,+233413250225,akosua.darko5307@example.test,2024-04-03 12:18:51.000
+SC-C000034,Angela,Osei,1988-10-25,Ghanaian,Trader,+233506701720,angela.osei3183@example.test,2023-12-21 13:14:39.000
+SC-C000035,Abena,Asare,1982-03-11,Ghanaian,Self Employed,+233230643957,abena.asare6158@example.test,2024-10-28 09:02:07.000
+SC-C000036,Afia,Osei,1976-04-03,Ghanaian,Public Servant,+233206900165,afia.osei2083@example.test,2024-04-08 13:29:15.000
+SC-C000037,Angela,Boateng,2002-07-20,Ghanaian,Driver,+233266040469,angela.boateng2617@example.test,2024-10-26 16:02:50.000
+SC-C000038,Grace,Adjei,1974-04-13,Ghanaian,Teacher,+233293195767,grace.adjei2980@example.test,2023-12-22 13:52:15.000
+SC-C000039,Yaa,Mensah,1996-08-04,Ghanaian,Health Worker,+233404972237,yaa.mensah7032@example.test,2024-11-04 17:04:10.000
+SC-C000040,Daniel,Agyeman,1977-01-27,Ghanaian,Student,+233435268755,daniel.agyeman6845@example.test,2024-08-03 15:06:31.000
+SC-C000041,Abena,Arthur,1996-10-25,Ghanaian,Teacher,+233489563787,abena.arthur1870@example.test,2025-05-16 09:48:54.000
+SC-C000042,Daniel,Boateng,1980-05-10,Ghanaian,Health Worker,+233305789156,daniel.boateng2686@example.test,2024-12-02 09:20:56.000
+SC-C000043,Daniel,Appiah,1971-11-21,Ghanaian,Teacher,+233235884323,daniel.appiah9596@example.test,2025-06-07 14:13:52.000
+SC-C000044,Kojo,Darko,1970-03-03,Ghanaian,Driver,+233308990000,kojo.darko4018@example.test,2024-11-26 16:03:03.000
+SC-C000045,Kwame,Boateng,1964-10-15,Ghanaian,Student,+233585437609,kwame.boateng5607@example.test,2023-03-16 09:14:13.000
+SC-C000046,Fiifi,Osei,1969-12-16,Ghanaian,Public Servant,+233215798394,fiifi.osei6129@example.test,2025-06-19 12:58:45.000
+SC-C000047,Daniel,Amoah,2003-06-13,Ghanaian,Farmer,+233433930617,daniel.amoah8174@example.test,2023-05-29 08:20:24.000
+SC-C000048,Kwame,Arthur,1987-06-16,Ghanaian,Trader,+233314885530,kwame.arthur1248@example.test,2023-12-04 10:38:30.000
+SC-C000049,Kojo,Amoah,2000-11-25,Ghanaian,Health Worker,+233227537206,kojo.amoah3527@example.test,2025-01-08 17:36:35.000
+SC-C000050,Mavis,Appiah,1993-03-12,Ghanaian,Artisan,+233407684993,mavis.appiah6989@example.test,2024-01-01 11:43:13.000
+SC-C000051,Efua,Mensah,1976-10-05,Ghanaian,Other,+233337279475,efua.mensah410@example.test,2023-02-17 15:38:57.000
+SC-C000052,Abena,Darko,1961-06-03,Ghanaian,Teacher,+233557744916,abena.darko3138@example.test,2023-11-25 12:08:10.000
+SC-C000053,Ama,Osei,1987-02-26,Ghanaian,Student,+233443382916,ama.osei6173@example.test,2024-01-12 15:03:49.000
+SC-C000054,Daniel,Osei,1987-07-22,Ghanaian,Trader,+233584741705,daniel.osei6105@example.test,2025-06-16 16:38:46.000
+SC-C000055,Yaa,Adjei,1995-05-24,Ghanaian,Other,+233280686335,yaa.adjei9288@example.test,2024-11-10 13:02:33.000
+SC-C000056,Efua,Owusu,1974-03-08,Ghanaian,Student,+233335517645,efua.owusu5445@example.test,2023-11-08 15:04:33.000
+SC-C000057,Fiifi,Mensah,1964-08-13,Ghanaian,Artisan,+233579180023,fiifi.mensah2530@example.test,2023-04-30 09:00:38.000
+SC-C000058,Grace,Owusu,1973-02-13,Ghanaian,Driver,+233257461714,grace.owusu4662@example.test,2024-08-10 11:27:45.000
+SC-C000059,Samuel,Darko,1964-10-10,Ghanaian,Driver,+233318085316,samuel.darko5568@example.test,2023-10-07 12:26:18.000
+SC-C000060,Abena,Osei,1995-08-13,Ghanaian,Teacher,+233427084434,abena.osei2027@example.test,2024-02-14 10:34:51.000
+SC-C000061,Daniel,Mensah,1976-03-28,Ghanaian,Other,+233393084268,daniel.mensah69@example.test,2024-09-25 14:15:58.000
+SC-C000062,Grace,Amoah,1984-11-02,Ghanaian,Health Worker,+233244449151,grace.amoah5673@example.test,2023-10-14 13:39:07.000
+SC-C000063,Grace,Osei,1987-06-24,Ghanaian,Other,+233359003437,grace.osei6096@example.test,2025-01-26 13:28:50.000
+SC-C000064,Efua,Quaye,1972-04-17,Ghanaian,Student,+233307458555,efua.quaye3226@example.test,2023-07-01 10:42:00.000
+SC-C000065,Afia,Agyeman,1999-09-26,Ghanaian,Artisan,+233289924110,afia.agyeman4338@example.test,2023-01-17 08:47:34.000
+SC-C000066,Esi,Boateng,1982-03-22,Ghanaian,Health Worker,+233418982049,esi.boateng1203@example.test,2024-07-08 16:06:53.000
+SC-C000067,Kwadwo,Arthur,1984-04-26,Ghanaian,Student,+233354059532,kwadwo.arthur4852@example.test,2025-03-27 17:02:29.000
+SC-C000068,Daniel,Boateng,2001-06-11,Ghanaian,Professional,+233460566646,daniel.boateng8156@example.test,2025-01-30 14:55:45.000
+SC-C000069,Esi,Mensah,1965-10-15,Ghanaian,Artisan,+233279908633,esi.mensah2241@example.test,2023-02-03 15:39:07.000
+SC-C000070,Akosua,Osei,1968-10-26,Ghanaian,Student,+233508322931,akosua.osei1661@example.test,2023-08-03 18:51:28.000
+SC-C000071,Kofi,Quaye,1973-07-10,Ghanaian,Driver,+233534567065,kofi.quaye2675@example.test,2023-05-29 11:57:42.000
+SC-C000072,Afia,Darko,1998-10-03,Ghanaian,Trader,+233597063698,afia.darko3220@example.test,2023-11-27 11:58:23.000
+SC-C000073,Michael,Arthur,1984-12-13,Ghanaian,Teacher,+233465970503,michael.arthur1850@example.test,2025-03-26 11:51:53.000
+SC-C000074,Efua,Owusu,1993-09-02,Ghanaian,Self Employed,+233289486500,efua.owusu3501@example.test,2023-03-03 10:38:21.000
+SC-C000075,Kojo,Asare,2003-12-06,Ghanaian,Farmer,+233314146786,kojo.asare8545@example.test,2025-05-10 15:22:26.000
+SC-C000076,Grace,Mensah,1999-04-16,Ghanaian,Teacher,+233435068871,grace.mensah977@example.test,2025-01-27 11:49:22.000
+SC-C000077,Mary,Osei,1991-06-12,Ghanaian,Other,+233230705635,mary.osei6452@example.test,2024-07-29 08:48:53.000
+SC-C000078,Mavis,Darko,1976-09-07,Ghanaian,Student,+233379949670,mavis.darko4291@example.test,2023-02-26 15:54:53.000
+SC-C000079,Daniel,Adjei,1977-01-03,Ghanaian,Public Servant,+233431400378,daniel.adjei6859@example.test,2024-01-04 12:00:24.000
+SC-C000080,Nana,Boateng,1971-09-16,Ghanaian,Student,+233557591297,nana.boateng3267@example.test,2023-10-10 13:41:17.000
+SC-C000081,Michael,Darko,1972-08-11,Ghanaian,Professional,+233531493237,michael.darko5249@example.test,2024-03-28 13:12:42.000
+SC-C000082,Grace,Agyeman,1987-11-06,Ghanaian,Self Employed,+233436621966,grace.agyeman1181@example.test,2024-02-15 15:55:25.000
+SC-C000083,Mary,Appiah,1970-07-03,Ghanaian,Health Worker,+233471596773,mary.appiah1149@example.test,2023-03-04 15:20:42.000
+SC-C000084,Yaw,Appiah,1960-04-21,Ghanaian,Artisan,+233338848294,yaw.appiah6897@example.test,2024-06-28 18:54:15.000
+SC-C000085,Adwoa,Quaye,2002-01-01,Ghanaian,Professional,+233505131598,adwoa.quaye5364@example.test,2024-11-30 11:50:30.000
+SC-C000086,Kwabena,Agyeman,1973-02-14,Ghanaian,Professional,+233588350220,kwabena.agyeman3741@example.test,2024-02-28 10:28:20.000
+SC-C000087,Yaw,Asare,1962-03-08,Ghanaian,Health Worker,+233367197503,yaw.asare508@example.test,2025-06-14 18:00:22.000
+SC-C000088,Kwabena,Agyeman,2002-02-25,Ghanaian,Professional,+233396182403,kwabena.agyeman3605@example.test,2023-11-14 16:16:24.000
+SC-C000089,Esi,Darko,1968-09-22,Ghanaian,Professional,+233243985092,esi.darko5174@example.test,2023-04-04 17:50:34.000
+SC-C000090,Kwame,Agyeman,1969-07-20,Ghanaian,Professional,+233248135887,kwame.agyeman1253@example.test,2024-02-28 08:59:04.000
+SC-C000091,Kojo,Arthur,1993-04-09,Ghanaian,Professional,+233259369064,kojo.arthur9448@example.test,2024-06-18 11:30:22.000
+SC-C000092,Abena,Agyeman,1979-03-28,Ghanaian,Other,+233345252553,abena.agyeman701@example.test,2025-05-31 10:34:48.000
+SC-C000093,Kwadwo,Osei,1962-11-10,Ghanaian,Artisan,+233593045293,kwadwo.osei6119@example.test,2023-02-21 08:52:30.000
+SC-C000094,Akosua,Arthur,1980-01-28,Ghanaian,Farmer,+233378385486,akosua.arthur5939@example.test,2023-06-04 13:39:42.000
+SC-C000095,Akosua,Amoah,1988-06-05,Ghanaian,Public Servant,+233251948356,akosua.amoah6961@example.test,2025-01-01 16:32:11.000
+SC-C000096,Daniel,Mensah,1977-01-21,Ghanaian,Professional,+233458589057,daniel.mensah2231@example.test,2025-02-05 08:55:59.000
+SC-C000097,Abena,Owusu,1979-06-28,Ghanaian,Farmer,+233587659961,abena.owusu419@example.test,2024-04-07 12:37:26.000
+SC-C000098,Afia,Owusu,1965-05-02,Ghanaian,Professional,+233348706934,afia.owusu151@example.test,2024-06-03 12:15:53.000
+SC-C000099,Angela,Quaye,1971-01-25,Ghanaian,Self Employed,+233511031948,angela.quaye5708@example.test,2025-03-22 12:45:15.000
+SC-C000100,Mavis,Boateng,1981-08-20,Ghanaian,Artisan,+233283054036,mavis.boateng1843@example.test,2023-10-24 18:12:21.000
+SC-C000101,Fiifi,Amoah,1967-11-16,Ghanaian,Artisan,+233558434929,fiifi.amoah2462@example.test,2024-11-20 09:12:02.000
+SC-C000102,Mary,Darko,1987-04-22,Ghanaian,Farmer,+233427983814,mary.darko9975@example.test,2024-08-30 13:39:50.000
+SC-C000103,Kwabena,Agyeman,1994-07-12,Ghanaian,Student,+233334388797,kwabena.agyeman1468@example.test,2025-02-09 16:51:59.000
+SC-C000104,Ama,Adjei,1993-08-24,Ghanaian,Trader,+233280775346,ama.adjei2629@example.test,2023-05-20 15:03:55.000
+SC-C000105,Efua,Asare,1994-07-09,Ghanaian,Other,+233206174776,efua.asare7968@example.test,2025-02-13 11:32:26.000
+SC-C000106,Yaw,Amoah,1990-08-19,Ghanaian,Artisan,+233316031020,yaw.amoah1364@example.test,2023-11-16 12:44:43.000
+SC-C000107,Efua,Adjei,1997-03-28,Ghanaian,Other,+233261904360,efua.adjei9459@example.test,2025-02-13 13:53:55.000
+SC-C000108,Esi,Asare,1997-01-17,Ghanaian,Other,+233439206744,esi.asare5309@example.test,2025-02-28 16:28:44.000
+SC-C000109,Akosua,Osei,1982-06-10,Ghanaian,Teacher,+233257264755,akosua.osei3440@example.test,2023-06-24 08:26:43.000
+SC-C000110,Yaa,Agyeman,1989-02-28,Ghanaian,Driver,+233282631000,yaa.agyeman8056@example.test,2023-12-04 09:02:00.000
+SC-C000111,Kwabena,Amoah,1972-07-17,Ghanaian,Farmer,+233356997433,kwabena.amoah6339@example.test,2024-07-25 16:56:08.000
+SC-C000112,Mavis,Osei,1986-07-13,Ghanaian,Professional,+233488741431,mavis.osei9902@example.test,2024-02-12 13:47:25.000
+SC-C000113,Fiifi,Darko,1978-12-25,Ghanaian,Other,+233244816276,fiifi.darko8824@example.test,2025-01-18 11:15:19.000
+SC-C000114,Kojo,Owusu,2000-01-18,Ghanaian,Farmer,+233313509297,kojo.owusu2343@example.test,2024-08-24 17:02:48.000
+SC-C000115,Kwabena,Mensah,1969-05-02,Ghanaian,Student,+233243542704,kwabena.mensah4893@example.test,2023-04-20 10:37:30.000
+SC-C000116,Yaw,Asare,1965-01-02,Ghanaian,Teacher,+233334851921,yaw.asare1134@example.test,2024-02-22 09:16:04.000
+SC-C000117,Emmanuel,Arthur,1976-07-14,Ghanaian,Public Servant,+233539328377,emmanuel.arthur4965@example.test,2024-09-06 12:38:02.000
+SC-C000118,Afia,Arthur,1999-03-08,Ghanaian,Artisan,+233209643202,afia.arthur5187@example.test,2024-01-19 09:14:33.000
+SC-C000119,Yaw,Arthur,2002-11-02,Ghanaian,Student,+233507988534,yaw.arthur398@example.test,2023-04-15 09:56:12.000
+SC-C000120,Ama,Darko,1965-08-15,Ghanaian,Public Servant,+233516903815,ama.darko2171@example.test,2023-10-09 12:52:52.000
+SC-C000121,Yaa,Boateng,1975-05-21,Ghanaian,Professional,+233263410606,yaa.boateng3308@example.test,2023-04-27 14:14:55.000
+SC-C000122,Angela,Mensah,1963-04-25,Ghanaian,Trader,+233311970139,angela.mensah4618@example.test,2024-10-16 08:53:09.000
+SC-C000123,Michael,Osei,1965-01-17,Ghanaian,Artisan,+233381998773,michael.osei5258@example.test,2025-01-20 16:59:49.000
+SC-C000124,Emmanuel,Boateng,1967-09-24,Ghanaian,Artisan,+233333734217,emmanuel.boateng4857@example.test,2024-11-02 17:59:31.000
+SC-C000125,Kojo,Adjei,1963-08-15,Ghanaian,Driver,+233504707746,kojo.adjei760@example.test,2025-03-28 09:49:44.000
+SC-C000126,Afia,Owusu,1962-08-10,Ghanaian,Student,+233434269855,afia.owusu7621@example.test,2024-12-11 11:36:51.000
+SC-C000127,Kwabena,Agyeman,2002-02-25,Ghanaian,Professional,+233396182403,kwabena.agyeman3605@example.test,2023-11-26 13:08:41.000
+SC-C000128,Kojo,Boateng,1989-03-11,Ghanaian,Artisan,+233347576813,kojo.boateng9569@example.test,2024-05-19 18:59:58.000
+SC-C000129,Kwame,Asare,1982-08-12,Ghanaian,Teacher,+233494710558,kwame.asare8171@example.test,2025-06-15 09:13:17.000
+SC-C000130,Emmanuel,Arthur,1992-05-24,Ghanaian,Self Employed,+233408480256,emmanuel.arthur1224@example.test,2023-10-29 16:12:35.000
+SC-C000131,Nana,Agyeman,1967-12-13,Ghanaian,Public Servant,+233249420223,nana.agyeman3626@example.test,2025-05-12 10:08:42.000
+SC-C000132,Samuel,Owusu,1996-01-17,Ghanaian,Self Employed,+233212742853,samuel.owusu123@example.test,2025-02-28 14:14:44.000
+SC-C000133,Efua,Owusu,1964-08-23,Ghanaian,Teacher,+233510203584,efua.owusu7439@example.test,2024-09-10 09:33:22.000
+SC-C000134,Samuel,Asare,1987-10-02,Ghanaian,Artisan,+233399921155,samuel.asare5117@example.test,2024-12-16 17:40:58.000
+SC-C000135,Emmanuel,Appiah,2004-01-05,Ghanaian,Farmer,+233363455945,emmanuel.appiah9994@example.test,2023-12-26 08:04:08.000
+SC-C000136,Kofi,Mensah,1982-05-04,Ghanaian,Self Employed,+233540568220,kofi.mensah8729@example.test,2025-06-15 15:43:46.000
+SC-C000137,Afia,Darko,1977-12-14,Ghanaian,Other,+233530778909,afia.darko2794@example.test,2025-01-06 10:03:40.000
+SC-C000138,Mary,Agyeman,1960-02-09,Ghanaian,Driver,+233576761846,mary.agyeman4361@example.test,2024-03-24 10:40:27.000
+SC-C000139,Kojo,Owusu,1975-06-13,Ghanaian,Trader,+233258817815,kojo.owusu6944@example.test,2024-06-07 16:23:55.000
+SC-C000140,Adwoa,Appiah,1981-11-14,Ghanaian,Trader,+233578429012,adwoa.appiah8381@example.test,2024-05-09 12:49:06.000
+SC-C000141,Nana,Adjei,1974-03-04,Ghanaian,Teacher,+233543547222,nana.adjei891@example.test,2023-04-20 17:20:08.000
+SC-C000142,Afia,Mensah,1976-02-06,Ghanaian,Driver,+233296812069,afia.mensah5989@example.test,2023-09-27 16:44:04.000
+SC-C000143,Daniel,Quaye,1960-09-25,Ghanaian,Self Employed,+233467776015,daniel.quaye7826@example.test,2023-05-08 13:23:11.000
+SC-C000144,Mary,Agyeman,1963-10-18,Ghanaian,Other,+233540533273,mary.agyeman5779@example.test,2023-11-14 10:45:59.000
+SC-C000145,Mary,Darko,1996-06-10,Ghanaian,Trader,+233495410601,mary.darko3856@example.test,2023-10-20 13:11:03.000
+SC-C000146,Kwame,Osei,1988-02-25,Ghanaian,Self Employed,+233442161033,kwame.osei9627@example.test,2024-07-20 08:27:34.000
+SC-C000147,Nana,Mensah,1982-10-14,Ghanaian,Driver,+233437371644,nana.mensah2286@example.test,2023-03-05 17:37:10.000
+SC-C000148,Kojo,Amoah,1987-09-21,Ghanaian,Teacher,+233213985056,kojo.amoah2163@example.test,2024-05-01 09:19:17.000
+SC-C000149,Emmanuel,Quaye,1978-10-18,Ghanaian,Student,+233528396293,emmanuel.quaye7626@example.test,2023-05-27 12:12:09.000
+SC-C000150,Kojo,Quaye,2002-10-20,Ghanaian,Driver,+233249094433,kojo.quaye5918@example.test,2024-03-21 10:28:29.000
+SC-C000151,Kwabena,Quaye,1961-06-06,Ghanaian,Self Employed,+233300911110,kwabena.quaye4530@example.test,2023-01-06 15:01:32.000
+SC-C000152,Samuel,Mensah,1972-02-16,Ghanaian,Public Servant,+233328867245,samuel.mensah3240@example.test,2024-11-09 18:46:12.000
+SC-C000153,Esi,Osei,1981-11-13,Ghanaian,Student,+233336434776,esi.osei2797@example.test,2024-11-20 17:34:17.000
+SC-C000154,Yaw,Amoah,1970-10-03,Ghanaian,Driver,+233351027642,yaw.amoah3443@example.test,2023-01-04 13:32:14.000
+SC-C000155,Mavis,Asare,1990-02-05,Ghanaian,Trader,+233471733703,mavis.asare3086@example.test,2024-06-02 17:37:53.000
+SC-C000156,Kwabena,Adjei,1976-09-22,Ghanaian,Professional,+233255549675,kwabena.adjei4823@example.test,2025-06-15 10:45:02.000
+SC-C000157,Akosua,Agyeman,2000-01-23,Ghanaian,Trader,+233368431435,akosua.agyeman8115@example.test,2023-07-16 11:57:43.000
+SC-C000158,Kwame,Owusu,1966-10-01,Ghanaian,Student,+233507985825,kwame.owusu1501@example.test,2023-09-18 09:49:14.000
+SC-C000159,Kwadwo,Osei,1987-02-13,Ghanaian,Health Worker,+233364551749,kwadwo.osei3756@example.test,2024-11-11 11:23:53.000
+SC-C000160,Daniel,Mensah,1976-03-28,Ghanaian,Other,+233393084268,daniel.mensah69@example.test,2023-10-23 10:07:24.000
+SC-C000161,Akosua,Arthur,2003-08-21,Ghanaian,Driver,+233376121645,akosua.arthur7759@example.test,2024-12-02 17:33:25.000
+SC-C000162,Yaa,Owusu,1991-11-12,Ghanaian,Public Servant,+233268109871,yaa.owusu25@example.test,2025-05-16 10:04:08.000
+SC-C000163,Mary,Darko,1966-06-24,Ghanaian,Health Worker,+233499755298,mary.darko8518@example.test,2024-03-15 12:56:02.000
+SC-C000164,Kojo,Darko,1987-08-11,Ghanaian,Farmer,+233484681265,kojo.darko7078@example.test,2023-06-09 08:37:50.000
+SC-C000165,Mavis,Arthur,1983-02-21,Ghanaian,Farmer,+233597719486,mavis.arthur7083@example.test,2024-12-31 17:48:40.000
+SC-C000166,Angela,Arthur,1991-07-03,Ghanaian,Farmer,+233298768225,angela.arthur3218@example.test,2024-11-26 15:38:36.000
+SC-C000167,Abena,Appiah,1986-09-24,Ghanaian,Artisan,+233342143328,abena.appiah1369@example.test,2024-02-04 16:22:15.000
+SC-C000168,Angela,Mensah,1974-11-22,Ghanaian,Health Worker,+233450296572,angela.mensah9740@example.test,2024-07-30 14:42:04.000
+SC-C000169,Samuel,Darko,2002-11-14,Ghanaian,Artisan,+233259057848,samuel.darko9674@example.test,2023-07-28 10:13:45.000
+SC-C000170,Abena,Adjei,2001-01-24,Ghanaian,Teacher,+233480124577,abena.adjei2072@example.test,2024-08-30 15:46:52.000
+SC-C000171,Emmanuel,Asare,1977-01-18,Ghanaian,Farmer,+233432899530,emmanuel.asare1224@example.test,2024-05-01 12:21:44.000
+SC-C000172,Samuel,Arthur,1996-05-28,Ghanaian,Artisan,+233312087669,samuel.arthur287@example.test,2025-03-29 16:51:14.000
+SC-C000173,Mary,Darko,1990-05-12,Ghanaian,Trader,+233249579725,mary.darko6474@example.test,2025-04-13 15:34:56.000
+SC-C000174,Mavis,Mensah,1995-08-02,Ghanaian,Farmer,+233259266521,mavis.mensah1414@example.test,2024-08-07 14:37:08.000
+SC-C000175,Afia,Osei,1978-09-19,Ghanaian,Driver,+233441391591,afia.osei5063@example.test,2025-04-30 08:06:30.000
+SC-C000176,Mavis,Owusu,1994-12-23,Ghanaian,Other,+233593140994,mavis.owusu9326@example.test,2023-05-30 11:42:55.000
+SC-C000177,Yaa,Asare,1970-07-24,Ghanaian,Professional,+233421544592,yaa.asare352@example.test,2024-09-23 17:00:16.000
+SC-C000178,Daniel,Appiah,1963-06-15,Ghanaian,Professional,+233325267044,daniel.appiah9392@example.test,2024-06-12 11:34:06.000
+SC-C000179,Akosua,Amoah,1987-08-15,Ghanaian,Driver,+233378616668,akosua.amoah9286@example.test,2025-03-14 16:09:19.000
+SC-C000180,Efua,Quaye,1991-11-14,Ghanaian,Trader,+233508953911,efua.quaye9344@example.test,2024-12-15 17:36:52.000
+SC-C000181,Daniel,Amoah,1998-08-18,Ghanaian,Artisan,+233552314943,daniel.amoah3313@example.test,2024-08-25 14:38:53.000
+SC-C000182,Grace,Adjei,1968-01-04,Ghanaian,Trader,+233576301395,grace.adjei6783@example.test,2023-11-05 13:20:08.000
+SC-C000183,Kwabena,Agyeman,2000-03-03,Ghanaian,Professional,+233423104978,kwabena.agyeman7798@example.test,2023-12-07 13:16:38.000
+SC-C000184,Esi,Adjei,1993-09-05,Ghanaian,Teacher,+233241707439,esi.adjei9992@example.test,2024-07-07 11:17:08.000
+SC-C000185,Samuel,Mensah,1998-11-24,Ghanaian,Artisan,+233403173632,samuel.mensah1660@example.test,2024-07-23 09:16:18.000
+SC-C000186,Daniel,Amoah,1978-12-02,Ghanaian,Artisan,+233427630157,daniel.amoah3180@example.test,2024-02-20 12:40:30.000
+SC-C000187,Adwoa,Mensah,2002-07-24,Ghanaian,Public Servant,+233493894209,adwoa.mensah4440@example.test,2023-06-14 18:57:59.000
+SC-C000188,Mary,Asare,1961-10-12,Ghanaian,Farmer,+233505478007,mary.asare3475@example.test,2024-04-14 13:48:49.000
+SC-C000189,Kwabena,Appiah,1984-01-13,Ghanaian,Student,+233497153949,kwabena.appiah2700@example.test,2023-05-31 13:11:13.000
+SC-C000190,Akosua,Adjei,1989-11-04,Ghanaian,Other,+233509420648,akosua.adjei13@example.test,2024-10-17 08:47:57.000
+SC-C000191,Akosua,Mensah,2004-08-25,Ghanaian,Student,+233524604796,akosua.mensah4291@example.test,2023-08-18 08:56:03.000
+SC-C000192,Esi,Boateng,1999-05-22,Ghanaian,Professional,+233469748193,esi.boateng4807@example.test,2024-09-28 08:27:43.000
+SC-C000193,Emmanuel,Arthur,1970-08-14,Ghanaian,Teacher,+233212156645,emmanuel.arthur7334@example.test,2025-02-01 13:07:45.000
+SC-C000194,Afia,Adjei,1993-02-06,Ghanaian,Student,+233375835286,afia.adjei4937@example.test,2025-05-24 16:14:33.000
+SC-C000195,Kofi,Agyeman,1991-07-11,Ghanaian,Driver,+233240659673,kofi.agyeman9185@example.test,2023-01-22 15:29:48.000
+SC-C000196,Mavis,Mensah,1994-09-26,Ghanaian,Artisan,+233443151184,mavis.mensah3812@example.test,2024-10-22 12:02:32.000
+SC-C000197,Emmanuel,Owusu,1997-04-07,Ghanaian,Self Employed,+233280276819,emmanuel.owusu4668@example.test,2023-08-09 13:35:44.000
+SC-C000198,Kojo,Owusu,1990-04-13,Ghanaian,Health Worker,+233459619972,kojo.owusu1958@example.test,2023-09-21 17:34:50.000
+SC-C000199,Mavis,Osei,1961-02-23,Ghanaian,Student,+233202235681,mavis.osei7380@example.test,2023-11-18 09:58:55.000
+SC-C000200,Mavis,Darko,1976-09-07,Ghanaian,Student,+233379949670,mavis.darko4291@example.test,2024-06-29 15:57:18.000
+SC-C000201,Kwabena,Owusu,1983-05-05,Ghanaian,Student,+233278938101,kwabena.owusu9304@example.test,2024-09-11 10:59:45.000
+SC-C000202,Daniel,Owusu,1980-02-14,Ghanaian,Public Servant,+233564931877,daniel.owusu9621@example.test,2023-05-16 13:48:36.000
+SC-C000203,Kwame,Arthur,2004-10-11,Ghanaian,Other,+233587374097,kwame.arthur416@example.test,2024-08-08 08:44:17.000
+SC-C000204,Adwoa,Adjei,1976-02-10,Ghanaian,Public Servant,+233493320016,adwoa.adjei1015@example.test,2024-11-02 10:38:40.000
+SC-C000205,Kwame,Amoah,1998-04-08,Ghanaian,Other,+233512264434,kwame.amoah5754@example.test,2023-07-31 12:24:49.000
+SC-C000206,Grace,Asare,1996-02-04,Ghanaian,Student,+233247662931,grace.asare3024@example.test,2023-03-21 16:05:28.000
+SC-C000207,Nana,Asare,1980-05-07,Ghanaian,Other,+233575915031,nana.asare3765@example.test,2023-09-19 12:57:34.000
+SC-C000208,Kwadwo,Asare,2002-03-13,Ghanaian,Trader,+233375573768,kwadwo.asare9831@example.test,2024-09-30 16:37:22.000
+SC-C000209,Daniel,Quaye,1965-05-24,Ghanaian,Professional,+233451304431,daniel.quaye6402@example.test,2024-05-11 10:58:56.000
+SC-C000210,Daniel,Mensah,1977-01-21,Ghanaian,Professional,+233458589057,daniel.mensah2231@example.test,2024-08-01 14:39:53.000
+SC-C000211,Yaw,Darko,1989-07-08,Ghanaian,Other,+233224390348,yaw.darko3594@example.test,2023-01-04 18:47:09.000
+SC-C000212,Yaw,Appiah,1983-11-08,Ghanaian,Professional,+233343820905,yaw.appiah9579@example.test,2023-11-24 18:01:11.000
+SC-C000213,Emmanuel,Boateng,1966-12-16,Ghanaian,Driver,+233520763086,emmanuel.boateng9269@example.test,2024-07-13 13:58:01.000
+SC-C000214,Efua,Appiah,1986-10-22,Ghanaian,Driver,+233216847381,efua.appiah4939@example.test,2024-06-23 10:04:07.000
+SC-C000215,Kwabena,Asare,1993-04-23,Ghanaian,Public Servant,+233387202765,kwabena.asare4321@example.test,2024-10-25 13:39:16.000
+SC-C000216,Nana,Appiah,1984-04-06,Ghanaian,Public Servant,+233401450858,nana.appiah381@example.test,2024-11-24 11:41:45.000
+SC-C000217,Nana,Mensah,1990-09-25,Ghanaian,Farmer,+233382181626,nana.mensah3847@example.test,2025-02-07 14:12:24.000
+SC-C000218,Kofi,Quaye,1994-08-02,Ghanaian,Trader,+233348072358,kofi.quaye4491@example.test,2024-09-21 12:46:02.000
+SC-C000219,Mavis,Amoah,1969-01-20,Ghanaian,Student,+233449341308,mavis.amoah3990@example.test,2023-05-30 18:34:44.000
+SC-C000220,Kofi,Adjei,1983-07-17,Ghanaian,Other,+233245244017,kofi.adjei5467@example.test,2024-04-04 12:31:49.000
+SC-C000221,Kwadwo,Osei,1972-05-15,Ghanaian,Self Employed,+233233957646,kwadwo.osei41@example.test,2025-05-06 18:38:17.000
+SC-C000222,Afia,Darko,1981-09-19,Ghanaian,Artisan,+233244246342,afia.darko8281@example.test,2023-11-15 14:33:35.000
+SC-C000223,Akosua,Amoah,1972-02-28,Ghanaian,Trader,+233388909476,akosua.amoah1437@example.test,2024-12-01 09:25:52.000
+SC-C000224,Ama,Asare,1977-01-27,Ghanaian,Professional,+233329889109,ama.asare1901@example.test,2024-01-02 17:23:51.000
+SC-C000225,Mavis,Appiah,1968-03-17,Ghanaian,Self Employed,+233341975993,mavis.appiah7291@example.test,2023-09-11 14:21:45.000
+SC-C000226,Adwoa,Boateng,2002-09-25,Ghanaian,Trader,+233344797203,adwoa.boateng4087@example.test,2024-12-13 09:56:55.000
+SC-C000227,Yaw,Mensah,1975-09-09,Ghanaian,Other,+233320789600,yaw.mensah1637@example.test,2025-05-31 15:40:43.000
+SC-C000228,Kojo,Darko,1994-06-13,Ghanaian,Farmer,+233444560874,kojo.darko5728@example.test,2024-09-15 12:12:59.000
+SC-C000229,Mavis,Asare,1961-05-05,Ghanaian,Teacher,+233379496935,mavis.asare2911@example.test,2023-05-06 09:02:18.000
+SC-C000230,Grace,Arthur,1991-01-23,Ghanaian,Artisan,+233436194173,grace.arthur3741@example.test,2024-10-04 17:00:13.000
+SC-C000231,Mavis,Arthur,2000-05-16,Ghanaian,Teacher,+233412451316,mavis.arthur7284@example.test,2023-07-09 09:21:28.000
+SC-C000232,Yaa,Darko,1992-07-07,Ghanaian,Teacher,+233484057188,yaa.darko2192@example.test,2024-09-19 18:45:01.000
+SC-C000233,Emmanuel,Adjei,1962-04-20,Ghanaian,Other,+233250623527,emmanuel.adjei4546@example.test,2023-11-05 10:22:13.000
+SC-C000234,Mary,Arthur,1965-01-09,Ghanaian,Student,+233460438833,mary.arthur4753@example.test,2023-11-04 08:17:56.000
+SC-C000235,Fiifi,Appiah,1961-08-11,Ghanaian,Artisan,+233559660670,fiifi.appiah3541@example.test,2023-04-07 12:43:39.000
+SC-C000236,Kwabena,Agyeman,2002-09-09,Ghanaian,Artisan,+233491982529,kwabena.agyeman5532@example.test,2024-03-20 09:02:35.000
+SC-C000237,Emmanuel,Agyeman,1971-07-25,Ghanaian,Student,+233405882381,emmanuel.agyeman4307@example.test,2024-05-20 16:46:59.000
+SC-C000238,Yaw,Owusu,2003-08-10,Ghanaian,Public Servant,+233223068462,yaw.owusu8775@example.test,2023-11-17 15:30:17.000
+SC-C000239,Daniel,Amoah,1967-01-17,Ghanaian,Self Employed,+233511553616,daniel.amoah2277@example.test,2023-07-01 15:16:51.000
+SC-C000240,Angela,Quaye,1975-11-06,Ghanaian,Driver,+233281653615,angela.quaye8290@example.test,2023-08-07 18:48:03.000
+SC-C000241,Emmanuel,Osei,1970-08-25,Ghanaian,Teacher,+233421547877,emmanuel.osei823@example.test,2024-02-01 10:32:33.000
+SC-C000242,Angela,Amoah,1963-08-16,Ghanaian,Driver,+233451077009,angela.amoah8860@example.test,2023-03-16 08:04:05.000
+SC-C000243,Emmanuel,Osei,1980-05-06,Ghanaian,Public Servant,+233445477494,emmanuel.osei3469@example.test,2024-12-08 18:46:14.000
+SC-C000244,Kwame,Darko,1968-11-05,Ghanaian,Public Servant,+233254581711,kwame.darko9985@example.test,2024-02-02 11:36:42.000
+SC-C000245,Kojo,Asare,1975-12-08,Ghanaian,Farmer,+233233180684,kojo.asare8713@example.test,2024-04-30 12:41:43.000
+SC-C000246,Yaw,Boateng,1971-06-02,Ghanaian,Health Worker,+233438408889,yaw.boateng3935@example.test,2023-09-08 11:51:02.000
+SC-C000247,Yaw,Boateng,1971-09-23,Ghanaian,Self Employed,+233513644464,yaw.boateng2847@example.test,2024-12-08 12:23:39.000
+SC-C000248,Fiifi,Adjei,1991-05-06,Ghanaian,Driver,+233486649252,fiifi.adjei2009@example.test,2024-02-20 12:50:33.000
+SC-C000249,Adwoa,Owusu,1981-08-18,Ghanaian,Teacher,+233551263698,adwoa.owusu4005@example.test,2024-04-29 10:03:16.000
+SC-C000250,Daniel,Asare,1996-05-28,Ghanaian,Farmer,+233254947211,daniel.asare520@example.test,2023-04-05 16:24:37.000
+SC-C000251,Angela,Asare,1961-07-12,Ghanaian,Student,+233424721497,angela.asare9012@example.test,2024-09-03 11:30:17.000
+SC-C000252,Akosua,Amoah,1993-10-28,Ghanaian,Farmer,+233521100801,akosua.amoah2050@example.test,2024-03-25 12:21:42.000
+SC-C000253,Samuel,Amoah,1976-07-03,Ghanaian,Teacher,+233437425701,samuel.amoah5716@example.test,2023-02-19 18:28:42.000
+SC-C000254,Abena,Mensah,1962-07-18,Ghanaian,Health Worker,+233425459394,abena.mensah2456@example.test,2024-07-04 14:12:21.000
+SC-C000255,Kwadwo,Adjei,1988-11-15,Ghanaian,Self Employed,+233593152836,kwadwo.adjei5811@example.test,2023-12-12 16:43:22.000
+SC-C000256,Kofi,Quaye,1997-09-15,Ghanaian,Health Worker,+233296571416,kofi.quaye8276@example.test,2024-03-28 13:04:00.000
+SC-C000257,Ama,Agyeman,1979-08-02,Ghanaian,Student,+233579915954,ama.agyeman9063@example.test,2024-06-05 12:19:25.000
+SC-C000258,Ama,Mensah,1990-02-18,Ghanaian,Artisan,+233375786026,ama.mensah3685@example.test,2023-09-18 12:56:06.000
+SC-C000259,Kwadwo,Darko,1968-05-01,Ghanaian,Teacher,+233371505432,kwadwo.darko2170@example.test,2024-07-10 15:15:09.000
+SC-C000260,Akosua,Amoah,1990-02-06,Ghanaian,Artisan,+233513691225,akosua.amoah9269@example.test,2024-07-12 18:09:08.000
+SC-C000261,Esi,Darko,1994-03-04,Ghanaian,Teacher,+233436565287,esi.darko9310@example.test,2024-07-03 09:40:32.000
+SC-C000262,Abena,Darko,1986-08-13,Ghanaian,Student,+233535797094,abena.darko921@example.test,2023-06-22 10:20:07.000
+SC-C000263,Abena,Arthur,1999-01-23,Ghanaian,Trader,+233564783281,abena.arthur2957@example.test,2024-11-20 15:40:05.000
+SC-C000264,Michael,Boateng,1987-07-17,Ghanaian,Trader,+233369121289,michael.boateng8083@example.test,2023-02-04 11:53:21.000
+SC-C000265,Daniel,Asare,1989-12-21,Ghanaian,Self Employed,+233503411976,daniel.asare7326@example.test,2024-02-15 14:06:17.000
+SC-C000266,Fiifi,Quaye,1969-03-01,Ghanaian,Self Employed,+233565204433,fiifi.quaye1185@example.test,2024-01-14 15:07:05.000
+SC-C000267,Kwadwo,Darko,1990-04-28,Ghanaian,Professional,+233375334941,kwadwo.darko970@example.test,2023-11-17 18:31:28.000
+SC-C000268,Kwame,Quaye,1960-09-20,Ghanaian,Teacher,+233499554171,kwame.quaye4042@example.test,2023-01-25 11:47:35.000
+SC-C000269,Ama,Mensah,2003-01-08,Ghanaian,Farmer,+233477900272,ama.mensah8746@example.test,2024-11-08 17:52:03.000
+SC-C000270,Yaw,Quaye,1973-03-08,Ghanaian,Professional,+233484782264,yaw.quaye2052@example.test,2025-02-08 16:31:42.000
+SC-C000271,Kwadwo,Agyeman,1995-06-03,Ghanaian,Professional,+233263047298,kwadwo.agyeman6018@example.test,2023-07-14 18:23:27.000
+SC-C000272,Ama,Amoah,2000-06-13,Ghanaian,Health Worker,+233337458070,ama.amoah7651@example.test,2023-04-11 10:52:00.000
+SC-C000273,Mary,Arthur,1978-02-26,Ghanaian,Other,+233205550570,mary.arthur8495@example.test,2024-02-02 15:10:57.000
+SC-C000274,Kwabena,Osei,1962-09-23,Ghanaian,Student,+233540407428,kwabena.osei6916@example.test,2023-03-23 14:02:09.000
+SC-C000275,Angela,Arthur,1981-07-23,Ghanaian,Self Employed,+233252300797,angela.arthur1775@example.test,2023-06-01 10:03:35.000
+SC-C000276,Michael,Osei,2001-06-17,Ghanaian,Artisan,+233467520035,michael.osei9791@example.test,2024-02-27 14:28:13.000
+SC-C000277,Nana,Adjei,1985-03-24,Ghanaian,Farmer,+233524464433,nana.adjei9886@example.test,2024-10-25 10:22:39.000
+SC-C000278,Ama,Boateng,1986-08-25,Ghanaian,Farmer,+233354062445,ama.boateng3073@example.test,2023-01-22 10:26:12.000
+SC-C000279,Samuel,Darko,1988-03-04,Ghanaian,Professional,+233256471375,samuel.darko4500@example.test,2025-05-08 14:28:37.000
+SC-C000280,Efua,Arthur,1979-10-02,Ghanaian,Driver,+233421813302,efua.arthur3582@example.test,2024-09-18 16:19:20.000
+SC-C000281,Mavis,Boateng,1965-09-11,Ghanaian,Student,+233371596920,mavis.boateng9370@example.test,2025-05-15 17:32:19.000
+SC-C000282,Kwame,Osei,1973-05-17,Ghanaian,Artisan,+233265861297,kwame.osei5822@example.test,2023-03-03 10:09:14.000
+SC-C000283,Daniel,Darko,1994-05-13,Ghanaian,Public Servant,+233364364855,daniel.darko7959@example.test,2024-03-09 10:38:55.000
+SC-C000284,Emmanuel,Mensah,2002-02-01,Ghanaian,Health Worker,+233542264197,emmanuel.mensah7560@example.test,2024-08-13 17:49:49.000
+SC-C000285,Mavis,Appiah,1993-03-12,Ghanaian,Artisan,+233407684993,mavis.appiah6989@example.test,2024-01-22 10:17:58.000
+SC-C000286,Efua,Boateng,1983-03-16,Ghanaian,Trader,+233422627485,efua.boateng4498@example.test,2024-10-02 14:26:05.000
+SC-C000287,Samuel,Agyeman,1972-11-12,Ghanaian,Student,+233437229995,samuel.agyeman1713@example.test,2023-04-19 16:21:07.000
+SC-C000288,Fiifi,Owusu,1990-01-11,Ghanaian,Self Employed,+233211704474,fiifi.owusu8412@example.test,2023-01-27 17:23:41.000
+SC-C000289,Michael,Amoah,1965-01-02,Ghanaian,Driver,+233267524240,michael.amoah7448@example.test,2024-01-02 15:10:23.000
+SC-C000290,Yaa,Asare,1971-11-17,Ghanaian,Health Worker,+233367441173,yaa.asare4785@example.test,2023-02-27 09:38:23.000
+SC-C000291,Akosua,Appiah,1991-08-27,Ghanaian,Professional,+233421025188,akosua.appiah9093@example.test,2024-05-02 11:25:18.000
+SC-C000292,Emmanuel,Boateng,1993-07-01,Ghanaian,Trader,+233402755811,emmanuel.boateng1214@example.test,2024-05-15 12:24:46.000
+SC-C000293,Yaa,Boateng,1960-04-23,Ghanaian,Professional,+233298683738,yaa.boateng5211@example.test,2023-05-13 10:27:20.000
+SC-C000294,Yaw,Osei,2002-12-14,Ghanaian,Farmer,+233204180234,yaw.osei6338@example.test,2023-08-26 12:45:19.000
+SC-C000295,Yaa,Amoah,1979-07-15,Ghanaian,Teacher,+233324219966,yaa.amoah7601@example.test,2023-04-03 10:26:46.000
+SC-C000296,Efua,Adjei,2000-06-03,Ghanaian,Health Worker,+233253595576,efua.adjei6823@example.test,2023-11-16 11:45:06.000
+SC-C000297,Yaa,Asare,1975-01-06,Ghanaian,Teacher,+233205243835,yaa.asare921@example.test,2024-07-14 11:44:21.000
+SC-C000298,Michael,Amoah,2003-12-28,Ghanaian,Public Servant,+233407276282,michael.amoah6409@example.test,2024-02-05 13:02:58.000
+SC-C000299,Kwadwo,Quaye,1982-11-26,Ghanaian,Artisan,+233462844703,kwadwo.quaye9441@example.test,2024-08-20 11:39:36.000
+SC-C000300,Yaw,Osei,1963-02-06,Ghanaian,Farmer,+233541102272,yaw.osei851@example.test,2024-03-02 18:09:40.000
+SC-C000301,Kwame,Osei,1970-01-23,Ghanaian,Student,+233588490672,kwame.osei7725@example.test,2023-02-20 16:14:57.000
+SC-C000302,Samuel,Osei,1976-02-07,Ghanaian,Other,+233339849675,samuel.osei5062@example.test,2023-01-31 12:17:37.000
+SC-C000303,Esi,Adjei,1983-05-13,Ghanaian,Farmer,+233571436989,esi.adjei4696@example.test,2024-08-09 11:07:04.000
+SC-C000304,Angela,Quaye,1998-01-15,Ghanaian,Artisan,+233238079770,angela.quaye6226@example.test,2024-01-04 17:13:01.000
+SC-C000305,Ama,Amoah,1970-09-17,Ghanaian,Student,+233267252139,ama.amoah4831@example.test,2023-03-18 18:18:22.000
+SC-C000306,Nana,Mensah,1987-07-23,Ghanaian,Student,+233275790576,nana.mensah5532@example.test,2023-06-07 11:52:14.000
+SC-C000307,Mavis,Osei,1986-07-13,Ghanaian,Professional,+233488741431,mavis.osei9902@example.test,2024-03-02 09:11:51.000
+SC-C000308,Kwabena,Appiah,1996-02-03,Ghanaian,Professional,+233434414290,kwabena.appiah3910@example.test,2023-05-06 16:19:08.000
+SC-C000309,Ama,Quaye,1965-09-01,Ghanaian,Other,+233360140174,ama.quaye8116@example.test,2024-10-30 10:56:29.000
+SC-C000310,Akosua,Amoah,2003-04-24,Ghanaian,Trader,+233327510321,akosua.amoah2785@example.test,2024-01-25 13:12:20.000
+SC-C000311,Mary,Darko,1977-04-05,Ghanaian,Other,+233293071531,mary.darko4574@example.test,2023-05-04 09:12:36.000
+SC-C000312,Emmanuel,Adjei,2002-11-28,Ghanaian,Other,+233585666729,emmanuel.adjei6194@example.test,2025-01-15 12:38:43.000
+SC-C000313,Michael,Mensah,1967-08-21,Ghanaian,Trader,+233550351483,michael.mensah1100@example.test,2023-07-21 14:36:36.000
+SC-C000314,Angela,Quaye,1990-10-08,Ghanaian,Trader,+233555909594,angela.quaye5150@example.test,2023-03-31 16:19:40.000
+SC-C000315,Afia,Mensah,1994-04-22,Ghanaian,Artisan,+233524964956,afia.mensah5370@example.test,2024-10-29 08:39:43.000
+SC-C000316,Kofi,Mensah,1965-03-19,Ghanaian,Health Worker,+233500024571,kofi.mensah5482@example.test,2024-01-26 08:13:16.000
+SC-C000317,Fiifi,Adjei,1976-02-01,Ghanaian,Public Servant,+233222319769,fiifi.adjei6144@example.test,2024-12-07 13:43:36.000
+SC-C000318,Grace,Quaye,1978-09-03,Ghanaian,Artisan,+233554008657,grace.quaye1683@example.test,2023-05-14 17:33:19.000
+SC-C000319,Adwoa,Owusu,1967-12-04,Ghanaian,Student,+233377417613,adwoa.owusu2853@example.test,2024-01-29 13:18:45.000
+SC-C000320,Yaa,Adjei,1961-08-09,Ghanaian,Trader,+233368892916,yaa.adjei6264@example.test,2023-05-14 12:14:12.000
+SC-C000321,Kwadwo,Osei,1965-07-22,Ghanaian,Student,+233368446451,kwadwo.osei8361@example.test,2024-04-29 17:52:52.000
+SC-C000322,Fiifi,Owusu,1970-08-23,Ghanaian,Public Servant,+233332225210,fiifi.owusu6618@example.test,2023-02-10 17:13:46.000
+SC-C000323,Samuel,Arthur,1963-04-28,Ghanaian,Teacher,+233252644789,samuel.arthur9051@example.test,2024-04-23 11:42:57.000
+SC-C000324,Angela,Amoah,1981-04-14,Ghanaian,Teacher,+233474888333,angela.amoah5308@example.test,2024-06-22 14:09:22.000
+SC-C000325,Kwadwo,Osei,1968-11-26,Ghanaian,Farmer,+233456625022,kwadwo.osei8708@example.test,2023-10-17 11:52:49.000
+SC-C000326,Mary,Osei,1991-06-12,Ghanaian,Other,+233230705635,mary.osei6452@example.test,2023-04-23 18:56:45.000
+SC-C000327,Angela,Owusu,1996-09-15,Ghanaian,Health Worker,+233539899489,angela.owusu8267@example.test,2023-01-23 17:58:21.000
+SC-C000328,Abena,Asare,1962-12-08,Ghanaian,Health Worker,+233425839387,abena.asare3110@example.test,2023-03-21 15:50:35.000
+SC-C000329,Nana,Agyeman,1967-01-14,Ghanaian,Public Servant,+233203866690,nana.agyeman7057@example.test,2025-02-20 12:56:58.000
+SC-C000330,Kojo,Amoah,2000-11-25,Ghanaian,Health Worker,+233227537206,kojo.amoah3527@example.test,2025-03-22 13:26:25.000
+SC-C000331,Akosua,Appiah,1968-06-06,Ghanaian,Other,+233561899609,akosua.appiah5787@example.test,2023-04-20 12:44:50.000
+SC-C000332,Yaa,Owusu,1986-04-20,Ghanaian,Public Servant,+233499719949,yaa.owusu3864@example.test,2023-06-28 14:46:43.000
+SC-C000333,Kwame,Quaye,1984-01-24,Ghanaian,Trader,+233463006010,kwame.quaye5241@example.test,2025-01-11 11:07:09.000
+SC-C000334,Kofi,Mensah,1968-05-27,Ghanaian,Health Worker,+233502775064,kofi.mensah8669@example.test,2024-12-01 12:38:54.000
+SC-C000335,Fiifi,Quaye,1995-09-26,Ghanaian,Professional,+233565649820,fiifi.quaye8683@example.test,2025-02-20 17:48:23.000
+SC-C000336,Kwabena,Arthur,1982-10-09,Ghanaian,Artisan,+233312833115,kwabena.arthur3103@example.test,2023-11-14 17:05:38.000
+SC-C000337,Angela,Mensah,1983-03-21,Ghanaian,Health Worker,+233364391176,angela.mensah136@example.test,2024-08-30 10:19:11.000
+SC-C000338,Ama,Darko,2001-01-12,Ghanaian,Trader,+233420214835,ama.darko8872@example.test,2024-08-07 14:43:40.000
+SC-C000339,Angela,Owusu,2001-02-03,Ghanaian,Self Employed,+233240803067,angela.owusu493@example.test,2024-02-19 15:50:26.000
+SC-C000340,Kojo,Amoah,1989-06-24,Ghanaian,Other,+233335435846,kojo.amoah3689@example.test,2023-03-30 16:19:30.000
+SC-C000341,Akosua,Mensah,1966-05-12,Ghanaian,Driver,+233474842215,akosua.mensah7210@example.test,2025-01-07 09:34:40.000
+SC-C000342,Yaw,Amoah,1984-07-24,Ghanaian,Trader,+233553393453,yaw.amoah2385@example.test,2023-04-27 15:19:58.000
+SC-C000343,Fiifi,Mensah,1963-06-25,Ghanaian,Artisan,+233589622708,fiifi.mensah1934@example.test,2024-05-13 08:50:36.000
+SC-C000344,Kwadwo,Osei,1962-01-28,Ghanaian,Other,+233335909689,kwadwo.osei897@example.test,2024-10-06 14:08:08.000
+SC-C000345,Mary,Adjei,1986-08-08,Ghanaian,Artisan,+233297844417,mary.adjei461@example.test,2023-08-11 10:12:48.000
+SC-C000346,Efua,Agyeman,1964-10-21,Ghanaian,Health Worker,+233246384168,efua.agyeman6881@example.test,2024-06-26 13:08:36.000
+SC-C000347,Yaw,Adjei,1966-05-25,Ghanaian,Other,+233328131512,yaw.adjei5770@example.test,2024-05-06 09:46:43.000
+SC-C000348,Fiifi,Osei,1981-02-26,Ghanaian,Public Servant,+233550945301,fiifi.osei1855@example.test,2025-01-24 14:46:39.000
+SC-C000349,Michael,Darko,1972-08-11,Ghanaian,Professional,+233531493237,michael.darko5249@example.test,2025-03-01 10:55:15.000
+SC-C000350,Mary,Appiah,1974-10-18,Ghanaian,Student,+233400137721,mary.appiah8172@example.test,2025-03-02 17:39:32.000
+SC-C000351,Yaa,Boateng,1977-04-05,Ghanaian,Trader,+233294048115,yaa.boateng726@example.test,2024-08-14 09:32:04.000
+SC-C000352,Michael,Agyeman,1975-02-21,Ghanaian,Public Servant,+233435088399,michael.agyeman1024@example.test,2024-11-06 15:33:58.000
+SC-C000353,Kwame,Boateng,1960-04-05,Ghanaian,Teacher,+233484524565,kwame.boateng3146@example.test,2023-01-01 11:16:06.000
+SC-C000354,Mary,Arthur,1962-01-17,Ghanaian,Teacher,+233574662760,mary.arthur4261@example.test,2024-06-24 14:34:13.000
+SC-C000355,Kwabena,Osei,1977-10-01,Ghanaian,Self Employed,+233286220811,kwabena.osei3291@example.test,2024-08-28 14:50:58.000
+SC-C000356,Daniel,Mensah,1996-12-12,Ghanaian,Self Employed,+233221563127,daniel.mensah5069@example.test,2023-04-22 17:27:55.000
+SC-C000357,Kwame,Amoah,1995-06-22,Ghanaian,Self Employed,+233239015730,kwame.amoah3623@example.test,2025-01-09 17:45:38.000
+SC-C000358,Kofi,Boateng,2003-08-06,Ghanaian,Other,+233560544694,kofi.boateng4024@example.test,2024-02-12 10:05:34.000
+SC-C000359,Ama,Osei,1981-09-05,Ghanaian,Farmer,+233497241141,ama.osei3626@example.test,2024-06-12 18:51:09.000
+SC-C000360,Grace,Amoah,1971-12-04,Ghanaian,Other,+233421996757,grace.amoah5791@example.test,2025-05-05 18:28:31.000
+SC-C000361,Mavis,Owusu,1960-10-11,Ghanaian,Trader,+233448184438,mavis.owusu9715@example.test,2023-03-06 18:55:54.000
+SC-C000362,Mavis,Quaye,1970-03-20,Ghanaian,Trader,+233365839879,mavis.quaye9931@example.test,2023-02-09 11:13:35.000
+SC-C000363,Yaa,Osei,1971-04-18,Ghanaian,Professional,+233358998819,yaa.osei2766@example.test,2025-05-03 13:09:17.000
+SC-C000364,Kwabena,Appiah,1988-01-13,Ghanaian,Student,+233509035999,kwabena.appiah5587@example.test,2023-08-06 17:15:29.000
+SC-C000365,Kwabena,Mensah,1990-02-22,Ghanaian,Other,+233532010533,kwabena.mensah1887@example.test,2023-06-25 13:57:43.000
+SC-C000366,Angela,Adjei,1966-03-18,Ghanaian,Student,+233386164255,angela.adjei9825@example.test,2024-11-17 10:40:32.000
+SC-C000367,Grace,Quaye,1977-01-10,Ghanaian,Trader,+233448771098,grace.quaye9909@example.test,2025-04-13 09:35:36.000
+SC-C000368,Kofi,Darko,1966-04-08,Ghanaian,Other,+233512249070,kofi.darko6566@example.test,2023-07-25 17:01:46.000
+SC-C000369,Afia,Appiah,1963-07-20,Ghanaian,Teacher,+233368799930,afia.appiah2984@example.test,2024-07-19 12:26:17.000
+SC-C000370,Efua,Asare,1994-07-09,Ghanaian,Other,+233206174776,efua.asare7968@example.test,2024-12-17 09:06:53.000
+SC-C000371,Ama,Quaye,1988-03-10,Ghanaian,Self Employed,+233438443089,ama.quaye7122@example.test,2024-08-21 16:08:56.000
+SC-C000372,Adwoa,Darko,1996-07-05,Ghanaian,Public Servant,+233261168279,adwoa.darko1810@example.test,2024-02-05 10:51:27.000
+SC-C000373,Kofi,Darko,1991-06-02,Ghanaian,Driver,+233324830137,kofi.darko6465@example.test,2024-08-08 09:59:27.000
+SC-C000374,Mavis,Arthur,2000-03-22,Ghanaian,Other,+233342524253,mavis.arthur74@example.test,2024-03-03 16:21:19.000
+SC-C000375,Adwoa,Amoah,1973-05-25,Ghanaian,Health Worker,+233452238475,adwoa.amoah6690@example.test,2024-11-12 17:48:44.000
+SC-C000376,Ama,Adjei,1993-08-24,Ghanaian,Trader,+233280775346,ama.adjei2629@example.test,2023-04-08 11:02:37.000
+SC-C000377,Grace,Amoah,1981-03-17,Ghanaian,Health Worker,+233247266225,grace.amoah3369@example.test,2024-04-16 12:05:23.000
+SC-C000378,Abena,Amoah,1985-03-28,Ghanaian,Farmer,+233536919930,abena.amoah1842@example.test,2023-10-02 10:00:23.000
+SC-C000379,Nana,Quaye,1963-08-01,Ghanaian,Public Servant,+233517790371,nana.quaye5415@example.test,2023-03-07 08:32:51.000
+SC-C000380,Fiifi,Boateng,1982-03-13,Ghanaian,Self Employed,+233262803969,fiifi.boateng1501@example.test,2023-07-12 11:39:09.000
+SC-C000381,Yaa,Agyeman,1986-03-03,Ghanaian,Artisan,+233473808733,yaa.agyeman1023@example.test,2023-02-26 18:14:29.000
+SC-C000382,Abena,Asare,1968-01-11,Ghanaian,Driver,+233305629921,abena.asare6709@example.test,2024-05-01 10:12:01.000
+SC-C000383,Afia,Owusu,1962-06-14,Ghanaian,Public Servant,+233405687326,afia.owusu3365@example.test,2024-12-31 09:35:28.000
+SC-C000384,Nana,Boateng,2001-12-10,Ghanaian,Artisan,+233222827797,nana.boateng4169@example.test,2025-06-02 15:58:51.000
+SC-C000385,Kwadwo,Mensah,1968-08-06,Ghanaian,Trader,+233318254983,kwadwo.mensah1885@example.test,2025-01-10 12:41:51.000
+SC-C000386,Angela,Adjei,1989-10-13,Ghanaian,Other,+233506832946,angela.adjei2558@example.test,2023-04-07 13:41:43.000
+SC-C000387,Daniel,Asare,1966-01-27,Ghanaian,Farmer,+233328710957,daniel.asare5261@example.test,2023-05-07 12:08:03.000
+SC-C000388,Michael,Mensah,1967-04-23,Ghanaian,Trader,+233400596574,michael.mensah8423@example.test,2024-09-03 09:04:02.000
+SC-C000389,Kofi,Owusu,1982-04-18,Ghanaian,Farmer,+233202984527,kofi.owusu7071@example.test,2023-07-24 11:50:53.000
+SC-C000390,Angela,Osei,2004-11-04,Ghanaian,Driver,+233235843103,angela.osei2707@example.test,2024-04-19 12:17:03.000
+SC-C000391,Emmanuel,Amoah,1989-07-28,Ghanaian,Artisan,+233447617559,emmanuel.amoah4472@example.test,2023-09-10 18:48:36.000
+SC-C000392,Mavis,Amoah,2004-07-20,Ghanaian,Artisan,+233365138122,mavis.amoah1128@example.test,2023-05-15 10:43:32.000
+SC-C000393,Kwame,Arthur,2002-07-03,Ghanaian,Public Servant,+233577219096,kwame.arthur5893@example.test,2024-10-21 09:55:13.000
+SC-C000394,Ama,Appiah,1986-06-24,Ghanaian,Driver,+233592416018,ama.appiah6499@example.test,2023-12-02 18:43:34.000
+SC-C000395,Kwabena,Darko,1983-11-28,Ghanaian,Student,+233270614761,kwabena.darko1172@example.test,2024-06-08 15:50:44.000
+SC-C000396,Yaa,Amoah,1993-05-12,Ghanaian,Teacher,+233405549437,yaa.amoah6850@example.test,2024-01-01 17:50:49.000
+SC-C000397,Grace,Adjei,1997-06-11,Ghanaian,Self Employed,+233311087125,grace.adjei8367@example.test,2023-06-04 11:02:14.000
+SC-C000398,Kwadwo,Osei,1964-08-25,Ghanaian,Student,+233572766578,kwadwo.osei6064@example.test,2023-12-17 10:32:53.000
+SC-C000399,Afia,Quaye,1989-10-25,Ghanaian,Self Employed,+233416670367,afia.quaye3829@example.test,2024-02-10 15:13:32.000
+SC-C000400,Fiifi,Osei,1969-12-16,Ghanaian,Public Servant,+233215798394,fiifi.osei6129@example.test,2024-05-21 13:46:16.000
+SC-C000401,Kojo,Appiah,1963-05-10,Ghanaian,Artisan,+233407301669,kojo.appiah1414@example.test,2024-03-17 10:25:13.000
+SC-C000402,Abena,Owusu,1980-02-15,Ghanaian,Student,+233267296871,abena.owusu2632@example.test,2023-09-11 15:14:47.000
+SC-C000403,Adwoa,Quaye,1982-12-24,Ghanaian,Other,+233380007188,adwoa.quaye1909@example.test,2023-09-24 15:58:27.000
+SC-C000404,Akosua,Osei,1968-09-12,Ghanaian,Trader,+233463904887,akosua.osei8513@example.test,2024-10-30 17:39:56.000
+SC-C000405,Yaa,Boateng,1996-05-28,Ghanaian,Artisan,+233504084753,yaa.boateng1589@example.test,2025-05-26 16:59:44.000
+SC-C000406,Michael,Adjei,1966-10-06,Ghanaian,Public Servant,+233489834729,michael.adjei9550@example.test,2024-06-24 13:37:23.000
+SC-C000407,Yaw,Mensah,1987-12-10,Ghanaian,Other,+233397911121,yaw.mensah880@example.test,2023-12-16 14:27:55.000
+SC-C000408,Mavis,Boateng,1976-03-13,Ghanaian,Trader,+233568031861,mavis.boateng5257@example.test,2023-09-20 14:12:49.000
+SC-C000409,Kwabena,Mensah,1977-04-16,Ghanaian,Trader,+233317273865,kwabena.mensah4848@example.test,2023-10-02 14:42:57.000
+SC-C000410,Yaa,Amoah,1969-02-20,Ghanaian,Other,+233380516263,yaa.amoah996@example.test,2023-02-04 14:14:29.000
+SC-C000411,Ama,Appiah,1978-09-07,Ghanaian,Public Servant,+233458232808,ama.appiah1087@example.test,2024-11-29 15:14:29.000
+SC-C000412,Afia,Asare,1966-04-23,Ghanaian,Health Worker,+233320783253,afia.asare8954@example.test,2024-04-13 10:40:29.000
+SC-C000413,Grace,Amoah,1962-11-27,Ghanaian,Self Employed,+233499668093,grace.amoah4817@example.test,2023-01-14 10:20:53.000
+SC-C000414,Esi,Mensah,1962-08-22,Ghanaian,Professional,+233405588042,esi.mensah7688@example.test,2023-09-21 10:46:31.000
+SC-C000415,Akosua,Agyeman,2001-03-10,Ghanaian,Public Servant,+233265077441,akosua.agyeman6028@example.test,2025-06-04 17:07:51.000
+SC-C000416,Kwabena,Owusu,1981-03-09,Ghanaian,Trader,+233419479514,kwabena.owusu1585@example.test,2024-01-28 14:41:32.000
+SC-C000417,Yaw,Appiah,1970-05-11,Ghanaian,Public Servant,+233450353102,yaw.appiah3394@example.test,2023-05-15 17:14:30.000
+SC-C000418,Fiifi,Adjei,1967-05-21,Ghanaian,Health Worker,+233389231222,fiifi.adjei3327@example.test,2025-01-24 09:17:16.000
+SC-C000419,Nana,Appiah,1969-02-20,Ghanaian,Public Servant,+233503386800,nana.appiah1481@example.test,2024-05-28 11:53:18.000
+SC-C000420,Esi,Adjei,1961-08-20,Ghanaian,Public Servant,+233537013956,esi.adjei7181@example.test,2024-03-26 18:09:23.000
+SC-C000421,Fiifi,Agyeman,1961-04-26,Ghanaian,Artisan,+233390862351,fiifi.agyeman8232@example.test,2023-10-16 16:20:24.000
+SC-C000422,Kwame,Owusu,1977-04-14,Ghanaian,Artisan,+233382663586,kwame.owusu4095@example.test,2023-04-11 10:51:26.000
+SC-C000423,Akosua,Adjei,1994-12-01,Ghanaian,Professional,+233214176774,akosua.adjei2655@example.test,2023-01-21 13:17:00.000
+SC-C000424,Afia,Darko,1976-11-22,Ghanaian,Artisan,+233502028450,afia.darko3989@example.test,2024-10-06 09:59:22.000
+SC-C000425,Mary,Owusu,1976-01-25,Ghanaian,Farmer,+233359896113,mary.owusu3585@example.test,2024-05-24 16:13:53.000
+SC-C000426,Samuel,Darko,1992-03-23,Ghanaian,Health Worker,+233385398175,samuel.darko4303@example.test,2023-05-03 09:49:58.000
+SC-C000427,Grace,Osei,1960-04-03,Ghanaian,Teacher,+233218037054,grace.osei4560@example.test,2023-12-25 16:02:47.000
+SC-C000428,Fiifi,Agyeman,1971-06-01,Ghanaian,Trader,+233438359628,fiifi.agyeman575@example.test,2024-03-06 11:23:27.000
+SC-C000429,Kwame,Quaye,1973-05-07,Ghanaian,Farmer,+233555911741,kwame.quaye5239@example.test,2024-02-28 18:14:16.000
+SC-C000430,Kwadwo,Owusu,1996-11-15,Ghanaian,Self Employed,+233355431889,kwadwo.owusu8227@example.test,2023-03-20 09:22:31.000
+SC-C000431,Yaw,Amoah,1992-09-27,Ghanaian,Professional,+233303263078,yaw.amoah7927@example.test,2023-11-09 10:55:17.000
+SC-C000432,Kwabena,Asare,1987-11-13,Ghanaian,Professional,+233236352765,kwabena.asare7962@example.test,2023-09-13 09:23:44.000
+SC-C000433,Mavis,Darko,1960-01-23,Ghanaian,Self Employed,+233552180549,mavis.darko7116@example.test,2023-02-25 10:48:50.000
+SC-C000434,Samuel,Agyeman,2004-04-03,Ghanaian,Teacher,+233328043397,samuel.agyeman9491@example.test,2024-07-28 14:30:37.000
+SC-C000435,Abena,Asare,1982-11-24,Ghanaian,Other,+233475369459,abena.asare3460@example.test,2025-02-02 12:41:20.000
+SC-C000436,Adwoa,Quaye,1972-09-05,Ghanaian,Driver,+233347500016,adwoa.quaye243@example.test,2025-02-05 09:34:01.000
+SC-C000437,Grace,Arthur,1964-10-18,Ghanaian,Trader,+233449146014,grace.arthur4145@example.test,2025-05-21 16:54:16.000
+SC-C000438,Yaw,Agyeman,1961-11-24,Ghanaian,Teacher,+233450806349,yaw.agyeman6901@example.test,2023-10-26 11:42:07.000
+SC-C000439,Daniel,Osei,1996-02-12,Ghanaian,Trader,+233384558391,daniel.osei401@example.test,2023-05-11 11:52:01.000
+SC-C000440,Kofi,Darko,1980-05-04,Ghanaian,Driver,+233310419081,kofi.darko5636@example.test,2024-01-12 16:17:31.000
+SC-C000441,Nana,Boateng,1963-11-28,Ghanaian,Health Worker,+233255274527,nana.boateng4765@example.test,2023-08-15 09:29:09.000
+SC-C000442,Yaw,Darko,1983-05-20,Ghanaian,Professional,+233257555344,yaw.darko1697@example.test,2023-08-28 11:19:57.000
+SC-C000443,Angela,Mensah,1983-09-22,Ghanaian,Artisan,+233484728216,angela.mensah8776@example.test,2025-05-20 13:23:16.000
+SC-C000444,Abena,Owusu,1973-01-08,Ghanaian,Professional,+233595032721,abena.owusu314@example.test,2023-03-09 08:04:00.000
+SC-C000445,Akosua,Arthur,1962-02-03,Ghanaian,Professional,+233267567610,akosua.arthur425@example.test,2025-05-13 09:10:23.000
+SC-C000446,Kofi,Arthur,1985-11-16,Ghanaian,Other,+233597675961,kofi.arthur6068@example.test,2024-05-02 16:18:16.000
+SC-C000447,Efua,Appiah,1963-10-05,Ghanaian,Student,+233315888895,efua.appiah1390@example.test,2023-05-03 14:37:07.000
+SC-C000448,Efua,Arthur,1983-04-11,Ghanaian,Student,+233452309694,efua.arthur7810@example.test,2023-08-10 12:30:58.000
+SC-C000449,Akosua,Quaye,1977-09-19,Ghanaian,Professional,+233486156213,akosua.quaye1000@example.test,2024-11-07 13:08:59.000
+SC-C000450,Kojo,Darko,1984-12-01,Ghanaian,Artisan,+233411271446,kojo.darko6679@example.test,2024-05-05 08:49:16.000
+SC-C000451,Samuel,Agyeman,1974-04-12,Ghanaian,Teacher,+233282905087,samuel.agyeman425@example.test,2024-01-23 11:39:24.000
+SC-C000452,Samuel,Amoah,1995-05-08,Ghanaian,Trader,+233242654091,samuel.amoah7389@example.test,2023-04-29 16:33:03.000
+SC-C000453,Esi,Appiah,1987-05-08,Ghanaian,Self Employed,+233405559592,esi.appiah529@example.test,2024-04-17 15:37:05.000
+SC-C000454,Esi,Quaye,1961-01-09,Ghanaian,Student,+233353806192,esi.quaye1516@example.test,2024-05-09 09:25:28.000
+SC-C000455,Kojo,Arthur,1961-06-12,Ghanaian,Driver,+233311690111,kojo.arthur2007@example.test,2023-03-14 12:52:54.000
+SC-C000456,Angela,Quaye,2004-08-19,Ghanaian,Self Employed,+233493238386,angela.quaye6627@example.test,2023-03-17 14:57:12.000
+SC-C000457,Abena,Owusu,1981-10-11,Ghanaian,Health Worker,+233497905749,abena.owusu8645@example.test,2023-02-16 14:02:01.000
+SC-C000458,Angela,Appiah,2004-05-20,Ghanaian,Health Worker,+233594476488,angela.appiah4398@example.test,2023-08-01 18:48:13.000
+SC-C000459,Grace,Darko,1987-12-13,Ghanaian,Public Servant,+233299759618,grace.darko7082@example.test,2025-01-07 13:07:14.000
+SC-C000460,Kwadwo,Asare,1977-02-10,Ghanaian,Public Servant,+233473815164,kwadwo.asare10@example.test,2024-07-18 13:56:41.000
+SC-C000461,Esi,Darko,1963-06-19,Ghanaian,Professional,+233311046567,esi.darko2799@example.test,2025-03-07 17:53:32.000
+SC-C000462,Abena,Mensah,1967-11-15,Ghanaian,Professional,+233267480445,abena.mensah276@example.test,2023-06-07 12:02:38.000
+SC-C000463,Angela,Asare,1983-03-24,Ghanaian,Health Worker,+233317072904,angela.asare4565@example.test,2025-05-30 09:51:09.000
+SC-C000464,Kwadwo,Agyeman,1984-11-06,Ghanaian,Artisan,+233437421893,kwadwo.agyeman1226@example.test,2024-03-05 13:49:00.000
+SC-C000465,Grace,Darko,1982-04-19,Ghanaian,Health Worker,+233454274217,grace.darko1514@example.test,2024-12-16 16:47:43.000
+SC-C000466,Abena,Darko,1967-08-26,Ghanaian,Self Employed,+233413525787,abena.darko1891@example.test,2023-03-24 16:27:31.000
+SC-C000467,Esi,Mensah,1995-05-10,Ghanaian,Farmer,+233460849093,esi.mensah2908@example.test,2024-05-26 08:11:07.000
+SC-C000468,Kwame,Agyeman,1999-04-26,Ghanaian,Artisan,+233465141630,kwame.agyeman1365@example.test,2023-04-08 16:17:08.000
+SC-C000469,Ama,Osei,1989-02-24,Ghanaian,Health Worker,+233516783237,ama.osei8237@example.test,2023-12-05 15:50:51.000
+SC-C000470,Angela,Darko,1966-06-11,Ghanaian,Trader,+233384080262,angela.darko5732@example.test,2024-10-06 15:58:10.000
+SC-C000471,Abena,Asare,1994-03-14,Ghanaian,Self Employed,+233520394825,abena.asare5876@example.test,2023-12-14 15:24:31.000
+SC-C000472,Grace,Owusu,1982-06-19,Ghanaian,Trader,+233288886503,grace.owusu4075@example.test,2023-08-27 13:58:01.000
+SC-C000473,Esi,Darko,2004-09-16,Ghanaian,Self Employed,+233304062086,esi.darko7672@example.test,2023-12-23 12:25:52.000
+SC-C000474,Nana,Adjei,1993-12-20,Ghanaian,Driver,+233534419365,nana.adjei2894@example.test,2024-02-16 10:50:47.000
+SC-C000475,Kojo,Agyeman,1981-01-07,Ghanaian,Self Employed,+233488724210,kojo.agyeman3663@example.test,2024-08-04 09:49:52.000
+SC-C000476,Nana,Adjei,1970-12-08,Ghanaian,Self Employed,+233527753197,nana.adjei6625@example.test,2023-12-25 15:29:46.000
+SC-C000477,Emmanuel,Boateng,1990-10-03,Ghanaian,Self Employed,+233508451540,emmanuel.boateng5404@example.test,2023-11-28 11:58:21.000
+SC-C000478,Kwadwo,Asare,1978-03-06,Ghanaian,Teacher,+233377162370,kwadwo.asare2145@example.test,2024-08-19 11:14:31.000
+SC-C000479,Kofi,Amoah,1997-05-08,Ghanaian,Self Employed,+233208088452,kofi.amoah2867@example.test,2024-06-30 13:02:12.000
+SC-C000480,Ama,Mensah,2004-03-04,Ghanaian,Driver,+233436992151,ama.mensah6889@example.test,2025-06-19 16:49:28.000
+SC-C000481,Fiifi,Adjei,1979-09-11,Ghanaian,Public Servant,+233500977104,fiifi.adjei7666@example.test,2025-02-24 14:38:25.000
+SC-C000482,Angela,Asare,1983-05-24,Ghanaian,Self Employed,+233268699200,angela.asare9354@example.test,2023-05-28 18:48:49.000
+SC-C000483,Ama,Mensah,1966-04-21,Ghanaian,Farmer,+233453878842,ama.mensah2804@example.test,2023-07-01 15:07:35.000
+SC-C000484,Nana,Amoah,1972-07-13,Ghanaian,Health Worker,+233305171536,nana.amoah1899@example.test,2024-07-25 18:50:23.000
+SC-C000485,Michael,Darko,2002-07-23,Ghanaian,Artisan,+233486571085,michael.darko8756@example.test,2023-12-22 09:06:25.000
+SC-C000486,Angela,Quaye,1995-10-27,Ghanaian,Farmer,+233279589830,angela.quaye7861@example.test,2024-08-15 13:49:07.000
+SC-C000487,Fiifi,Arthur,1985-08-24,Ghanaian,Teacher,+233370691929,fiifi.arthur4294@example.test,2025-06-02 11:27:50.000
+SC-C000488,Efua,Arthur,1971-05-05,Ghanaian,Artisan,+233441331814,efua.arthur8771@example.test,2023-12-28 11:30:52.000
+SC-C000489,Efua,Boateng,1972-06-12,Ghanaian,Artisan,+233448414424,efua.boateng5494@example.test,2023-11-03 14:58:11.000
+SC-C000490,Kojo,Mensah,1992-10-15,Ghanaian,Driver,+233321264345,kojo.mensah391@example.test,2023-06-04 10:30:53.000
+SC-C000491,Efua,Agyeman,1964-09-09,Ghanaian,Professional,+233358407715,efua.agyeman3414@example.test,2024-12-06 08:35:18.000
+SC-C000492,Fiifi,Boateng,1992-09-06,Ghanaian,Health Worker,+233221372354,fiifi.boateng6545@example.test,2023-06-30 15:25:03.000
+SC-C000493,Angela,Amoah,1991-02-07,Ghanaian,Artisan,+233442857769,angela.amoah1015@example.test,2024-12-13 11:38:16.000
+SC-C000494,Afia,Darko,1993-05-23,Ghanaian,Artisan,+233537115679,afia.darko2747@example.test,2023-09-24 13:00:46.000
+SC-C000495,Kwabena,Osei,1984-07-25,Ghanaian,Other,+233322051514,kwabena.osei3474@example.test,2024-01-02 15:40:43.000
+SC-C000496,Afia,Arthur,1960-04-06,Ghanaian,Driver,+233414077698,afia.arthur2460@example.test,2023-07-04 17:11:08.000
+SC-C000497,Abena,Quaye,1972-01-09,Ghanaian,Student,+233515054007,abena.quaye8870@example.test,2023-11-21 10:23:39.000
+SC-C000498,Akosua,Darko,1989-11-15,Ghanaian,Professional,+233333612062,akosua.darko1254@example.test,2024-01-28 17:59:30.000
+SC-C000499,Yaa,Owusu,1973-08-19,Ghanaian,Health Worker,+233323311195,yaa.owusu604@example.test,2024-02-06 11:02:19.000
+SC-C000500,Michael,Asare,1969-11-03,Ghanaian,Health Worker,+233500993961,michael.asare6957@example.test,2024-12-04 14:20:20.000
+SC-C000501,Mary,Adjei,1986-12-10,Ghanaian,Driver,+233205545782,mary.adjei1607@example.test,2025-05-05 16:39:57.000
+SC-C000502,Emmanuel,Agyeman,1990-05-26,Ghanaian,Self Employed,+233416787570,emmanuel.agyeman5923@example.test,2023-01-05 09:31:46.000
+SC-C000503,Angela,Mensah,1995-11-06,Ghanaian,Farmer,+233268515206,angela.mensah1527@example.test,2023-11-07 15:40:00.000
+SC-C000504,Nana,Amoah,1970-01-17,Ghanaian,Artisan,+233224674513,nana.amoah9730@example.test,2024-07-28 17:15:40.000
+SC-C000505,Samuel,Boateng,1986-06-05,Ghanaian,Driver,+233291394663,samuel.boateng2120@example.test,2023-01-24 17:56:24.000
+SC-C000506,Mavis,Owusu,2002-02-19,Ghanaian,Farmer,+233375252609,mavis.owusu277@example.test,2025-05-16 12:36:55.000
+SC-C000507,Kwabena,Osei,1992-11-01,Ghanaian,Trader,+233368186271,kwabena.osei146@example.test,2024-12-11 18:26:13.000
+SC-C000508,Emmanuel,Owusu,1969-02-07,Ghanaian,Student,+233314483445,emmanuel.owusu9999@example.test,2024-03-20 13:20:36.000
+SC-C000509,Abena,Agyeman,1995-05-01,Ghanaian,Driver,+233391601512,abena.agyeman1145@example.test,2023-11-09 16:31:56.000
+SC-C000510,Efua,Agyeman,1961-12-14,Ghanaian,Other,+233288888296,efua.agyeman1178@example.test,2023-05-20 16:14:43.000
+SC-C000511,Kojo,Asare,1981-06-03,Ghanaian,Artisan,+233518394533,kojo.asare1256@example.test,2023-02-08 10:06:00.000
+SC-C000512,Kojo,Owusu,1983-03-13,Ghanaian,Student,+233253164314,kojo.owusu8305@example.test,2024-07-16 13:03:07.000
+SC-C000513,Mavis,Agyeman,1983-07-16,Ghanaian,Student,+233561033964,mavis.agyeman5675@example.test,2025-03-10 15:55:35.000
+SC-C000514,Mary,Adjei,1984-03-08,Ghanaian,Driver,+233424204478,mary.adjei3767@example.test,2023-10-29 08:06:46.000
+SC-C000515,Esi,Osei,1966-12-10,Ghanaian,Other,+233534151775,esi.osei1917@example.test,2024-11-14 18:53:30.000
+SC-C000516,Kwadwo,Quaye,1978-07-16,Ghanaian,Health Worker,+233428565392,kwadwo.quaye9127@example.test,2024-07-30 13:11:03.000
+SC-C000517,Mavis,Appiah,1979-07-10,Ghanaian,Artisan,+233203921866,mavis.appiah5615@example.test,2024-07-03 14:09:55.000
+SC-C000518,Efua,Asare,1983-12-20,Ghanaian,Artisan,+233425202562,efua.asare3680@example.test,2024-05-04 12:28:07.000
+SC-C000519,Grace,Appiah,1997-06-21,Ghanaian,Health Worker,+233292764796,grace.appiah122@example.test,2024-12-01 09:13:57.000
+SC-C000520,Abena,Adjei,1997-02-14,Ghanaian,Teacher,+233255944477,abena.adjei9218@example.test,2024-05-17 18:47:40.000
+SC-C000521,Nana,Appiah,1988-06-17,Ghanaian,Health Worker,+233261769994,nana.appiah1923@example.test,2024-03-27 15:03:22.000
+SC-C000522,Emmanuel,Darko,1976-02-25,Ghanaian,Public Servant,+233310902486,emmanuel.darko9391@example.test,2025-05-11 10:01:56.000
+SC-C000523,Grace,Owusu,1993-11-16,Ghanaian,Teacher,+233389948517,grace.owusu5899@example.test,2023-03-25 14:43:18.000
+SC-C000524,Esi,Asare,1988-09-25,Ghanaian,Trader,+233238063370,esi.asare8481@example.test,2023-12-23 17:30:09.000
+SC-C000525,Kojo,Mensah,1967-11-18,Ghanaian,Health Worker,+233460801228,kojo.mensah3886@example.test,2024-03-11 12:23:14.000
+SC-C000526,Emmanuel,Mensah,1989-05-04,Ghanaian,Health Worker,+233456259900,emmanuel.mensah9357@example.test,2024-04-22 16:05:25.000
+SC-C000527,Yaa,Quaye,1993-03-08,Ghanaian,Professional,+233420098807,yaa.quaye6086@example.test,2024-08-11 17:45:04.000
+SC-C000528,Adwoa,Adjei,1975-09-03,Ghanaian,Student,+233553012669,adwoa.adjei6368@example.test,2023-12-11 13:19:08.000
+SC-C000529,Akosua,Asare,1965-06-19,Ghanaian,Other,+233563717184,akosua.asare688@example.test,2024-06-06 10:34:44.000
+SC-C000530,Mavis,Mensah,1980-09-16,Ghanaian,Public Servant,+233377888679,mavis.mensah1549@example.test,2025-05-18 13:03:59.000
+SC-C000531,Abena,Amoah,1975-11-25,Ghanaian,Self Employed,+233355982926,abena.amoah8691@example.test,2023-10-05 13:30:04.000
+SC-C000532,Nana,Darko,2002-12-06,Ghanaian,Health Worker,+233322055974,nana.darko7874@example.test,2023-01-25 13:47:47.000
+SC-C000533,Mavis,Asare,1987-05-21,Ghanaian,Public Servant,+233302368383,mavis.asare5552@example.test,2024-05-20 18:35:15.000
+SC-C000534,Yaw,Mensah,1975-09-21,Ghanaian,Other,+233337574124,yaw.mensah6992@example.test,2024-06-13 12:11:11.000
+SC-C000535,Ama,Arthur,1993-03-23,Ghanaian,Other,+233494321257,ama.arthur5692@example.test,2025-03-11 09:20:02.000
+SC-C000536,Kwame,Owusu,1989-04-25,Ghanaian,Student,+233438544851,kwame.owusu6079@example.test,2023-06-08 14:41:58.000
+SC-C000537,Michael,Boateng,1967-09-16,Ghanaian,Student,+233287054672,michael.boateng840@example.test,2023-03-21 18:43:10.000
+SC-C000538,Kwadwo,Quaye,1992-05-14,Ghanaian,Professional,+233236982278,kwadwo.quaye984@example.test,2025-04-15 16:43:08.000
+SC-C000539,Mavis,Darko,2003-09-15,Ghanaian,Public Servant,+233345477341,mavis.darko2282@example.test,2024-06-21 11:13:55.000
+SC-C000540,Mavis,Arthur,1980-11-06,Ghanaian,Trader,+233466134027,mavis.arthur3638@example.test,2024-12-28 11:11:28.000
+SC-C000541,Michael,Owusu,2002-07-10,Ghanaian,Teacher,+233518789093,michael.owusu7157@example.test,2024-09-04 17:05:29.000
+SC-C000542,Kojo,Appiah,1985-10-18,Ghanaian,Public Servant,+233366878904,kojo.appiah4413@example.test,2023-10-23 12:56:11.000
+SC-C000543,Grace,Adjei,1978-12-13,Ghanaian,Self Employed,+233540437476,grace.adjei4684@example.test,2025-05-19 10:35:04.000
+SC-C000544,Kwabena,Asare,1963-03-22,Ghanaian,Self Employed,+233397016590,kwabena.asare6369@example.test,2024-05-13 14:35:09.000
+SC-C000545,Akosua,Osei,1966-02-23,Ghanaian,Other,+233282012435,akosua.osei1268@example.test,2024-11-03 08:44:12.000
+SC-C000546,Akosua,Mensah,1971-07-03,Ghanaian,Driver,+233343245505,akosua.mensah2148@example.test,2023-08-20 09:29:57.000
+SC-C000547,Yaa,Agyeman,1975-12-10,Ghanaian,Professional,+233481798870,yaa.agyeman5876@example.test,2023-06-09 12:42:16.000
+SC-C000548,Esi,Darko,1998-10-15,Ghanaian,Driver,+233341970041,esi.darko6096@example.test,2023-12-15 12:24:22.000
+SC-C000549,Kwabena,Asare,1979-07-25,Ghanaian,Other,+233388211910,kwabena.asare7326@example.test,2024-06-13 17:37:35.000
+SC-C000550,Ama,Adjei,1992-06-25,Ghanaian,Farmer,+233225529734,ama.adjei1086@example.test,2024-12-07 12:53:19.000
+SC-C000551,Kofi,Darko,1980-10-09,Ghanaian,Health Worker,+233298359416,kofi.darko6180@example.test,2024-10-11 16:34:09.000
+SC-C000552,Kofi,Asare,1998-02-08,Ghanaian,Artisan,+233471646936,kofi.asare7677@example.test,2025-02-08 16:22:53.000
+SC-C000553,Abena,Arthur,1982-08-16,Ghanaian,Artisan,+233240062818,abena.arthur2155@example.test,2024-01-31 18:37:49.000
+SC-C000554,Fiifi,Amoah,1994-05-21,Ghanaian,Professional,+233334929150,fiifi.amoah6596@example.test,2023-04-17 17:49:09.000
+SC-C000555,Esi,Amoah,1985-04-18,Ghanaian,Student,+233480643441,esi.amoah7087@example.test,2024-04-24 18:21:02.000
+SC-C000556,Yaa,Arthur,1993-11-25,Ghanaian,Professional,+233452201332,yaa.arthur6807@example.test,2025-05-07 12:52:36.000
+SC-C000557,Abena,Owusu,1983-01-12,Ghanaian,Driver,+233345698356,abena.owusu4955@example.test,2024-09-24 16:40:41.000
+SC-C000558,Afia,Asare,1962-07-12,Ghanaian,Student,+233411136754,afia.asare9460@example.test,2023-03-24 15:19:21.000
+SC-C000559,Mary,Owusu,1973-06-09,Ghanaian,Trader,+233589867491,mary.owusu5268@example.test,2023-01-13 12:31:57.000
+SC-C000560,Kofi,Arthur,1980-10-10,Ghanaian,Other,+233593910815,kofi.arthur8514@example.test,2024-07-18 18:52:03.000
+SC-C000561,Adwoa,Asare,1966-10-23,Ghanaian,Student,+233366477749,adwoa.asare430@example.test,2025-04-13 16:02:50.000
+SC-C000562,Angela,Agyeman,1981-04-27,Ghanaian,Trader,+233474146437,angela.agyeman3035@example.test,2024-02-29 12:46:12.000
+SC-C000563,Efua,Amoah,1991-09-15,Ghanaian,Driver,+233502361083,efua.amoah9933@example.test,2024-02-12 11:48:31.000
+SC-C000564,Ama,Amoah,1971-05-23,Ghanaian,Health Worker,+233496270732,ama.amoah4948@example.test,2025-03-26 14:53:16.000
+SC-C000565,Yaa,Appiah,1975-08-22,Ghanaian,Other,+233398252430,yaa.appiah7777@example.test,2024-02-15 08:45:53.000
+SC-C000566,Kwame,Arthur,1980-03-27,Ghanaian,Professional,+233298739378,kwame.arthur6916@example.test,2024-03-31 08:23:54.000
+SC-C000567,Esi,Owusu,1971-10-25,Ghanaian,Farmer,+233495156575,esi.owusu5053@example.test,2025-01-30 18:32:23.000
+SC-C000568,Adwoa,Boateng,1967-01-03,Ghanaian,Student,+233456751335,adwoa.boateng3387@example.test,2024-11-12 17:21:35.000
+SC-C000569,Efua,Owusu,1999-05-25,Ghanaian,Teacher,+233226036007,efua.owusu53@example.test,2025-03-26 17:10:27.000
+SC-C000570,Mavis,Amoah,1991-01-24,Ghanaian,Teacher,+233376554770,mavis.amoah4786@example.test,2023-12-23 09:27:00.000
+SC-C000571,Yaw,Adjei,1980-10-16,Ghanaian,Self Employed,+233563886061,yaw.adjei5114@example.test,2024-03-17 12:50:54.000
+SC-C000572,Kwadwo,Mensah,1991-01-07,Ghanaian,Professional,+233507701359,kwadwo.mensah8471@example.test,2024-06-28 09:22:18.000
+SC-C000573,Daniel,Adjei,1992-09-27,Ghanaian,Student,+233333118285,daniel.adjei2026@example.test,2023-06-21 12:07:01.000
+SC-C000574,Grace,Arthur,1973-08-24,Ghanaian,Trader,+233289091388,grace.arthur2794@example.test,2023-09-27 12:26:49.000
+SC-C000575,Akosua,Osei,1967-11-05,Ghanaian,Health Worker,+233382308989,akosua.osei9183@example.test,2025-02-05 16:20:00.000
+SC-C000576,Yaw,Appiah,1985-03-02,Ghanaian,Teacher,+233582162221,yaw.appiah549@example.test,2023-12-14 18:25:25.000
+SC-C000577,Kwabena,Osei,1985-02-28,Ghanaian,Teacher,+233572661232,kwabena.osei8066@example.test,2024-11-17 17:16:05.000
+SC-C000578,Abena,Quaye,1965-06-17,Ghanaian,Other,+233367355403,abena.quaye7978@example.test,2024-10-25 08:12:22.000
+SC-C000579,Efua,Agyeman,1994-09-25,Ghanaian,Self Employed,+233509397553,efua.agyeman5856@example.test,2024-10-27 13:47:23.000
+SC-C000580,Grace,Arthur,1996-07-25,Ghanaian,Driver,+233454115226,grace.arthur6023@example.test,2023-12-10 12:46:10.000
+SC-C000581,Daniel,Quaye,1963-02-09,Ghanaian,Driver,+233323918296,daniel.quaye3971@example.test,2024-08-04 11:01:29.000
+SC-C000582,Angela,Amoah,1998-01-19,Ghanaian,Public Servant,+233238182225,angela.amoah9517@example.test,2023-09-09 13:28:03.000
+SC-C000583,Afia,Owusu,1989-07-28,Ghanaian,Trader,+233338302519,afia.owusu1184@example.test,2023-06-10 10:27:25.000
+SC-C000584,Emmanuel,Arthur,1971-02-23,Ghanaian,Professional,+233238524511,emmanuel.arthur8394@example.test,2023-11-07 15:41:22.000
+SC-C000585,Kojo,Appiah,1965-12-14,Ghanaian,Teacher,+233530993893,kojo.appiah7562@example.test,2024-08-09 17:02:57.000
+SC-C000586,Michael,Boateng,1996-02-13,Ghanaian,Farmer,+233215852404,michael.boateng3546@example.test,2025-01-12 10:07:12.000
+SC-C000587,Kwame,Owusu,1972-05-10,Ghanaian,Farmer,+233363081661,kwame.owusu3444@example.test,2023-06-30 10:23:36.000
+SC-C000588,Samuel,Appiah,1976-05-11,Ghanaian,Trader,+233377187204,samuel.appiah3357@example.test,2023-03-27 17:11:24.000
+SC-C000589,Mavis,Quaye,1963-05-18,Ghanaian,Farmer,+233295044864,mavis.quaye5861@example.test,2023-11-15 18:41:26.000
+SC-C000590,Emmanuel,Mensah,1986-09-02,Ghanaian,Farmer,+233321419444,emmanuel.mensah6165@example.test,2025-01-25 18:04:43.000
+SC-C000591,Mavis,Arthur,1964-05-12,Ghanaian,Self Employed,+233298511858,mavis.arthur9478@example.test,2024-05-08 13:42:11.000
+SC-C000592,Mary,Arthur,1985-04-03,Ghanaian,Trader,+233495762700,mary.arthur2901@example.test,2023-12-03 12:56:20.000
+SC-C000593,Afia,Osei,1986-07-25,Ghanaian,Health Worker,+233383002736,afia.osei8190@example.test,2024-07-05 10:45:49.000
+SC-C000594,Samuel,Darko,2003-01-07,Ghanaian,Trader,+233552827656,samuel.darko7082@example.test,2023-06-04 13:34:01.000
+SC-C000595,Kwabena,Asare,1967-04-21,Ghanaian,Professional,+233297727909,kwabena.asare7257@example.test,2023-04-14 16:57:32.000
+SC-C000596,Kwadwo,Owusu,1965-07-15,Ghanaian,Professional,+233268734420,kwadwo.owusu9931@example.test,2024-02-10 13:04:38.000
+SC-C000597,Afia,Agyeman,2004-02-23,Ghanaian,Farmer,+233203798364,afia.agyeman833@example.test,2025-06-03 12:43:17.000
+SC-C000598,Abena,Asare,2001-03-10,Ghanaian,Teacher,+233372341162,abena.asare114@example.test,2023-04-09 10:15:45.000
+SC-C000599,Adwoa,Boateng,1971-04-12,Ghanaian,Professional,+233250969575,adwoa.boateng1970@example.test,2023-09-20 15:41:55.000
+SC-C000600,Kwabena,Osei,1988-08-08,Ghanaian,Self Employed,+233446318713,kwabena.osei5371@example.test,2023-08-03 17:30:00.000
+SC-C000601,Michael,Adjei,1993-09-08,Ghanaian,Student,+233204016537,michael.adjei2874@example.test,2024-09-30 18:38:18.000
+SC-C000602,Samuel,Asare,1979-04-23,Ghanaian,Driver,+233578756371,samuel.asare8513@example.test,2025-04-14 09:48:19.000
+SC-C000603,Kojo,Asare,1966-02-15,Ghanaian,Public Servant,+233548262708,kojo.asare511@example.test,2025-01-18 10:17:54.000
+SC-C000604,Afia,Agyeman,1997-08-11,Ghanaian,Teacher,+233369799829,afia.agyeman1507@example.test,2024-03-02 15:00:56.000
+SC-C000605,Kofi,Amoah,2004-03-18,Ghanaian,Professional,+233392208959,kofi.amoah3903@example.test,2023-04-15 08:37:47.000
+SC-C000606,Kojo,Amoah,2003-05-08,Ghanaian,Farmer,+233509809345,kojo.amoah3737@example.test,2024-12-10 12:59:44.000
+SC-C000607,Angela,Arthur,1992-09-11,Ghanaian,Other,+233204984809,angela.arthur9857@example.test,2025-03-08 18:17:16.000
+SC-C000608,Esi,Agyeman,1978-04-07,Ghanaian,Self Employed,+233320607478,esi.agyeman3205@example.test,2024-11-18 12:59:54.000
+SC-C000609,Efua,Mensah,1982-05-19,Ghanaian,Teacher,+233587641808,efua.mensah681@example.test,2024-09-21 17:30:08.000
+SC-C000610,Fiifi,Mensah,2004-04-03,Ghanaian,Artisan,+233225340765,fiifi.mensah7774@example.test,2023-01-25 18:53:47.000
+SC-C000611,Abena,Osei,1987-05-10,Ghanaian,Health Worker,+233558155897,abena.osei6968@example.test,2024-01-24 12:02:19.000
+SC-C000612,Abena,Appiah,1986-04-20,Ghanaian,Public Servant,+233224001921,abena.appiah9049@example.test,2025-05-14 12:55:06.000
+SC-C000613,Yaa,Boateng,2002-09-09,Ghanaian,Student,+233201332850,yaa.boateng68@example.test,2023-10-27 09:15:46.000
+SC-C000614,Nana,Arthur,1988-09-18,Ghanaian,Other,+233348082524,nana.arthur6539@example.test,2023-05-09 18:21:39.000
+SC-C000615,Kojo,Quaye,1984-08-21,Ghanaian,Farmer,+233438522061,kojo.quaye9575@example.test,2025-06-01 11:42:48.000
+SC-C000616,Kwadwo,Adjei,1988-12-17,Ghanaian,Teacher,+233497442615,kwadwo.adjei8406@example.test,2025-01-12 17:30:29.000
+SC-C000617,Efua,Arthur,1986-09-23,Ghanaian,Public Servant,+233404011233,efua.arthur9512@example.test,2024-06-11 10:09:51.000
+SC-C000618,Abena,Appiah,1969-12-10,Ghanaian,Other,+233256836874,abena.appiah846@example.test,2024-04-30 15:20:19.000
+SC-C000619,Afia,Arthur,1976-08-10,Ghanaian,Driver,+233451281204,afia.arthur9657@example.test,2024-07-03 17:16:21.000
+SC-C000620,Kofi,Boateng,2000-07-09,Ghanaian,Student,+233318108422,kofi.boateng1760@example.test,2024-04-28 11:11:45.000
+SC-C000621,Grace,Owusu,1997-02-05,Ghanaian,Other,+233437230005,grace.owusu7950@example.test,2025-03-02 11:39:41.000
+SC-C000622,Esi,Arthur,1992-12-01,Ghanaian,Professional,+233274080559,esi.arthur9875@example.test,2025-01-03 17:52:13.000
+SC-C000623,Abena,Agyeman,2000-05-11,Ghanaian,Self Employed,+233201128926,abena.agyeman7796@example.test,2024-04-15 15:39:41.000
+SC-C000624,Efua,Boateng,1964-02-12,Ghanaian,Trader,+233257407707,efua.boateng1427@example.test,2023-08-26 15:45:01.000
+SC-C000625,Emmanuel,Agyeman,1980-06-16,Ghanaian,Teacher,+233531524604,emmanuel.agyeman1177@example.test,2023-04-08 16:44:07.000
+SC-C000626,Adwoa,Owusu,1978-05-10,Ghanaian,Teacher,+233391601993,adwoa.owusu2232@example.test,2024-01-28 10:03:46.000
+SC-C000627,Adwoa,Adjei,1997-06-01,Ghanaian,Health Worker,+233469755255,adwoa.adjei282@example.test,2025-04-21 11:52:34.000
+SC-C000628,Mavis,Darko,1975-05-18,Ghanaian,Driver,+233541695172,mavis.darko9782@example.test,2023-02-14 11:31:49.000
+SC-C000629,Michael,Amoah,1987-11-18,Ghanaian,Public Servant,+233390310231,michael.amoah822@example.test,2025-05-06 16:54:32.000
+SC-C000630,Grace,Quaye,1987-08-22,Ghanaian,Farmer,+233299327908,grace.quaye7842@example.test,2024-02-09 10:10:06.000
+SC-C000631,Afia,Agyeman,1994-04-24,Ghanaian,Self Employed,+233217251566,afia.agyeman1666@example.test,2024-05-18 13:52:52.000
+SC-C000632,Kwabena,Adjei,1977-12-20,Ghanaian,Driver,+233274797411,kwabena.adjei5459@example.test,2025-01-29 16:43:12.000
+SC-C000633,Michael,Darko,1996-09-21,Ghanaian,Farmer,+233561260295,michael.darko1128@example.test,2023-12-19 14:42:41.000
+SC-C000634,Daniel,Adjei,1970-02-21,Ghanaian,Driver,+233518110509,daniel.adjei6735@example.test,2023-10-12 08:14:34.000
+SC-C000635,Ama,Darko,1995-01-04,Ghanaian,Driver,+233303768130,ama.darko4665@example.test,2024-01-20 14:22:40.000
+SC-C000636,Angela,Adjei,1969-09-09,Ghanaian,Student,+233550785151,angela.adjei1593@example.test,2024-03-19 10:00:22.000
+SC-C000637,Akosua,Appiah,1992-01-07,Ghanaian,Health Worker,+233268178257,akosua.appiah2099@example.test,2024-11-04 08:52:08.000
+SC-C000638,Daniel,Mensah,1965-01-08,Ghanaian,Professional,+233530097040,daniel.mensah2877@example.test,2024-11-01 15:10:41.000
+SC-C000639,Fiifi,Quaye,1979-05-16,Ghanaian,Artisan,+233218133346,fiifi.quaye6845@example.test,2024-05-26 10:58:05.000
+SC-C000640,Kwame,Adjei,1970-08-03,Ghanaian,Other,+233497865100,kwame.adjei2139@example.test,2023-06-22 10:33:30.000
+SC-C000641,Ama,Agyeman,1993-01-26,Ghanaian,Public Servant,+233576311798,ama.agyeman643@example.test,2024-08-13 16:53:43.000
+SC-C000642,Nana,Asare,1967-07-19,Ghanaian,Trader,+233490450922,nana.asare7112@example.test,2023-10-29 13:11:52.000
+SC-C000643,Angela,Agyeman,1989-03-11,Ghanaian,Self Employed,+233439267579,angela.agyeman6044@example.test,2024-05-13 11:42:20.000
+SC-C000644,Fiifi,Quaye,1984-08-02,Ghanaian,Health Worker,+233271143012,fiifi.quaye3742@example.test,2025-05-24 17:33:28.000
+SC-C000645,Ama,Darko,2000-09-19,Ghanaian,Health Worker,+233309287176,ama.darko769@example.test,2024-08-15 18:50:18.000
+SC-C000646,Emmanuel,Arthur,1975-01-03,Ghanaian,Health Worker,+233452992301,emmanuel.arthur7169@example.test,2024-06-04 17:47:16.000
+SC-C000647,Kofi,Amoah,1972-03-02,Ghanaian,Student,+233204868685,kofi.amoah5431@example.test,2023-12-20 12:26:20.000
+SC-C000648,Nana,Amoah,1971-12-06,Ghanaian,Other,+233446408403,nana.amoah4921@example.test,2024-08-18 13:13:23.000
+SC-C000649,Adwoa,Boateng,1984-01-05,Ghanaian,Teacher,+233312015476,adwoa.boateng6308@example.test,2023-05-15 09:44:30.000
+SC-C000650,Nana,Asare,1968-08-18,Ghanaian,Teacher,+233317708172,nana.asare9359@example.test,2024-12-02 11:29:41.000
+SC-C000651,Kwabena,Arthur,1962-12-01,Ghanaian,Other,+233316543363,kwabena.arthur1061@example.test,2024-01-18 16:09:05.000
+SC-C000652,Mavis,Appiah,1997-02-26,Ghanaian,Health Worker,+233210020141,mavis.appiah8189@example.test,2024-09-20 10:20:40.000
+SC-C000653,Kojo,Agyeman,1993-05-26,Ghanaian,Professional,+233226949259,kojo.agyeman6892@example.test,2025-01-28 15:48:03.000
+SC-C000654,Kwadwo,Arthur,1976-01-23,Ghanaian,Teacher,+233336710407,kwadwo.arthur4866@example.test,2024-03-11 16:41:35.000
+SC-C000655,Akosua,Owusu,1967-06-14,Ghanaian,Student,+233509512043,akosua.owusu2444@example.test,2023-02-28 10:10:55.000
+SC-C000656,Samuel,Boateng,1981-12-25,Ghanaian,Professional,+233421635803,samuel.boateng3925@example.test,2023-07-10 14:22:34.000
+SC-C000657,Ama,Osei,1961-01-02,Ghanaian,Other,+233309465945,ama.osei6426@example.test,2024-12-05 10:30:18.000
+SC-C000658,Akosua,Quaye,1964-08-09,Ghanaian,Self Employed,+233345857197,akosua.quaye4550@example.test,2024-07-15 18:29:07.000
+SC-C000659,Yaa,Quaye,1998-10-08,Ghanaian,Trader,+233302846092,yaa.quaye6486@example.test,2025-02-26 11:21:46.000
+SC-C000660,Mavis,Boateng,1991-07-21,Ghanaian,Other,+233410308297,mavis.boateng5677@example.test,2024-12-04 17:08:20.000
+SC-C000661,Kwabena,Amoah,1973-05-02,Ghanaian,Other,+233553173719,kwabena.amoah7292@example.test,2023-02-25 13:27:26.000
+SC-C000662,Kojo,Boateng,1970-06-19,Ghanaian,Teacher,+233423072791,kojo.boateng2452@example.test,2025-04-06 11:13:36.000
+SC-C000663,Grace,Appiah,1999-12-23,Ghanaian,Health Worker,+233318071024,grace.appiah2417@example.test,2024-05-31 18:32:57.000
+SC-C000664,Mary,Agyeman,1996-01-21,Ghanaian,Professional,+233383456502,mary.agyeman4781@example.test,2024-07-15 17:14:45.000
+SC-C000665,Abena,Amoah,2001-04-02,Ghanaian,Public Servant,+233472848942,abena.amoah2801@example.test,2023-04-26 10:59:59.000
+SC-C000666,Mary,Owusu,2004-03-22,Ghanaian,Farmer,+233525506355,mary.owusu5653@example.test,2023-11-03 11:11:21.000
+SC-C000667,Emmanuel,Adjei,1967-05-03,Ghanaian,Farmer,+233220346375,emmanuel.adjei3588@example.test,2025-05-10 13:01:38.000
+SC-C000668,Grace,Mensah,1964-04-04,Ghanaian,Public Servant,+233450865005,grace.mensah5483@example.test,2025-04-09 10:20:37.000
+SC-C000669,Kofi,Darko,1983-07-18,Ghanaian,Professional,+233534001939,kofi.darko4594@example.test,2023-11-01 16:13:24.000
+SC-C000670,Esi,Osei,1974-09-10,Ghanaian,Driver,+233272029517,esi.osei8575@example.test,2023-08-26 14:28:17.000
+SC-C000671,Kwame,Boateng,1964-01-13,Ghanaian,Other,+233215848379,kwame.boateng5075@example.test,2023-03-20 16:55:44.000
+SC-C000672,Kwabena,Owusu,1999-11-06,Ghanaian,Driver,+233411741356,kwabena.owusu6931@example.test,2023-04-07 08:25:20.000
+SC-C000673,Kwame,Asare,1979-07-15,Ghanaian,Teacher,+233495761397,kwame.asare7316@example.test,2025-03-28 08:42:19.000
+SC-C000674,Afia,Quaye,1985-02-20,Ghanaian,Driver,+233259100130,afia.quaye7038@example.test,2024-08-02 15:01:52.000
+SC-C000675,Mary,Mensah,1965-11-16,Ghanaian,Trader,+233570982808,mary.mensah6610@example.test,2023-11-17 08:40:28.000
+SC-C000676,Mavis,Darko,1986-05-27,Ghanaian,Farmer,+233583417465,mavis.darko8665@example.test,2023-01-23 15:53:01.000
+SC-C000677,Daniel,Quaye,1996-01-13,Ghanaian,Health Worker,+233539788858,daniel.quaye5066@example.test,2025-05-07 11:49:31.000
+SC-C000678,Efua,Adjei,1990-08-21,Ghanaian,Self Employed,+233505716139,efua.adjei6428@example.test,2024-10-20 17:32:44.000
+SC-C000679,Afia,Arthur,1977-07-19,Ghanaian,Driver,+233503185528,afia.arthur4753@example.test,2025-01-19 15:53:47.000
+SC-C000680,Yaw,Osei,1990-08-14,Ghanaian,Health Worker,+233281793914,yaw.osei8895@example.test,2024-03-23 14:25:40.000
+SC-C000681,Yaw,Quaye,2000-05-01,Ghanaian,Driver,+233511528630,yaw.quaye574@example.test,2023-01-10 16:12:34.000
+SC-C000682,Afia,Osei,1984-11-02,Ghanaian,Self Employed,+233536219585,afia.osei1520@example.test,2025-04-14 11:35:38.000
+SC-C000683,Akosua,Appiah,1990-08-16,Ghanaian,Farmer,+233416144503,akosua.appiah8390@example.test,2023-03-25 15:54:21.000
+SC-C000684,Abena,Asare,1960-01-16,Ghanaian,Health Worker,+233391829818,abena.asare9315@example.test,2025-02-08 11:54:54.000
+SC-C000685,Kwame,Amoah,1962-12-12,Ghanaian,Public Servant,+233598991716,kwame.amoah9782@example.test,2023-10-29 12:08:31.000
+SC-C000686,Kwame,Agyeman,1972-03-16,Ghanaian,Other,+233485009263,kwame.agyeman3836@example.test,2023-05-22 11:58:09.000
+SC-C000687,Adwoa,Agyeman,1960-05-12,Ghanaian,Self Employed,+233597622734,adwoa.agyeman4674@example.test,2023-09-02 10:30:03.000
+SC-C000688,Abena,Amoah,1977-04-08,Ghanaian,Student,+233444242993,abena.amoah6466@example.test,2023-02-06 09:02:41.000
+SC-C000689,Kwame,Adjei,1986-12-24,Ghanaian,Artisan,+233514613532,kwame.adjei7246@example.test,2024-07-11 11:13:47.000
+SC-C000690,Afia,Arthur,1989-07-04,Ghanaian,Trader,+233420929804,afia.arthur9869@example.test,2024-01-09 14:56:53.000
+SC-C000691,Kofi,Osei,2003-12-06,Ghanaian,Health Worker,+233547075869,kofi.osei1451@example.test,2023-03-31 08:47:59.000
+SC-C000692,Ama,Adjei,1992-10-06,Ghanaian,Self Employed,+233570528846,ama.adjei9758@example.test,2024-02-27 18:02:03.000
+SC-C000693,Afia,Darko,2001-11-03,Ghanaian,Teacher,+233449663573,afia.darko2003@example.test,2024-07-21 12:29:02.000
+SC-C000694,Akosua,Boateng,1990-03-16,Ghanaian,Health Worker,+233446770472,akosua.boateng5714@example.test,2025-02-19 15:17:06.000
+SC-C000695,Mavis,Asare,1999-02-15,Ghanaian,Other,+233209712313,mavis.asare3305@example.test,2023-10-08 10:53:10.000
+SC-C000696,Angela,Darko,2000-08-09,Ghanaian,Other,+233379444405,angela.darko8831@example.test,2023-08-31 11:17:25.000
+SC-C000697,Efua,Boateng,1972-09-20,Ghanaian,Driver,+233522945802,efua.boateng5219@example.test,2024-12-06 17:11:29.000
+SC-C000698,Grace,Owusu,1997-11-07,Ghanaian,Trader,+233245969818,grace.owusu317@example.test,2023-04-07 10:38:49.000
+SC-C000699,Emmanuel,Darko,1973-07-25,Ghanaian,Other,+233578388182,emmanuel.darko106@example.test,2025-04-24 15:06:42.000
+SC-C000700,Emmanuel,Mensah,1962-07-28,Ghanaian,Farmer,+233273489107,emmanuel.mensah6625@example.test,2025-01-24 10:12:38.000
+SC-C000701,Nana,Asare,1969-03-09,Ghanaian,Teacher,+233336691372,nana.asare2207@example.test,2023-10-09 17:40:22.000
+SC-C000702,Angela,Amoah,2003-02-05,Ghanaian,Public Servant,+233361331567,angela.amoah8217@example.test,2025-03-22 08:26:27.000
+SC-C000703,Abena,Mensah,1963-08-21,Ghanaian,Public Servant,+233226683417,abena.mensah2216@example.test,2023-03-01 12:10:37.000
+SC-C000704,Kwadwo,Asare,1982-08-10,Ghanaian,Farmer,+233259948818,kwadwo.asare1586@example.test,2023-03-14 15:05:08.000
+SC-C000705,Kofi,Darko,1987-12-18,Ghanaian,Driver,+233582452685,kofi.darko4377@example.test,2025-04-17 08:56:09.000
+SC-C000706,Yaw,Osei,1972-06-09,Ghanaian,Student,+233357596842,yaw.osei4855@example.test,2025-05-19 09:13:37.000
+SC-C000707,Yaw,Arthur,1999-01-11,Ghanaian,Teacher,+233335571033,yaw.arthur9243@example.test,2025-04-11 11:18:31.000
+SC-C000708,Michael,Boateng,1961-11-21,Ghanaian,Health Worker,+233444891102,michael.boateng471@example.test,2025-01-13 11:07:31.000
+SC-C000709,Yaw,Adjei,1967-12-12,Ghanaian,Self Employed,+233409840699,yaw.adjei6729@example.test,2025-03-12 16:09:52.000
+SC-C000710,Grace,Quaye,1963-12-13,Ghanaian,Professional,+233535213536,grace.quaye5689@example.test,2023-12-18 12:28:54.000
+SC-C000711,Esi,Osei,1976-10-05,Ghanaian,Artisan,+233412090640,esi.osei2463@example.test,2023-12-24 09:56:32.000
+SC-C000712,Kojo,Quaye,1978-02-20,Ghanaian,Other,+233244416042,kojo.quaye6292@example.test,2023-01-31 08:50:08.000
+SC-C000713,Adwoa,Mensah,1969-04-20,Ghanaian,Student,+233534064759,adwoa.mensah7718@example.test,2024-07-03 16:39:17.000
+SC-C000714,Michael,Mensah,1994-10-28,Ghanaian,Other,+233475335307,michael.mensah7029@example.test,2024-01-28 11:41:09.000
+SC-C000715,Mary,Adjei,1977-04-04,Ghanaian,Public Servant,+233515546650,mary.adjei5888@example.test,2024-10-13 17:30:58.000
+SC-C000716,Michael,Owusu,2003-11-02,Ghanaian,Driver,+233382011973,michael.owusu8829@example.test,2023-09-06 13:30:54.000
+SC-C000717,Mary,Osei,2002-02-09,Ghanaian,Other,+233405433602,mary.osei7436@example.test,2023-04-27 16:06:09.000
+SC-C000718,Efua,Quaye,1986-12-06,Ghanaian,Teacher,+233333031013,efua.quaye7862@example.test,2024-05-26 08:23:48.000
+SC-C000719,Efua,Adjei,1984-12-06,Ghanaian,Farmer,+233344318090,efua.adjei9268@example.test,2024-11-29 14:09:10.000
+SC-C000720,Kofi,Amoah,1987-04-20,Ghanaian,Public Servant,+233401906305,kofi.amoah3301@example.test,2023-01-15 12:23:33.000
+SC-C000721,Mary,Agyeman,1963-04-13,Ghanaian,Student,+233552363793,mary.agyeman9646@example.test,2023-09-07 10:52:28.000
+SC-C000722,Kojo,Owusu,1985-10-03,Ghanaian,Professional,+233210915482,kojo.owusu8740@example.test,2023-09-18 10:54:56.000
+SC-C000723,Samuel,Osei,1993-12-09,Ghanaian,Student,+233518378526,samuel.osei6244@example.test,2024-01-27 17:21:54.000
+SC-C000724,Emmanuel,Mensah,1975-09-28,Ghanaian,Professional,+233265681937,emmanuel.mensah6035@example.test,2023-12-09 15:23:20.000
+SC-C000725,Yaw,Boateng,1998-04-06,Ghanaian,Artisan,+233467959557,yaw.boateng7293@example.test,2024-07-12 11:17:38.000
+SC-C000726,Kwadwo,Adjei,2004-07-22,Ghanaian,Artisan,+233498938082,kwadwo.adjei4687@example.test,2023-01-27 17:34:13.000
+SC-C000727,Kwame,Appiah,1975-07-09,Ghanaian,Self Employed,+233533659290,kwame.appiah2427@example.test,2023-12-21 09:40:39.000
+SC-C000728,Samuel,Adjei,1989-09-24,Ghanaian,Farmer,+233265612009,samuel.adjei1411@example.test,2023-03-03 08:43:42.000
+SC-C000729,Daniel,Appiah,1964-10-07,Ghanaian,Teacher,+233287691717,daniel.appiah213@example.test,2024-06-23 14:04:50.000
+SC-C000730,Afia,Boateng,2002-11-11,Ghanaian,Trader,+233504035110,afia.boateng28@example.test,2024-03-24 16:10:21.000
+SC-C000731,Mavis,Mensah,1979-08-22,Ghanaian,Driver,+233256664909,mavis.mensah4083@example.test,2025-02-05 12:54:55.000
+SC-C000732,Grace,Adjei,1981-12-26,Ghanaian,Other,+233398515101,grace.adjei3370@example.test,2023-11-24 17:51:24.000
+SC-C000733,Adwoa,Asare,1996-04-13,Ghanaian,Health Worker,+233496638093,adwoa.asare4404@example.test,2024-01-26 08:17:32.000
+SC-C000734,Grace,Amoah,1981-09-24,Ghanaian,Student,+233370614266,grace.amoah8617@example.test,2025-03-21 11:57:39.000
+SC-C000735,Angela,Appiah,1972-01-05,Ghanaian,Artisan,+233527198324,angela.appiah4075@example.test,2023-02-06 08:59:30.000
+SC-C000736,Ama,Boateng,1988-12-23,Ghanaian,Health Worker,+233571816687,ama.boateng7446@example.test,2023-12-28 17:22:29.000
+SC-C000737,Mavis,Darko,1981-10-06,Ghanaian,Artisan,+233319888634,mavis.darko374@example.test,2023-03-01 08:41:48.000
+SC-C000738,Ama,Darko,1964-04-12,Ghanaian,Trader,+233240278430,ama.darko6651@example.test,2025-02-11 11:49:16.000
+SC-C000739,Fiifi,Osei,1985-11-06,Ghanaian,Professional,+233598756221,fiifi.osei4933@example.test,2023-06-09 09:51:30.000
+SC-C000740,Michael,Quaye,1975-09-03,Ghanaian,Public Servant,+233278829579,michael.quaye8746@example.test,2025-04-11 16:52:59.000
+SC-C000741,Akosua,Osei,1985-10-09,Ghanaian,Artisan,+233459794230,akosua.osei2195@example.test,2025-05-29 09:32:45.000
+SC-C000742,Yaa,Adjei,2002-06-07,Ghanaian,Other,+233403912337,yaa.adjei4768@example.test,2024-01-16 16:58:13.000
+SC-C000743,Grace,Quaye,1991-07-08,Ghanaian,Teacher,+233347225248,grace.quaye518@example.test,2024-02-20 10:49:41.000
+SC-C000744,Kwabena,Darko,2004-10-27,Ghanaian,Farmer,+233541166364,kwabena.darko9274@example.test,2023-05-20 17:37:20.000
+SC-C000745,Kwame,Quaye,1976-01-14,Ghanaian,Student,+233380095110,kwame.quaye2162@example.test,2025-06-08 13:33:05.000
+SC-C000746,Adwoa,Amoah,1993-11-20,Ghanaian,Public Servant,+233217087341,adwoa.amoah9117@example.test,2023-04-10 12:02:47.000
+SC-C000747,Michael,Owusu,1990-08-26,Ghanaian,Health Worker,+233366767101,michael.owusu8281@example.test,2025-06-11 14:41:24.000
+SC-C000748,Nana,Appiah,1973-07-02,Ghanaian,Driver,+233327167497,nana.appiah6759@example.test,2024-06-24 18:46:42.000
+SC-C000749,Adwoa,Osei,2000-12-20,Ghanaian,Trader,+233572801794,adwoa.osei7984@example.test,2024-10-14 11:00:16.000
+SC-C000750,Daniel,Boateng,1998-03-12,Ghanaian,Student,+233584979652,daniel.boateng4939@example.test,2024-05-24 12:57:02.000
+SC-C000751,Grace,Darko,1962-12-07,Ghanaian,Student,+233289587260,grace.darko788@example.test,2023-03-22 12:52:37.000
+SC-C000752,Nana,Arthur,1986-01-14,Ghanaian,Other,+233268484608,nana.arthur2575@example.test,2024-11-21 16:08:25.000
+SC-C000753,Angela,Amoah,1973-02-27,Ghanaian,Health Worker,+233364490762,angela.amoah8262@example.test,2024-07-17 12:29:59.000
+SC-C000754,Efua,Boateng,1963-02-13,Ghanaian,Teacher,+233585767998,efua.boateng3817@example.test,2024-02-17 14:47:37.000
+SC-C000755,Ama,Darko,1966-03-25,Ghanaian,Artisan,+233201303340,ama.darko8463@example.test,2023-12-04 11:43:16.000
+SC-C000756,Kwame,Mensah,1988-09-14,Ghanaian,Other,+233365474008,kwame.mensah7008@example.test,2024-07-07 11:55:36.000
+SC-C000757,Grace,Appiah,1986-11-11,Ghanaian,Other,+233444675485,grace.appiah4731@example.test,2023-08-14 10:29:37.000
+SC-C000758,Emmanuel,Darko,1988-12-19,Ghanaian,Health Worker,+233286975251,emmanuel.darko4587@example.test,2024-04-14 13:08:39.000
+SC-C000759,Kofi,Osei,1970-07-10,Ghanaian,Health Worker,+233545505333,kofi.osei3408@example.test,2023-04-14 12:42:02.000
+SC-C000760,Kwadwo,Amoah,1993-08-21,Ghanaian,Self Employed,+233237530610,kwadwo.amoah2818@example.test,2023-10-06 14:37:39.000
+SC-C000761,Kwabena,Darko,1988-10-27,Ghanaian,Artisan,+233238651890,kwabena.darko1908@example.test,2023-11-30 14:06:26.000
+SC-C000762,Esi,Amoah,1968-07-13,Ghanaian,Self Employed,+233418392253,esi.amoah4817@example.test,2024-03-06 13:45:54.000
+SC-C000763,Kwabena,Osei,2002-07-22,Ghanaian,Self Employed,+233243608941,kwabena.osei243@example.test,2024-12-10 11:44:04.000
+SC-C000764,Kwabena,Darko,1993-12-08,Ghanaian,Artisan,+233269096368,kwabena.darko6246@example.test,2024-02-09 10:30:21.000
+SC-C000765,Ama,Quaye,1973-01-19,Ghanaian,Farmer,+233507149882,ama.quaye9259@example.test,2025-01-02 17:11:20.000
+SC-C000766,Kojo,Arthur,1991-07-28,Ghanaian,Self Employed,+233315814482,kojo.arthur9695@example.test,2023-02-08 15:31:14.000
+SC-C000767,Kofi,Darko,1984-09-17,Ghanaian,Farmer,+233385843671,kofi.darko4272@example.test,2023-02-18 12:18:06.000
+SC-C000768,Adwoa,Amoah,1989-01-05,Ghanaian,Public Servant,+233449024710,adwoa.amoah6675@example.test,2023-02-05 08:45:20.000
+SC-C000769,Kwadwo,Appiah,1974-01-02,Ghanaian,Public Servant,+233241909198,kwadwo.appiah3387@example.test,2023-04-07 15:27:57.000
+SC-C000770,Esi,Darko,1975-04-04,Ghanaian,Artisan,+233334450590,esi.darko4207@example.test,2023-09-26 10:07:37.000
+SC-C000771,Emmanuel,Darko,2001-04-02,Ghanaian,Student,+233513186521,emmanuel.darko1956@example.test,2023-09-21 15:48:23.000
+SC-C000772,Abena,Agyeman,1963-12-09,Ghanaian,Health Worker,+233311814895,abena.agyeman2587@example.test,2024-02-29 13:27:34.000
+SC-C000773,Nana,Amoah,1984-01-17,Ghanaian,Driver,+233275418455,nana.amoah3497@example.test,2024-08-24 17:32:28.000
+SC-C000774,Esi,Arthur,1996-12-10,Ghanaian,Farmer,+233367939611,esi.arthur629@example.test,2024-02-09 09:31:20.000
+SC-C000775,Esi,Amoah,1968-05-24,Ghanaian,Health Worker,+233480021431,esi.amoah6260@example.test,2025-02-08 08:15:06.000
+SC-C000776,Yaa,Mensah,1987-10-04,Ghanaian,Health Worker,+233425480897,yaa.mensah9790@example.test,2024-12-12 09:56:58.000
+SC-C000777,Akosua,Owusu,1972-08-15,Ghanaian,Public Servant,+233474191754,akosua.owusu8791@example.test,2023-07-13 10:39:31.000
+SC-C000778,Daniel,Amoah,1979-06-15,Ghanaian,Other,+233534680594,daniel.amoah5600@example.test,2024-03-10 13:06:58.000
+SC-C000779,Akosua,Appiah,1988-12-21,Ghanaian,Public Servant,+233382585726,akosua.appiah1998@example.test,2024-05-19 11:31:02.000
+SC-C000780,Kojo,Agyeman,1997-08-14,Ghanaian,Farmer,+233444969255,kojo.agyeman1481@example.test,2024-08-09 14:22:23.000
+SC-C000781,Kwabena,Adjei,1981-11-04,Ghanaian,Teacher,+233204962456,kwabena.adjei7162@example.test,2025-03-10 17:30:03.000
+SC-C000782,Esi,Asare,1994-03-24,Ghanaian,Artisan,+233505680247,esi.asare1819@example.test,2025-02-28 18:49:58.000
+SC-C000783,Kwame,Appiah,1974-11-11,Ghanaian,Self Employed,+233226951827,kwame.appiah7854@example.test,2025-05-26 11:01:36.000
+SC-C000784,Mavis,Owusu,1963-05-21,Ghanaian,Driver,+233391556293,mavis.owusu5365@example.test,2025-06-08 10:10:38.000
+SC-C000785,Yaa,Quaye,1988-12-21,Ghanaian,Farmer,+233246056431,yaa.quaye110@example.test,2024-02-23 10:22:41.000
+SC-C000786,Samuel,Adjei,1979-03-14,Ghanaian,Student,+233243987865,samuel.adjei7392@example.test,2025-06-11 11:27:11.000
+SC-C000787,Samuel,Osei,2004-12-07,Ghanaian,Teacher,+233384620286,samuel.osei579@example.test,2024-07-08 09:51:22.000
+SC-C000788,Mary,Boateng,1991-08-21,Ghanaian,Student,+233573719538,mary.boateng753@example.test,2025-04-01 11:53:47.000
+SC-C000789,Emmanuel,Amoah,1973-08-26,Ghanaian,Professional,+233522198162,emmanuel.amoah9398@example.test,2023-05-19 11:45:46.000
+SC-C000790,Esi,Darko,1969-12-11,Ghanaian,Self Employed,+233429667684,esi.darko2312@example.test,2024-02-23 18:10:19.000
+SC-C000791,Emmanuel,Osei,1972-05-01,Ghanaian,Public Servant,+233377678445,emmanuel.osei5228@example.test,2024-09-23 12:05:13.000
+SC-C000792,Akosua,Osei,1960-07-06,Ghanaian,Other,+233335332471,akosua.osei8853@example.test,2023-12-26 14:21:43.000
+SC-C000793,Nana,Owusu,1990-03-02,Ghanaian,Farmer,+233210591407,nana.owusu9238@example.test,2025-03-16 17:12:29.000
+SC-C000794,Efua,Amoah,1974-12-20,Ghanaian,Trader,+233271714559,efua.amoah3902@example.test,2023-06-29 17:26:31.000
+SC-C000795,Esi,Boateng,1969-02-19,Ghanaian,Self Employed,+233425757363,esi.boateng6488@example.test,2023-11-18 16:56:16.000
+SC-C000796,Adwoa,Agyeman,1986-07-16,Ghanaian,Driver,+233545584903,adwoa.agyeman8316@example.test,2023-09-14 16:34:12.000
+SC-C000797,Yaa,Adjei,1962-06-04,Ghanaian,Self Employed,+233443416051,yaa.adjei943@example.test,2024-04-26 11:26:44.000
+SC-C000798,Mavis,Quaye,1987-10-07,Ghanaian,Public Servant,+233273144838,mavis.quaye4643@example.test,2023-01-30 16:32:56.000
+SC-C000799,Yaa,Osei,1974-12-20,Ghanaian,Teacher,+233561418535,yaa.osei9285@example.test,2023-01-19 08:30:08.000
+SC-C000800,Mavis,Amoah,1982-04-10,Ghanaian,Public Servant,+233275002356,mavis.amoah25@example.test,2023-06-15 08:00:42.000

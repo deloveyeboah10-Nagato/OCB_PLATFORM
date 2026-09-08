@@ -4,6 +4,7 @@
 **Work Package:** WP-2.3 — Operational Schema Design
 **Ticket:** WP-2.3-T01
 **Status:** **APPROVED**
+**Decision Type:** Physical database architecture
 
 ---
 
@@ -11,7 +12,7 @@
 
 This ticket defines the SQL Server database schema structure for the OCB Platform.
 
-The purpose is to translate the logical entities established in WP-2.2 into **physical schema ownership boundaries** without prematurely defining the detailed table structures that belong to subsequent WP-2.3 tickets.
+The purpose is to translate the logical entities established in **WP-2.2** into physical schema ownership boundaries without prematurely defining detailed table structures that belong to subsequent WP-2.3 tickets.
 
 The schema design must preserve:
 
@@ -20,7 +21,8 @@ The schema design must preserve:
 * financial-core separation;
 * OCB identity-resolution responsibility;
 * controlled reference-data ownership;
-* clear dependency boundaries.
+* clear dependency boundaries;
+* the established customer–wallet relationship.
 
 ---
 
@@ -42,7 +44,7 @@ They are SQL Server namespaces used to establish ownership and responsibility wi
 
 # 3. Authoritative Schema Set
 
-The initial schema set is:
+The authoritative schema set is:
 
 ```text
 ocb
@@ -54,15 +56,13 @@ ledger
 ref
 ```
 
-Each schema has a defined responsibility.
-
 | Schema       | Responsibility                                                  |
 | ------------ | --------------------------------------------------------------- |
 | `ocb`        | OCB-owned identity resolution and OCB control objects           |
 | `ananse`     | Ananse-owned institutional customer and transaction activity    |
 | `sikacredit` | SikaCredit-owned institutional customer and lending activity    |
 | `oman_remit` | Oman Remit-owned institutional customer and remittance activity |
-| `wallet`     | Wallet and resulting financial-state objects                    |
+| `wallet`     | Wallet objects and wallet-associated financial-state structures |
 | `ledger`     | Financial ledger and posting structures                         |
 | `ref`        | Shared controlled reference data                                |
 
@@ -94,7 +94,7 @@ OCB_CUSTOMER_IDENTITY
 
 `ocb.customer` represents the OCB-resolved customer identity.
 
-`ocb.customer_identity` records the relationship between an OCB identity and source-system identities.
+`ocb.customer_identity` records the relationship between an OCB identity and source-system customer identities.
 
 The schema does **not** replace or absorb:
 
@@ -130,11 +130,11 @@ ANANSE_TRANSACTION
 
 ### Boundary
 
-This schema owns Ananse's institutional activity.
+This schema owns Ananse's institutional customer and transaction activity.
 
-It does **not** own the Ananse wallet.
+It does **not** own the wallet table.
 
-That distinction is deliberate:
+The distinction is deliberate:
 
 ```text
 ananse.transaction
@@ -144,9 +144,7 @@ wallet.wallet
 
 A transaction is an institutional activity.
 
-A wallet is a financial object/state.
-
-The resulting financial relationship between them will be implemented through the financial-core architecture defined in later tickets.
+A wallet is a separate financial object maintained within the financial-core boundary.
 
 ---
 
@@ -180,7 +178,7 @@ The schema owns:
 * loans;
 * repayments.
 
-It does not own Ananse wallets or ledger postings resulting from financial consequences of those activities.
+It does not own Ananse wallets or ledger structures resulting from financial consequences.
 
 ---
 
@@ -219,7 +217,7 @@ It does not own the receiving wallet or financial ledger structures.
 
 ## Responsibility
 
-The `wallet` schema contains wallet objects and financial-state structures associated with wallets.
+The `wallet` schema contains wallet objects and wallet-associated financial-state structures.
 
 ### Initial table
 
@@ -237,25 +235,37 @@ ANANSE_WALLET
 
 The wallet remains separate from the Ananse institutional schema.
 
-This is a deliberate architectural decision.
+This is deliberate because the wallet represents a financial object rather than merely an Ananse activity record.
 
-The distinction is:
+The physical relationship established by the deployment model is:
 
 ```text
-Ananse
+ananse.customer
+       │
+       │ customer_id
+       ↓
+wallet.wallet
+       │
+       │ wallet_id
+       ↓
+ananse.transaction
+```
+
+The wallet therefore retains an explicit relationship to its owning Ananse customer.
+
+This does **not** move the wallet into the `ananse` schema.
+
+The distinction remains:
+
+```text
+Ananse schema
     └── institutional activity
 
-Wallet
-    └── financial object / state
+Wallet schema
+    └── wallet / financial object
 ```
 
-The wallet therefore must not be moved into:
-
-```text
-ananse
-```
-
-simply because Ananse owns the wallet operationally.
+The wallet's customer relationship is therefore a **controlled cross-schema dependency**, not a change in schema ownership.
 
 ---
 
@@ -267,9 +277,9 @@ The `ledger` schema contains the financial accounting structures used to represe
 
 ### Initial status
 
-No detailed tables are locked by T01.
+No detailed ledger table structures are locked by T01.
 
-The ledger tables will be defined in:
+The ledger structures will be defined in:
 
 **WP-2.3-T04 — Define Ledger Structures**
 
@@ -297,7 +307,7 @@ sikacredit.repayment
 
 is not itself a ledger posting.
 
-The relationship between institutional activity, financial consequence, and ledger posting will be defined through the financial-event and ledger tickets.
+The relationship between institutional activity, financial consequence, and ledger posting will be defined through the subsequent financial-core design.
 
 ---
 
@@ -318,7 +328,7 @@ Potential reference domains include:
 
 ### Initial status
 
-No detailed reference tables are locked by T01.
+No detailed reference-table structures are locked by T01.
 
 They will be defined in:
 
@@ -328,7 +338,7 @@ They will be defined in:
 
 # 11. Physical Object Allocation
 
-The current logical-to-physical allocation is:
+The authoritative logical-to-physical allocation is:
 
 | Logical Entity          | Physical Schema | Physical Table      |
 | ----------------------- | --------------- | ------------------- |
@@ -343,20 +353,49 @@ The current logical-to-physical allocation is:
 | `OMAN_REMIT_CUSTOMER`   | `oman_remit`    | `customer`          |
 | `OMAN_REMIT_REMITTANCE` | `oman_remit`    | `remittance`        |
 
-This allows the same logical table name, such as `customer`, to exist within different institutional schemas without ambiguity:
-
-```text
-ocb.customer
-ananse.customer
-sikacredit.customer
-oman_remit.customer
-```
-
-These are **different tables owned by different domains**.
+The wallet remains physically allocated to the `wallet` schema even though it maintains a controlled FK relationship to the Ananse customer.
 
 ---
 
-# 12. Why Institutional Customers Remain Separate
+# 12. Physical Customer–Wallet Boundary
+
+The physical deployment establishes an important distinction between **schema ownership** and **relational dependency**.
+
+The wallet is owned by:
+
+```text
+wallet.wallet
+```
+
+while its customer relationship references:
+
+```text
+ananse.customer
+```
+
+Therefore:
+
+```text
+wallet.wallet
+      │
+      └── customer_id FK
+                ↓
+        ananse.customer
+```
+
+This is intentional.
+
+A foreign key does not imply that the child table must belong to the same schema as the parent.
+
+The relationship establishes **referential dependency**.
+
+The schema establishes **ownership and architectural responsibility**.
+
+These are separate concepts.
+
+---
+
+# 13. Why Institutional Customers Remain Separate
 
 The existence of:
 
@@ -388,40 +427,50 @@ This preserves institutional ownership while allowing OCB to resolve cross-insti
 
 ---
 
-# 13. Schema Dependency Principle
+# 14. Schema Dependency Principle
 
-The schema boundaries do not mean that schemas are isolated islands.
+The schemas are not isolated islands.
 
-Cross-schema relationships are permitted where they reflect an established architectural dependency.
+Cross-schema relationships are permitted where they represent an established architectural dependency.
 
 However, dependencies must be **intentional and controlled**.
 
-The general principle is:
+The key distinction is:
 
 ```text
-Source-owned operational data
-            ↓
-Financial event / consequence
-            ↓
-Ledger
-            ↓
-Financial state
+SCHEMA OWNERSHIP
+        ≠
+FOREIGN-KEY DEPENDENCY
 ```
+
+For example:
+
+```text
+wallet.wallet
+      │
+      │ FK
+      ↓
+ananse.customer
+```
+
+does not make `wallet` an `ananse` schema object.
+
+It means that the wallet object depends on an Ananse customer for referential integrity.
 
 The platform must not create arbitrary cross-schema foreign keys merely because two objects can be analytically joined.
 
 ---
 
-# 14. What T01 Does Not Lock
+# 15. What T01 Does Not Lock
 
 T01 does **not** yet determine:
 
-* every foreign key crossing schemas;
+* every column-level constraint;
+* every foreign key constraint;
 * ledger table structures;
 * financial-event table structures;
-* wallet-state structures beyond the wallet boundary;
+* detailed wallet-state structures;
 * reference-table structures;
-* integration structures;
 * indexing;
 * partitioning;
 * physical optimization;
@@ -429,11 +478,11 @@ T01 does **not** yet determine:
 
 Those decisions belong to later tickets.
 
-This prevents T01 from becoming a dumping ground for decisions that belong elsewhere.
+T01 establishes the **schema ownership architecture** within which those decisions must operate.
 
 ---
 
-# 15. Schema Architecture
+# 16. Schema Architecture
 
 The resulting physical schema architecture is:
 
@@ -467,9 +516,27 @@ OCB_PLATFORM
     └── [defined in T05]
 ```
 
+With the established customer–wallet dependency:
+
+```text
+ananse.customer
+       ▲
+       │
+       │ FK: customer_id
+       │
+wallet.wallet
+       ▲
+       │
+       │ FK: wallet_id
+       │
+ananse.transaction
+```
+
+This represents relational dependency without collapsing the schema boundaries.
+
 ---
 
-# 16. Architectural Principle
+# 17. Architectural Principle
 
 The schema design follows this rule:
 
@@ -486,9 +553,9 @@ The schema boundaries follow the **architectural role of the data**, not merely 
 
 ---
 
-# 17. Decision
+# 18. Decision
 
-The proposed SQL Server database schema architecture is:
+The authoritative SQL Server database schema architecture is:
 
 ```text
 ocb
@@ -503,19 +570,26 @@ ref
 with the following core separation:
 
 ```text
-INSTITUTIONAL SCHEMAS
+INSTITUTIONAL / CONTROL SCHEMAS
         │
         ├── ocb
         ├── ananse
         ├── sikacredit
         └── oman_remit
                  │
+                 │ controlled dependencies
                  ↓
           FINANCIAL CORE
-          ├── ledger
-          └── wallet
+          ├── wallet
+          └── ledger
 
-          SHARED CONTROL
-                 │
-                ref
+SHARED CONTROL
+        │
+        └── ref
 ```
+
+The `wallet` schema remains physically separate from `ananse`, while `wallet.wallet` maintains its established customer dependency through `customer_id`.
+
+No schema is moved, merged, or duplicated by this decision.
+
+**WP-2.3-T01 — APPROVED.**
