@@ -325,7 +325,7 @@ BEGIN
             )
         VALUES (
             'ocb_customer_identity',
-            'bronze.ananse_customer; bronze.sikacredit_customer; bronze.oman_remit_customer'
+            'silver.ocb_customer_identity_resolved'
             );
 
         /*========================================================================================================================
