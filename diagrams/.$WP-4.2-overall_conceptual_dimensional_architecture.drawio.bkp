@@ -1,0 +1,108 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="NZvfcUBeq--B5S6hb90p">
+    <mxGraphModel dx="1107" dy="613" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;flowchart TB\n\n    subgraph CONFORMED[\&quot;CONFORMED DIMENSIONS\&quot;]\n        direction LR\n        CUSTOMER[\&quot;DIM_CUSTOMER&lt;br/&gt;&lt;br/&gt;Canonical OCB Customer\&quot;]\n        TIME[\&quot;DIM_TIME&lt;br/&gt;&lt;br/&gt;Calendar &amp; Temporal Context\&quot;]\n        INSTITUTION[\&quot;DIM_INSTITUTION&lt;br/&gt;&lt;br/&gt;Financial Institution\&quot;]\n        GEOGRAPHY[\&quot;DIM_GEOGRAPHY&lt;br/&gt;&lt;br/&gt;Event / Activity Location\&quot;]\n    end\n\n    subgraph FACTS[\&quot;FOUNDATIONAL ANALYTICAL FACTS\&quot;]\n        direction LR\n\n        TRANSACTION[\&quot;FACT_TRANSACTION&lt;br/&gt;&lt;br/&gt;Ananse Telecom&lt;br/&gt;&lt;b&gt;Grain:&lt;/b&gt; One row per transaction\&quot;]\n\n        LOAN[\&quot;FACT_LOAN&lt;br/&gt;&lt;br/&gt;SikaCredit&lt;br/&gt;&lt;b&gt;Grain:&lt;/b&gt; One row per loan\&quot;]\n\n        REPAYMENT[\&quot;FACT_REPAYMENT&lt;br/&gt;&lt;br/&gt;SikaCredit&lt;br/&gt;&lt;b&gt;Grain:&lt;/b&gt; One row per repayment\&quot;]\n\n        REMITTANCE[\&quot;FACT_REMITTANCE&lt;br/&gt;&lt;br/&gt;Oman Remit&lt;br/&gt;&lt;b&gt;Grain:&lt;/b&gt; One row per remittance\&quot;]\n    end\n\n    subgraph PROCESS[\&quot;PROCESS-SPECIFIC / CONTEXT DIMENSIONS\&quot;]\n        direction LR\n        CHANNEL[\&quot;DIM_CHANNEL&lt;br/&gt;&lt;br/&gt;Transaction + Remittance\&quot;]\n        TYPE[\&quot;DIM_TRANSACTION_TYPE&lt;br/&gt;&lt;br/&gt;Ananse Transactions\&quot;]\n        COUNTRY[\&quot;DIM_COUNTRY&lt;br/&gt;&lt;br/&gt;Remittance Origin\&quot;]\n    end\n\n    CONFORMED --&gt; FACTS\n    FACTS --&gt; PROCESS\n\n    NOTES[\&quot;ARCHITECTURE NOTES&lt;br/&gt;&lt;br/&gt;The four conformed dimensions apply across the foundational facts.&lt;br/&gt;Process-specific dimensions apply only where their business meaning is established.&lt;br/&gt;&lt;br/&gt;FACT_REPAYMENT retains loan_id as a reference to FACT_LOAN.&lt;br/&gt;remittance_type remains an attribute of FACT_REMITTANCE.&lt;br/&gt;&lt;br/&gt;Detailed fact-to-dimension relationships are defined in the individual star-schema diagrams.\&quot;]&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="cm-_fTzaOASx0fJhZHEG-71">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
+            <mxGeometry height="970" width="1193.5" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="CONFORMED DIMENSIONS" mermaidId="n:CONFORMED" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="CONFORMED DIMENSIONS" id="cm-_fTzaOASx0fJhZHEG-72">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-71" style="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="587" width="341" x="37" y="30" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_CUSTOMER&#xa;&#xa;Canonical OCB Customer" mermaidId="n:CUSTOMER" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_CUSTOMER&#xa;&#xa;Canonical OCB Customer" id="cm-_fTzaOASx0fJhZHEG-73">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-72" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="237" x="52" y="45" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_TIME&#xa;&#xa;Calendar &amp; Temporal Context" mermaidId="n:TIME" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_TIME&#xa;&#xa;Calendar &amp; Temporal Context" id="cm-_fTzaOASx0fJhZHEG-74">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-72" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="271" x="35" y="188" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_INSTITUTION&#xa;&#xa;Financial Institution" mermaidId="n:INSTITUTION" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_INSTITUTION&#xa;&#xa;Financial Institution" id="cm-_fTzaOASx0fJhZHEG-75">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-72" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="205" x="68" y="331" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_GEOGRAPHY&#xa;&#xa;Event / Activity Location" mermaidId="n:GEOGRAPHY" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_GEOGRAPHY&#xa;&#xa;Event / Activity Location" id="cm-_fTzaOASx0fJhZHEG-76">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-72" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="241" x="50" y="474" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FOUNDATIONAL ANALYTICAL FACTS" mermaidId="n:FACTS" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FOUNDATIONAL ANALYTICAL FACTS" id="cm-_fTzaOASx0fJhZHEG-77">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-71" style="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="663" width="360" x="640" y="20" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_TRANSACTION&#xa;&#xa;Ananse Telecom&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per transaction" mermaidId="n:TRANSACTION" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_TRANSACTION&#xa;&#xa;Ananse Telecom&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per transaction" id="cm-_fTzaOASx0fJhZHEG-78">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-77" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="112" width="288.8135593220339" x="35.59322033898305" y="45" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_LOAN&#xa;&#xa;SikaCredit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per loan" mermaidId="n:LOAN" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_LOAN&#xa;&#xa;SikaCredit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per loan" id="cm-_fTzaOASx0fJhZHEG-79">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-77" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="112" width="236.94915254237287" x="62.03389830508474" y="207" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_REPAYMENT&#xa;&#xa;SikaCredit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per repayment" mermaidId="n:REPAYMENT" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_REPAYMENT&#xa;&#xa;SikaCredit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per repayment" id="cm-_fTzaOASx0fJhZHEG-80">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-77" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="112" width="283.728813559322" x="38.644067796610166" y="369" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_REMITTANCE&#xa;&#xa;Oman Remit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per remittance" mermaidId="n:REMITTANCE" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_REMITTANCE&#xa;&#xa;Oman Remit&#xa;&lt;b&gt;Grain:&lt;/b&gt; One row per remittance" id="cm-_fTzaOASx0fJhZHEG-81">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-77" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="112" width="286.77966101694915" x="36.610169491525426" y="531" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="PROCESS-SPECIFIC / CONTEXT DIMENSIONS" mermaidId="n:PROCESS" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="PROCESS-SPECIFIC / CONTEXT DIMENSIONS" id="cm-_fTzaOASx0fJhZHEG-82">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-71" style="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="444" width="313" x="1290" y="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_CHANNEL&#xa;&#xa;Transaction + Remittance" mermaidId="n:CHANNEL" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_CHANNEL&#xa;&#xa;Transaction + Remittance" id="cm-_fTzaOASx0fJhZHEG-83">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-82" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="243" x="35" y="45" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_TRANSACTION_TYPE&#xa;&#xa;Ananse Transactions" mermaidId="n:TYPE" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_TRANSACTION_TYPE&#xa;&#xa;Ananse Transactions" id="cm-_fTzaOASx0fJhZHEG-84">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-82" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="239" x="37" y="188" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_COUNTRY&#xa;&#xa;Remittance Origin" mermaidId="n:COUNTRY" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_COUNTRY&#xa;&#xa;Remittance Origin" id="cm-_fTzaOASx0fJhZHEG-85">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-82" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="93" width="190" x="62" y="331" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="ARCHITECTURE NOTES&#xa;&#xa;The four conformed dimensions apply across the foundational facts.&#xa;Process-specific dimensions apply only where their business meaning is established.&#xa;&#xa;FACT_REPAYMENT retains loan_id as a reference to FACT_LOAN.&#xa;remittance_type remains an attribute of FACT_REMITTANCE.&#xa;&#xa;Detailed fact-to-dimension relationships are defined in the individual star-schema diagrams." mermaidId="n:NOTES" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="ARCHITECTURE NOTES&#xa;&#xa;The four conformed dimensions apply across the foundational facts.&#xa;Process-specific dimensions apply only where their business meaning is established.&#xa;&#xa;FACT_REPAYMENT retains loan_id as a reference to FACT_LOAN.&#xa;remittance_type remains an attribute of FACT_REMITTANCE.&#xa;&#xa;Detailed fact-to-dimension relationships are defined in the individual star-schema diagrams." id="cm-_fTzaOASx0fJhZHEG-86">
+          <mxCell parent="cm-_fTzaOASx0fJhZHEG-71" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="230" width="727" x="456.5" y="730" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:CONFORMED-&gt;FACTS#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;curved=1;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="cm-_fTzaOASx0fJhZHEG-87">
+          <mxCell edge="1" parent="cm-_fTzaOASx0fJhZHEG-71" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.5;entryX=-0.005;entryY=0.456;rounded=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;entryPerimeter=0;">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+              <mxPoint x="378" y="321.16999999999996" as="sourcePoint" />
+              <mxPoint x="638.23" y="319.99800000000005" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:FACTS-&gt;PROCESS#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;curved=1;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="cm-_fTzaOASx0fJhZHEG-88">
+          <mxCell edge="1" parent="cm-_fTzaOASx0fJhZHEG-71" style="curved=1;startArrow=classic;endArrow=none;endSize=7;strokeColor=light-dark(#333333,#cccccc);rounded=0;startFill=1;endFill=0;entryX=-0.001;entryY=0.57;entryDx=0;entryDy=0;entryPerimeter=0;">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+              <mxPoint x="1000" y="320" as="sourcePoint" />
+              <mxPoint x="1289.997" y="320.00000000000006" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

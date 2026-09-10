@@ -1,0 +1,75 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="z5_L1BhBzgsqQlKa-2KL">
+    <mxGraphModel dx="1660" dy="2089" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;block-beta\n    columns 5\n\n    space:2\n    TIME[\&quot;DIM_TIME&lt;br/&gt;Calendar &amp; Temporal Context\&quot;]\n    space:2\n\n    CUSTOMER[\&quot;DIM_CUSTOMER&lt;br/&gt;Canonical OCB Customer\&quot;]\n    space\n    FACT[\&quot;FACT_REPAYMENT&lt;br/&gt;&lt;br/&gt;Grain: One row per&lt;br/&gt;SikaCredit repayment\&quot;]\n    space\n    GEOGRAPHY[\&quot;DIM_GEOGRAPHY&lt;br/&gt;Repayment Location\&quot;]\n\n    space:2\n    INSTITUTION[\&quot;DIM_INSTITUTION&lt;br/&gt;Financial Institution\&quot;]\n    space:2\n\n    CUSTOMER --&gt; FACT\n    TIME --&gt; FACT\n    INSTITUTION --&gt; FACT\n    GEOGRAPHY --&gt; FACT\n\n    space:5\n\n    LOAN[\&quot;FACT_LOAN&lt;br/&gt;&lt;br/&gt;Referenced by loan_id\&quot;]\n    \n    FACT --&gt; LOAN\n\n    space:5\n\n    NOTES[\&quot;NOTES&lt;br/&gt;&lt;br/&gt;• Conceptual star schema; not a physical table design.&lt;br/&gt;• Grain: one row per SikaCredit repayment.&lt;br/&gt;• dim_customer uses the canonical OCB customer key: ocb_customer_id.&lt;br/&gt;• dim_geography represents repayment location, not customer location.&lt;br/&gt;• Exact repayment timestamp remains on the fact for temporal analysis.&lt;br/&gt;• loan_id links each repayment to its originating loan in fact_loan.&lt;br/&gt;• No separate dim_loan is introduced in v1.0.0.&lt;br/&gt;• Analytical measures and derived intelligence are excluded from this conceptual view.\&quot;]&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="21wGqL-0ljoGDXtCkC4i-1">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;fontStyle=1" vertex="1">
+            <mxGeometry height="1210" width="2702" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_TIME&#xa;Calendar &amp;amp; Temporal Context" mermaidId="n:TIME" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_TIME&#xa;Calendar &amp; Temporal Context" id="21wGqL-0ljoGDXtCkC4i-2">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="412" x="1492.5" y="-80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_CUSTOMER&#xa;Canonical OCB Customer" mermaidId="n:CUSTOMER" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_CUSTOMER&#xa;Canonical OCB Customer" id="21wGqL-0ljoGDXtCkC4i-3">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="412" x="760" y="243" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_REPAYMENT&#xa;&#xa;Grain: One row per&#xa;SikaCredit repayment" mermaidId="n:FACT" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_REPAYMENT&#xa;&#xa;Grain: One row per&#xa;SikaCredit repayment" id="21wGqL-0ljoGDXtCkC4i-4">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="661" x="1368" y="243" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_GEOGRAPHY&#xa;Repayment Location" mermaidId="n:GEOGRAPHY" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_GEOGRAPHY&#xa;Repayment Location" id="21wGqL-0ljoGDXtCkC4i-5">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="412" x="2280" y="-10" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="DIM_INSTITUTION&#xa;Financial Institution" mermaidId="n:INSTITUTION" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="DIM_INSTITUTION&#xa;Financial Institution" id="21wGqL-0ljoGDXtCkC4i-6">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="412" x="2280" y="457.5" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="FACT_LOAN&#xa;&#xa;Referenced by loan_id" mermaidId="n:LOAN" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="FACT_LOAN&#xa;&#xa;Referenced by loan_id" id="21wGqL-0ljoGDXtCkC4i-7">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="205" width="412" x="1492.5" y="585" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="NOTES&#xa;&#xa;• Conceptual star schema; not a physical table design.&#xa;• Grain: one row per SikaCredit repayment.&#xa;• dim_customer uses the canonical OCB customer key: ocb_customer_id.&#xa;• dim_geography represents repayment location, not customer location.&#xa;• Exact repayment timestamp remains on the fact for temporal analysis.&#xa;• loan_id links each repayment to its originating loan in fact_loan.&#xa;• No separate dim_loan is introduced in v1.0.0.&#xa;• Analytical measures and derived intelligence are excluded from this conceptual view." mermaidId="n:NOTES" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="NOTES&#xa;&#xa;• Conceptual star schema; not a physical table design.&#xa;• Grain: one row per SikaCredit repayment.&#xa;• dim_customer uses the canonical OCB customer key: ocb_customer_id.&#xa;• dim_geography represents repayment location, not customer location.&#xa;• Exact repayment timestamp remains on the fact for temporal analysis.&#xa;• loan_id links each repayment to its originating loan in fact_loan.&#xa;• No separate dim_loan is introduced in v1.0.0.&#xa;• Analytical measures and derived intelligence are excluded from this conceptual view." id="21wGqL-0ljoGDXtCkC4i-8">
+          <mxCell parent="21wGqL-0ljoGDXtCkC4i-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;fontStyle=1" vertex="1">
+            <mxGeometry height="250" width="720" x="1338.5" y="910" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:CUSTOMER-&gt;FACT#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);" mermaidBaseValue="" id="21wGqL-0ljoGDXtCkC4i-9">
+          <mxCell edge="1" parent="21wGqL-0ljoGDXtCkC4i-1" source="21wGqL-0ljoGDXtCkC4i-3" style="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);rounded=0;fontStyle=1" target="21wGqL-0ljoGDXtCkC4i-4">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:TIME-&gt;FACT#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);" mermaidBaseValue="" id="21wGqL-0ljoGDXtCkC4i-10">
+          <mxCell edge="1" parent="21wGqL-0ljoGDXtCkC4i-1" source="21wGqL-0ljoGDXtCkC4i-2" style="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);rounded=0;fontStyle=1" target="21wGqL-0ljoGDXtCkC4i-4">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:INSTITUTION-&gt;FACT#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);" mermaidBaseValue="" id="21wGqL-0ljoGDXtCkC4i-11">
+          <mxCell edge="1" parent="21wGqL-0ljoGDXtCkC4i-1" source="21wGqL-0ljoGDXtCkC4i-6" style="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);rounded=0;fontStyle=1" target="21wGqL-0ljoGDXtCkC4i-4">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:GEOGRAPHY-&gt;FACT#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);" mermaidBaseValue="" id="21wGqL-0ljoGDXtCkC4i-12">
+          <mxCell edge="1" parent="21wGqL-0ljoGDXtCkC4i-1" source="21wGqL-0ljoGDXtCkC4i-5" style="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);rounded=0;fontStyle=1" target="21wGqL-0ljoGDXtCkC4i-4">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:FACT-&gt;LOAN#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);" mermaidBaseValue="" id="21wGqL-0ljoGDXtCkC4i-13">
+          <mxCell edge="1" parent="21wGqL-0ljoGDXtCkC4i-1" source="21wGqL-0ljoGDXtCkC4i-4" style="curved=1;startArrow=none;endArrow=block;endSize=8;endFill=1;strokeColor=light-dark(#333333,#cccccc);rounded=0;fontStyle=1" target="21wGqL-0ljoGDXtCkC4i-7">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
