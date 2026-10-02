@@ -1491,21 +1491,9 @@ GROUP BY fh.customer_id
 ORDER BY customer_id;
 
 /*
-Using 00:00–05:59 as the exploratory unusual-hour period, produce one row per customer containing:
-
-customer_id
-total transactions
-unusual-hour transactions
-unusual-hour transaction proportion
-
-The key measure is:
-
-customer's 00:00–05:59 transactions ÷ customer's total transactions */
-/*
-# P5.1.9 — Unusual-Hour Behaviour
-
+----------------------------------------------------------------------------------------------------------------------------------
 Note
----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
 Transaction activity varies substantially across the 24-hour period. The hourly population profile shows that transaction volumes
 are highest during the daytime and evening hours, particularly between approximately 17:00 and 20:00. Activity declines noticeably
 during the late evening and early morning periods, with the lowest volumes occurring between approximately 00:00 and 05:00.
@@ -1527,7 +1515,7 @@ for a particular customer.
 The purpose of this workload is to establish the temporal baseline and identify how transaction activity is distributed across
 clock hours. More detailed customer-specific unusual-hour detection can be developed later as part of the formal signal
 analysis.
-
+---------------------------------------------------------------------------------------------------------------------------------
 ## Conclusion:
 ---------------------------------------------------------------------------------------------------------------------------------
 Transaction activity follows a clear intraday pattern, with substantially higher volumes during daytime and evening hours and
