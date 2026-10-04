@@ -46,22 +46,6 @@ AS (
         ABS(transaction_amount - global_median) / global_mad AS global_mad_deviation_score
     FROM mad_computation
     )
-/*
-,mad_deviation_score_percentiles AS
-(
-    SELECT TOP 1
-        MIN(mad_deviation_score) OVER() AS min_mds,
-        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p25,
-        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p50,
-        AVG(mad_deviation_score) OVER() AS avg_mds,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p75,
-        PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p90,
-        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p95,
-        PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY mad_deviation_score ASC) OVER() AS p99,
-        MAX(mad_deviation_score) OVER() AS max_mds
-    FROM mad_deviation_score_computation
-)
-*/
 SELECT
     *
 FROM mad_deviation_score_computation;
@@ -83,7 +67,9 @@ AS (
     GROUP (
             ORDER BY transaction_amount ASC
             ) OVER (PARTITION BY ocb_customer_id) AS customer_median
+    -- baseline population
     FROM gold.vw_transaction
+    WHERE transaction_type <> 'merchant payment'
     ),
 absolute_deviation
 AS (
@@ -240,11 +226,11 @@ AS (
         t.txn_type_mad_deviation_score,
         v.txn_velocity_anomaly_score
     FROM intelligence.vw_signal_global_score g
-    JOIN intelligence.vw_signal_customer_score c ON
+    LEFT JOIN intelligence.vw_signal_customer_score c ON
             g.transaction_id = c.transaction_id
-    JOIN intelligence.vw_signal_transaction_type_score t ON
+    LEFT JOIN intelligence.vw_signal_transaction_type_score t ON
             g.transaction_id = t.transaction_id
-    JOIN intelligence.vw_signal_velocity_score v ON
+    LEFT JOIN intelligence.vw_signal_velocity_score v ON
             g.transaction_id = v.transaction_id
     ),
 p95_percentile_overlap
@@ -324,11 +310,11 @@ AS (
         t.txn_type_mad_deviation_score,
         v.txn_velocity_anomaly_score
     FROM intelligence.vw_signal_global_score g
-    JOIN intelligence.vw_signal_customer_score c ON
+    LEFT JOIN intelligence.vw_signal_customer_score c ON
             g.transaction_id = c.transaction_id
-    JOIN intelligence.vw_signal_transaction_type_score t ON
+    LEFT JOIN intelligence.vw_signal_transaction_type_score t ON
             g.transaction_id = t.transaction_id
-    JOIN intelligence.vw_signal_velocity_score v ON
+    LEFT JOIN intelligence.vw_signal_velocity_score v ON
             g.transaction_id = v.transaction_id
     ),
 p95_thresholds
@@ -434,35 +420,47 @@ CROSS JOIN p95_thresholds p;
 
 /*
 -- P5.3 Transaction Anomaly Engine — Signal Combination Analysis
--- The four anomaly signals were initially evaluated together using the 95th percentile of each signal as an exploratory
+-- The four anomaly signals were evaluated together using the 95th percentile of each signal as an exploratory
     high-deviation marker.
--- The combined INNER JOIN produced 384,689 transactions from the original 772,381 transaction population because the velocity view
-    contains only transactions with intervals below the global interval median; this population reduction is caused by the join
-    scope, not by the P95 calculation.
--- Within the 384,689 transaction population, approximately 5% of transactions were above the P95 for each individual signal:
-    global = 19,235, customer = 19,235, transaction type = 19,235, velocity = 19,238.
--- Global + Customer overlap was 17,224 transactions, showing substantial overlap between population-level and customer-relative
-    value deviation.
--- Global + Transaction Type overlap was 5,179 transactions.
--- Customer + Transaction Type overlap was 4,658 transactions.
--- Global + Velocity overlap was 1,014 transactions.
--- Customer + Velocity overlap was 1,005 transactions.
--- Transaction Type + Velocity overlap was 996 transactions.
--- The three-signal overlaps were: Global + Customer + Type = 4,129; Global + Customer + Velocity = 916;
-    Global + Type + Velocity = 276; Customer + Type + Velocity = 247.
--- All four signals exceeded their respective P95 markers for 222 transactions.
--- The overlap results indicate that Global + Customer captures substantial common information, while Velocity overlaps much less
-    with the value-based signals and therefore contributes a distinct temporal dimension.
+-- The final combination analysis preserved the full 772,381 transaction population using LEFT JOINs. This was
+    necessary because Customer Value excludes Merchant Payments from its baseline and Velocity contains only
+    transactions with a preceding transaction interval below the global median.
+-- Within the full transaction population, approximately 5% of transactions were above the P95 marker for the
+    Global and Transaction Type signals:
+    Global = 38,620; Transaction Type = 38,620.
+-- Customer Value identified 32,241 transactions above its P95 marker because Merchant Payments are excluded from
+    the Customer Value scoring population.
+-- Velocity identified 19,238 transactions above its P95 marker because the Velocity signal only contains
+    transactions whose preceding interval is below the global median.
+-- Global + Customer overlap was 4,684 transactions, showing that the strongest population-level and
+    customer-relative value deviations are concentrated in a comparatively small subset.
+-- Global + Transaction Type overlap was 11,206 transactions.
+-- Customer + Transaction Type overlap was 10,620 transactions.
+-- Global + Velocity overlap was 1,115 transactions.
+-- Customer + Velocity overlap was 839 transactions.
+-- Transaction Type + Velocity overlap was 1,273 transactions.
+-- Global + Customer + Transaction Type overlap was 4,684 transactions, indicating that every transaction in the
+    Global + Customer high-deviation overlap also exceeded the Transaction Type P95 marker.
+-- Global + Customer + Velocity overlap was 152 transactions.
+-- Global + Transaction Type + Velocity overlap was 373 transactions.
+-- Customer + Transaction Type + Velocity overlap was 354 transactions.
+-- All four signals exceeded their respective P95 markers for 152 transactions, representing approximately 0.02%
+    of the full transaction population.
+-- The overlap results show that Global + Customer captures a relatively concentrated value-deviation population,
+    while Velocity contributes a distinct temporal dimension and substantially narrows the multi-signal population.
+-- Transaction Type provides additional context around transaction-type-relative deviation, but within the
+    Global + Customer high-deviation population it does not further reduce the population.
 -- The P95 analysis was exploratory and was not adopted as a universal anomaly threshold.
 -- The analysis did not establish that a transaction above P95 is fraudulent, suspicious, or inherently higher risk.
--- The analysis did not justify weighting, normalising, or mathematically combining the four signal scores into a single risk score.
--- The results instead support workload-specific signal constructs: Global + Type for transaction-type analysis;
-    Global + Rapid Velocity for rapid-activity analysis; and Global + Customer + Type + Rapid Velocity for deeper
-    multi-dimensional investigation.
+-- The analysis did not justify weighting, normalising, or mathematically combining the four signal scores into
+    a single risk score.
+-- The results instead support workload-specific signal constructs: Global + Transaction Type for transaction-type
+    analysis; Global + Velocity for rapid-activity analysis; and Global + Customer + Transaction Type + Velocity
+    for deeper multi-dimensional investigation.
 -- Global therefore remains a population-level reference signal rather than a weighting or balancing mechanism.
 -- Signal combination is contextual: not every analytical workload requires every signal.
--- Final Transaction Anomaly Engine constructs were subsequently validated at transaction grain using these workload-specific
-    combinations.
+-- Final Transaction Anomaly Engine constructs were validated at transaction grain using these workload-specific
+    signal combinations.
 */
 -- Transaction Anomaly Engine.
 -- Global + Customer Anomaly
@@ -477,7 +475,7 @@ SELECT
     MIN(c.customer_mad_deviation_score) OVER () min_customer_score,
     MAX(c.customer_mad_deviation_score) OVER () max_customer_score
 FROM intelligence.vw_signal_global_score AS g
-JOIN intelligence.vw_signal_customer_score AS c ON
+LEFT JOIN intelligence.vw_signal_customer_score AS c ON
         g.transaction_id = c.transaction_id
 ORDER BY transaction_id;
 
@@ -493,7 +491,7 @@ SELECT
     MIN(t.txn_type_mad_deviation_score) OVER () min_txntype_score,
     MAX(t.txn_type_mad_deviation_score) OVER () max_txntype_score
 FROM intelligence.vw_signal_global_score AS g
-JOIN intelligence.vw_signal_transaction_type_score AS t ON
+LEFT JOIN intelligence.vw_signal_transaction_type_score AS t ON
         g.transaction_id = t.transaction_id
 ORDER BY transaction_id;
 
@@ -510,7 +508,7 @@ SELECT
     MIN(v.txn_velocity_anomaly_score) OVER () min_velocity_score,
     MAX(v.txn_velocity_anomaly_score) OVER () max_velocity_score
 FROM intelligence.vw_signal_global_score AS g
-JOIN intelligence.vw_signal_velocity_score v ON
+LEFT JOIN intelligence.vw_signal_velocity_score v ON
         g.transaction_id = v.transaction_id;
 
 -- Multi-dimensional
@@ -526,9 +524,9 @@ SELECT
     t.txn_type_mad_deviation_score,
     v.txn_velocity_anomaly_score
 FROM intelligence.vw_signal_global_score AS g
-JOIN intelligence.vw_signal_customer_score AS c ON
+LEFT JOIN intelligence.vw_signal_customer_score AS c ON
         g.transaction_id = c.transaction_id
-JOIN intelligence.vw_signal_velocity_score v ON
+LEFT JOIN intelligence.vw_signal_velocity_score v ON
         g.transaction_id = v.transaction_id
-JOIN intelligence.vw_signal_transaction_type_score AS t ON
+LEFT JOIN intelligence.vw_signal_transaction_type_score AS t ON
         g.transaction_id = t.transaction_id;

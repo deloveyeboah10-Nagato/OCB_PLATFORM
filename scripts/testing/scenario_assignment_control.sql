@@ -23,78 +23,6 @@ WITH (
 );
 
 
-
-WITH scenario_control AS
-(
-    SELECT 
-    t.customer_id,
-    t.transaction_id,
-    sa.scenario_family,
-    sa.severity,
-    sa.difficulty,
-    transaction_timestamp,
-    t.transaction_type,
-    t.transaction_amount,
-    Lead(transaction_timestamp,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_timestamp,
-    Lead(transaction_type,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_txn_type,
-    Lead(transaction_amount,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_amt
-FROM scenario_assignments_control sa
-INNER JOIN gold.vw_transaction t
-ON sa.source_customer_id=t.customer_id
-AND sa.synthetic_person_id=t.cross_domain_id
-AND scenario_id='S02'
-),
-lead_day_interval AS
-(
-    SELECT *,
-   /* Lead(date_hr,1) OVER (PARTITION BY customer_id ORDER BY date_hr) AS next_time,
-    Lead(transaction_amount,1) OVER (PARTITION BY customer_id ORDER BY date_hr) AS next_amt,
-    Lead(transaction_type,1) OVER (PARTITION BY customer_id ORDER BY date_hr) AS next_txn_type, */
-    DATEDIFF_BIG(SECOND, transaction_timestamp, next_timestamp)/86400.0 AS day_interval 
-FROM scenario_control
-WHERE DATEPART(HOUR,transaction_timestamp) >= 23 OR DATEPART(HOUR,transaction_timestamp)  <= 2
-)
-SELECT * FROM lead_day_interval
-WHERE day_interval <=1
-AND DATEPART(HOUR,next_timestamp) >= 23 OR DATEPART(HOUR,next_timestamp)  <= 2
-ORDER BY CASE WHEN severity = 'High' THEN 1
-            WHEN severity = 'Medium' THEN 2
-            ELSE 3 END ASC,customer_id ASC,transaction_timestamp ASC, day_interval ASC;
-
-
-
-WITH scenario_control AS
-(
-    SELECT 
-    t.customer_id,
-    t.transaction_id,
-    sa.scenario_family,
-    sa.severity,
-    sa.difficulty,
-    transaction_timestamp,
-    t.transaction_type,
-    t.transaction_amount,
-    Lead(transaction_timestamp,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_timestamp,
-    Lead(transaction_type,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_txn_type,
-    Lead(transaction_amount,1) OVER (PARTITION BY customer_id ORDER BY transaction_timestamp) AS next_amt
-FROM scenario_assignments_control sa
-INNER JOIN gold.vw_transaction t
-ON sa.source_customer_id=t.customer_id
-AND sa.synthetic_person_id=t.cross_domain_id
-AND scenario_id='S02'
-),
-lead_day_interval AS
-(
-    SELECT *,
-    DATEDIFF_BIG(SECOND, transaction_timestamp, next_timestamp)/86400.0 AS day_interval 
-FROM scenario_control
-)
-SELECT * FROM lead_day_interval
-WHERE DATEDIFF_BIG(SECOND, transaction_timestamp, next_timestamp) <= 10800
-ORDER BY CASE WHEN severity = 'High' THEN 1
-            WHEN severity = 'Medium' THEN 2
-            ELSE 3 END ASC,customer_id ASC,transaction_timestamp ASC, day_interval ASC;
-
 -- S02 Overnight Population Profile
 WITH scenario_customers AS
 (
@@ -377,6 +305,4 @@ WHERE gap_minutes <= 120
 ORDER BY
     customer_id,
     transaction_timestamp;
-
-
 
