@@ -2,7 +2,7 @@ USE [ocb_platform];
 GO
 
 -- Unusual Overnight Transactions Behavioural Engine
--- vw_signal_overnight_rapidity_score
+-- 1. vw_signal_overnight_rapidity_score
 CREATE
         OR
 
@@ -11,7 +11,8 @@ AS
 WITH overnight_transactions
 AS (
     SELECT
-        customer_id,
+        transaction_id,
+        ocb_customer_id,
         transaction_timestamp,
         CAST(CASE 
                 WHEN DATEPART(HOUR, transaction_timestamp) >= 23
@@ -25,22 +26,25 @@ AS (
 rapid_intervals
 AS (
     SELECT
-        customer_id,
+        transaction_id,
+        ocb_customer_id,
         overnight_date,
         transaction_timestamp,
         LAG(transaction_timestamp) OVER (
-            PARTITION BY customer_id,
-            overnight_date ORDER BY transaction_timestamp
+            PARTITION BY ocb_customer_id,
+            overnight_date ORDER BY transaction_timestamp,
+                transaction_id
             ) AS previous_transaction_timestamp
     FROM overnight_transactions
     ),
 interval_data
 AS (
     SELECT
-        customer_id,
+        transaction_id,
+        ocb_customer_id,
         overnight_date,
         transaction_timestamp,
-        DATEDIFF(SECOND, previous_transaction_timestamp, transaction_timestamp) / 60.0 AS interval_minutes
+        CAST(DATEDIFF_BIG(SECOND, previous_transaction_timestamp, transaction_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS interval_minutes
     FROM rapid_intervals
     WHERE previous_transaction_timestamp IS NOT NULL
     ),
@@ -77,7 +81,7 @@ AS (
     FROM deviations
     )
 SELECT
-    d.customer_id,
+    d.ocb_customer_id,
     d.overnight_date,
     d.transaction_timestamp,
     d.interval_minutes,
@@ -93,7 +97,8 @@ FROM deviations AS d
 CROSS JOIN mad_calc AS m;
 GO
 
--- vw_signal_overnight_residual_value_score
+-- Unusual Overnight Transactions Behavioural Engine
+-- 2. vw_signal_overnight_value_score
 CREATE
         OR
 
@@ -102,29 +107,29 @@ AS
 WITH normal_hours
 AS (
     SELECT
-        customer_id,
+        ocb_customer_id,
         CAST(transaction_timestamp AS DATE) AS normal_date,
         SUM(transaction_amount)             AS normal_daily_value
     FROM gold.vw_transaction
     WHERE DATEPART(HOUR, transaction_timestamp) >= 6
             AND DATEPART(HOUR, transaction_timestamp) < 23
-    GROUP BY customer_id,
-        CAST(transaction_timestamp AS DATE)  
+    GROUP BY ocb_customer_id,
+        CAST(transaction_timestamp AS DATE)
     ),
 customer_normal_baseline
 AS (
     SELECT DISTINCT
-        customer_id,
+        ocb_customer_id,
         PERCENTILE_CONT(0.5) WITHIN
     GROUP (
             ORDER BY normal_daily_value
-            ) OVER (PARTITION BY customer_id) AS normal_hours_median_value
+            ) OVER (PARTITION BY ocb_customer_id) AS normal_hours_median_value
     FROM normal_hours
     ),
 overnight_transactions
 AS (
     SELECT
-        customer_id,
+        ocb_customer_id,
         transaction_timestamp,
         transaction_amount,
         CAST(CASE 
@@ -139,20 +144,20 @@ AS (
 customer_night
 AS (
     SELECT
-        customer_id,
+        ocb_customer_id,
         overnight_date,
         COUNT(*)                AS overnight_txn_count,
         SUM(transaction_amount) AS overnight_total_value,
         MAX(transaction_amount) AS largest_transaction_value
     FROM overnight_transactions
-    GROUP BY customer_id,
+    GROUP BY ocb_customer_id,
         overnight_date
     HAVING COUNT(*) >= 2
     ),
 residuals
 AS (
     SELECT
-        cn.customer_id,
+        cn.ocb_customer_id,
         cn.overnight_date,
         cn.overnight_txn_count,
         cn.overnight_total_value,
@@ -161,7 +166,7 @@ AS (
         cn.overnight_total_value - b.normal_hours_median_value AS value_residual
     FROM customer_night AS cn
     INNER JOIN customer_normal_baseline AS b ON
-            cn.customer_id = b.customer_id
+            cn.ocb_customer_id = b.ocb_customer_id
     ),
 median_calc
 AS (
@@ -192,7 +197,7 @@ AS (
     FROM deviations
     )
 SELECT
-    d.customer_id,
+    d.ocb_customer_id,
     d.overnight_date,
     d.overnight_txn_count,
     d.overnight_total_value,
@@ -212,40 +217,59 @@ CROSS JOIN mad_calc AS m;
 GO
 
 /*
--- WP5.3 Behavioural Anomaly Engine — Overnight Behaviour Signal Combination
--- The Overnight Behaviour component evaluates two related but independent signals: Overnight Rapidity and Overnight
-    Residual Value.
--- Overnight Rapidity measures unusually short transaction intervals within the defined overnight window of
-    23:00–04:59, using the global median overnight interval and its MAD as the population reference.
--- Only overnight intervals below the population median receive a positive Overnight Rapidity MAD score, making the
-    signal directional toward unusually rapid overnight activity.
--- Overnight Residual Value establishes a customer-specific normal-hours baseline by calculating the median daily
-    transaction value during the 06:00–22:59 period.
--- Overnight transactions are then aggregated by customer and overnight date, with overnight periods containing at
-    least two transactions retained for evaluation.
--- The Overnight Residual Value is calculated as overnight total value minus the customer's normal-hours median daily
-    value.
--- Only positive residuals receive a positive Overnight Residual Value score, identifying overnight value that exceeds
-    the customer's established normal-hours behavioural baseline.
--- The two signals are assembled at customer + overnight_date grain so that rapid activity and elevated overnight value
-    can be evaluated as dimensions of the same overnight event.
--- The combination is an evidence assembly and not a mathematical composite score.
--- No weighting, normalisation, or single overnight risk score was introduced at this stage.
--- Merchant Payments were evaluated as a potential population contaminant for the Overnight Behaviour signals.
--- Merchant Payments were retained because they are present in the overnight population, the construct concerns
-    unusual overnight behaviour rather than merchant-specific behaviour, and the available OCB data does not provide
-    reliable merchant-role classification sufficient to justify a separate baseline.
--- Channel was not used as a proxy for merchant classification because channels such as QR and Agent are not
-    merchant-exclusive within the available transaction population.
--- The Overnight Behaviour signals therefore retain all observed transaction types within the defined overnight
-    population.
--- The Overnight Behaviour component is intended to identify unusual overnight intensity and value behaviour and does
-    not independently establish fraud, money laundering, or other prohibited activity.
--- The resulting evidence is intended for subsequent intelligence-layer interpretation and investigation.
+-- WP5.3 Behavioural Anomaly Engine — Overnight Behaviour
+-- The Overnight Behaviour component combines two signals:
+-- Overnight Rapidity and Overnight Residual Value.
+-- The overnight window is defined as 23:00–04:59.
+-- Transactions at or after 23:00 retain their calendar date as overnight_date.
+-- Transactions before 05:00 are assigned to the preceding calendar date.
+-- This groups late-night and early-morning transactions into one overnight period.
+-- OVERNIGHT RAPIDITY
+-- Measures intervals between consecutive transactions for the same customer
+-- within the same overnight_date.
+-- LAG() retrieves the preceding transaction timestamp, ordered by timestamp
+-- and transaction_id.
+-- Inter-transaction intervals are measured in minutes and compared with the
+-- global population median and Median Absolute Deviation (MAD).
+-- Only intervals below the population median receive a positive MAD score.
+-- Intervals at or above the median receive a score of zero.
+-- OVERNIGHT RESIDUAL VALUE
+-- Establishes a customer-specific baseline using daily transaction totals
+-- recorded during normal hours, defined as 06:00–22:59.
+-- The median of these daily totals represents the customer's typical
+-- normal-hours transaction value.
+-- Overnight transactions are aggregated by customer and overnight_date.
+-- Only overnight periods containing at least two transactions are retained.
+-- The overnight residual is overnight total value minus the customer's
+-- median daily normal-hours value.
+-- Positive residuals indicate overnight value exceeding the customer's
+-- established normal-hours baseline.
+-- Only positive residuals receive a positive score against the global
+-- residual population using MAD.
+-- Non-positive residuals receive a score of zero.
+-- SIGNAL COMBINATION
+-- The signals are assembled at customer + overnight_date grain wherever
+-- the relevant overnight event exists.
+-- Rapidity originates at transaction-interval grain and must be aggregated
+-- when assembled with the event-level value signal.
+-- The combination is an evidence assembly, not a mathematical composite score.
+-- No weighting, normalisation, or unified overnight risk score is introduced.
+-- All observed transaction types, including Merchant Payment, remain eligible.
+-- Merchant Payment was assessed as a potential source of population
+-- contamination, but its presence alone does not establish material distortion.
+-- Available data does not reliably identify merchant roles to justify
+-- a separate baseline.
+-- Channel is not used as a merchant proxy because QR and Agent are
+-- not merchant-exclusive.
+-- The component identifies unusual overnight transaction speed and value.
+-- These signals do not independently establish fraud, money laundering,
+-- or other prohibited activity.
+-- Their outputs provide behavioural evidence for subsequent intelligence
+-- interpretation and investigation.
 */
--- S02 combination query
+-- S02 Overnight Behaviour Signal Combination
 SELECT
-    r.customer_id,
+    r.ocb_customer_id,
     r.overnight_date,
     v.overnight_txn_count,
     v.overnight_total_value,
@@ -253,13 +277,13 @@ SELECT
     MIN(r.interval_minutes)             AS minimum_interval_minutes,
     MAX(r.overnight_rapidity_mad_score) AS overnight_rapidity_mad_score,
     v.value_residual,
-    v.population_median,
+    v.population_median                 AS value_population_median,
     v.overnight_residual_score
 FROM intelligence.vw_signal_overnight_rapidity_score AS r
-JOIN intelligence.vw_signal_overnight_value_score AS v ON
-        r.customer_id = v.customer_id
+LEFT JOIN intelligence.vw_signal_overnight_value_score AS v ON
+        r.ocb_customer_id = v.ocb_customer_id
             AND r.overnight_date = v.overnight_date
-GROUP BY r.customer_id,
+GROUP BY r.ocb_customer_id,
     r.overnight_date,
     v.overnight_txn_count,
     v.overnight_total_value,
@@ -272,7 +296,7 @@ ORDER BY overnight_rapidity_mad_score DESC,
 GO
 
 -- Customer-Specific Cash-Out Escalation Anomaly Engine
--- vw_cashout_escalation_score (Time series trajectory (using the median) )
+-- 1. vw_cashout_escalation_score
 CREATE
         OR
 
@@ -281,42 +305,42 @@ AS
 WITH monthly_cash_out
 AS (
     SELECT
-        customer_id,
+        ocb_customer_id,
         DATEFROMPARTS(YEAR(transaction_timestamp), MONTH(transaction_timestamp), 1) AS year_month,
         YEAR(transaction_timestamp)                                                 AS txn_yr,
         COUNT(*)                                                                    AS cash_out_txns,
         SUM(transaction_amount)                                                     AS cash_out_value
     FROM gold.vw_transaction
     WHERE transaction_type = 'cash out'
-    GROUP BY customer_id,
+    GROUP BY ocb_customer_id,
         DATEFROMPARTS(YEAR(transaction_timestamp), MONTH(transaction_timestamp), 1),
         YEAR(transaction_timestamp)
     ),
 annual_percentile_analysis
 AS (
     SELECT DISTINCT
-        customer_id,
+        ocb_customer_id,
         txn_yr,
         AVG(cash_out_txns) OVER (
-            PARTITION BY customer_id,
+            PARTITION BY ocb_customer_id,
             txn_yr
             ) AS annual_avg_txns,
         PERCENTILE_CONT(0.5) WITHIN
     GROUP (
             ORDER BY cash_out_txns
             ) OVER (
-            PARTITION BY customer_id,
+            PARTITION BY ocb_customer_id,
             txn_yr
             ) AS annual_median_monthly_txns,
         AVG(cash_out_value) OVER (
-            PARTITION BY customer_id,
+            PARTITION BY ocb_customer_id,
             txn_yr
             ) AS annual_avg_value,
         PERCENTILE_CONT(0.5) WITHIN
     GROUP (
             ORDER BY cash_out_value
             ) OVER (
-            PARTITION BY customer_id,
+            PARTITION BY ocb_customer_id,
             txn_yr
             ) AS annual_median_monthly_value
     FROM monthly_cash_out
@@ -324,14 +348,14 @@ AS (
 lagged_annual_baseline
 AS (
     SELECT
-        customer_id,
+        ocb_customer_id,
         txn_yr,
         LAG(annual_median_monthly_txns, 1) OVER (
-            PARTITION BY customer_id ORDER BY txn_yr
+            PARTITION BY ocb_customer_id ORDER BY txn_yr
             ) AS prev_yr_median_txns,
         annual_median_monthly_txns,
         LAG(annual_median_monthly_value, 1) OVER (
-            PARTITION BY customer_id ORDER BY txn_yr
+            PARTITION BY ocb_customer_id ORDER BY txn_yr
             ) AS prev_yr_median_value,
         annual_median_monthly_value
     FROM annual_percentile_analysis
@@ -339,7 +363,7 @@ AS (
 variance_from_prev_yr
 AS (
     SELECT
-        c.customer_id,
+        c.ocb_customer_id,
         c.year_month,
         c.txn_yr,
         b.prev_yr_median_txns,
@@ -352,14 +376,14 @@ AS (
         c.cash_out_value - b.prev_yr_median_value AS value_variance_from_prev_yr
     FROM monthly_cash_out c
     INNER JOIN lagged_annual_baseline b ON
-            c.customer_id = b.customer_id
+            c.ocb_customer_id = b.ocb_customer_id
                 AND c.txn_yr = b.txn_yr
     WHERE b.prev_yr_median_txns IS NOT NULL
     ),
 population_median
 AS (
     SELECT DISTINCT
-        customer_id,
+        ocb_customer_id,
         year_month,
         PERCENTILE_CONT(0.5) WITHIN
     GROUP (
@@ -374,7 +398,7 @@ AS (
 absolute_deviation
 AS (
     SELECT
-        v.customer_id,
+        v.ocb_customer_id,
         v.year_month,
         txn_yr,
         v.volume_variance_from_prev_yr,
@@ -385,13 +409,13 @@ AS (
         ABS(v.value_variance_from_prev_yr - m.median_value_variance)   AS value_deviation
     FROM variance_from_prev_yr v
     INNER JOIN population_median m ON
-            v.customer_id = m.customer_id
+            v.ocb_customer_id = m.ocb_customer_id
                 AND v.year_month = m.year_month
     ),
 mad_calc
 AS (
     SELECT DISTINCT
-        customer_id,
+        ocb_customer_id,
         year_month,
         PERCENTILE_CONT(0.5) WITHIN
     GROUP (
@@ -404,7 +428,7 @@ AS (
     FROM absolute_deviation
     )
 SELECT
-    d.customer_id,
+    d.ocb_customer_id,
     d.year_month,
     d.volume_variance_from_prev_yr,
     d.median_volume_variance,
@@ -426,7 +450,7 @@ SELECT
         END AS value_escalation_score
 FROM absolute_deviation d
 INNER JOIN mad_calc m ON
-        d.customer_id = m.customer_id
+        d.ocb_customer_id = m.ocb_customer_id
             AND d.year_month = m.year_month;
 GO
 
