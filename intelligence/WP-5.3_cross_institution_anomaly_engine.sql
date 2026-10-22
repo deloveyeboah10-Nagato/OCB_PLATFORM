@@ -826,16 +826,18 @@ loan_remittance_sequences AS
         r.next_remittance_id,
         r.next_remittance_timestamp
 
-    FROM remittance_sequences AS r
-    INNER JOIN loan_sequences AS l
-        ON l.ocb_customer_id = r.ocb_customer_id
-       AND l.loan_timestamp <= r.remittance_timestamp
+    FROM loan_sequences AS l
+    INNER JOIN remittance_sequences AS r
+        ON r.ocb_customer_id = l.ocb_customer_id
+       AND r.remittance_timestamp >= l.loan_timestamp
        AND (
             l.next_loan_timestamp IS NULL
-            OR l.next_loan_timestamp > r.remittance_timestamp
+            OR r.remittance_timestamp < l.next_loan_timestamp
        )
 
-    WHERE r.next_remittance_timestamp IS NOT NULL
+    WHERE l.next_loan_timestamp IS NOT NULL
+      AND r.next_remittance_timestamp IS NOT NULL
+      AND l.next_loan_timestamp < r.next_remittance_timestamp
 ),
 recurrence_population AS
 (
@@ -851,8 +853,6 @@ recurrence_population AS
         ) AS credit_to_remittance_recurrence_minutes
 
     FROM loan_remittance_sequences
-    WHERE next_loan_timestamp IS NOT NULL
-      AND next_loan_timestamp < next_remittance_timestamp
 ),
 median_stage AS
 (
@@ -920,6 +920,7 @@ SELECT
 FROM recurrence_scores;
 GO
 
+
 /*
 -- WP5.3 Credit → Remittance Intelligence Engine — Process Documentation
 -- Credit → Remittance Intelligence identifies matched Loan Disbursement → Remittance Sent sequences within the same OCB customer.
@@ -946,8 +947,8 @@ GO
 -- Credit → Remittance Recurrence measures how quickly customers repeat the matched sequence.
 -- Successive sequences are identified using LEAD() within each customer.
 -- Sequences are ordered by loan disbursement timestamp and loan ID.
--- The recurrence interval runs from the current remittance to the next matched loan disbursement.
--- This measures the gap between one sequence's completion and the next sequence's initiation.
+-- The recurrence interval runs from the current remittance to the next matched remittance.
+-- This measures the gap between one sequence's completion and the next sequence's completion.
 -- The final matched sequence for each customer has no subsequent sequence and is excluded from recurrence calculations.
 -- Recurrence scoring uses the population median and MAD of the recurrence intervals.
 -- Intervals below the median receive positive scores when MAD is greater than zero.
@@ -992,102 +993,101 @@ LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS s ON
             AND r.loan_id = s.loan_id;
 GO
 
+
 -- INBOUND REMITTANCE → P2P REDISTRIBUTION
 -- 1. Inbound Remittance-to-P2P Rapidity Score
-CREATE
-        OR
-
-ALTER VIEW intelligence.vw_remittance_p2p_rapidity_score
+CREATE OR ALTER VIEW intelligence.vw_remittance_p2p_rapidity_score
 AS
-WITH inbound_remittances
-AS (
+WITH inbound_remittances AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.remittance_timestamp AS inbound_remittance_timestamp,
         LEAD(r.remittance_timestamp) OVER (
-            PARTITION BY r.ocb_customer_id ORDER BY r.remittance_timestamp,
-                r.remittance_id
-            ) AS next_inbound_remittance_timestamp
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_inbound_remittance_timestamp
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_received'
-    ),
-remittance_p2ptransfer_profile
-AS (
+        AND r.remittance_status = 'successful'
+),
+remittance_p2ptransfer_profile AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.inbound_remittance_timestamp,
-        t.transaction_id        AS p2p_transfer_id,
+        t.transaction_id AS p2p_transfer_id,
         t.transaction_timestamp AS p2p_transfer_timestamp,
         ROW_NUMBER() OVER (
-            PARTITION BY r.ocb_customer_id,
-            r.remittance_id ORDER BY t.transaction_timestamp,
-                t.transaction_id
-            ) AS p2p_sequence_number
+            PARTITION BY r.ocb_customer_id, r.remittance_id
+            ORDER BY t.transaction_timestamp, t.transaction_id
+        ) AS p2p_sequence_number
     FROM inbound_remittances AS r
-    INNER JOIN gold.vw_transaction AS t ON
-            r.ocb_customer_id = t.ocb_customer_id
-                AND t.transaction_type = 'p2p transfer'
-                AND t.transaction_timestamp >= r.inbound_remittance_timestamp
-                AND (
-                r.next_inbound_remittance_timestamp IS NULL
-                    OR t.transaction_timestamp < r.next_inbound_remittance_timestamp
-                )
-    ),
-first_p2p
-AS (
+    INNER JOIN gold.vw_transaction AS t
+        ON r.ocb_customer_id = t.ocb_customer_id
+        AND t.transaction_type = 'p2p transfer'
+        AND t.transaction_status = 'successful'
+        AND t.transaction_timestamp >= r.inbound_remittance_timestamp
+        AND (
+            r.next_inbound_remittance_timestamp IS NULL
+            OR t.transaction_timestamp < r.next_inbound_remittance_timestamp
+        )
+),
+first_p2p AS (
     SELECT
         ocb_customer_id,
         remittance_id,
         inbound_remittance_timestamp,
-        p2p_transfer_id                                                                                                   AS first_p2p_transfer_id,
-        p2p_transfer_timestamp                                                                                            AS first_p2p_transfer_timestamp,
-        CAST(DATEDIFF_BIG(MILLISECOND, inbound_remittance_timestamp, p2p_transfer_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS elapsed_minutes
+        p2p_transfer_id AS first_p2p_transfer_id,
+        p2p_transfer_timestamp AS first_p2p_transfer_timestamp,
+        CAST(
+            DATEDIFF_BIG(
+                MILLISECOND,
+                inbound_remittance_timestamp,
+                p2p_transfer_timestamp
+            ) / 60000.0
+            AS DECIMAL(18, 4)
+        ) AS elapsed_minutes
     FROM remittance_p2ptransfer_profile
     WHERE p2p_sequence_number = 1
-    ),
-median_elapsed
-AS (
+),
+median_elapsed AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY elapsed_minutes
-            ) OVER () AS median_elapsed_minutes
+        ) OVER () AS median_elapsed_minutes
     FROM first_p2p
-    ),
-absolute_deviations
-AS (
+),
+absolute_deviations AS (
     SELECT
         f.*,
         m.median_elapsed_minutes,
         ABS(f.elapsed_minutes - m.median_elapsed_minutes) AS absolute_deviation
     FROM first_p2p AS f
     CROSS JOIN median_elapsed AS m
-    ),
-mad_calculation
-AS (
+),
+mad_calculation AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY absolute_deviation
-            ) OVER () AS mad_elapsed_minutes
+        ) OVER () AS mad_elapsed_minutes
     FROM absolute_deviations
-    ),
-rapidity_scores
-AS (
+),
+rapidity_scores AS (
     SELECT
         a.*,
         m.mad_elapsed_minutes,
-        CASE 
+        CASE
             WHEN m.mad_elapsed_minutes > 0
-                    AND a.elapsed_minutes < a.median_elapsed_minutes
-                THEN (a.median_elapsed_minutes - a.elapsed_minutes) / m.mad_elapsed_minutes
+                AND a.elapsed_minutes < a.median_elapsed_minutes
+            THEN
+                (a.median_elapsed_minutes - a.elapsed_minutes)
+                / m.mad_elapsed_minutes
             ELSE 0
-            END AS inbound_remittance_to_p2p_rapidity_score
+        END AS inbound_remittance_to_p2p_rapidity_score
     FROM absolute_deviations AS a
     CROSS JOIN mad_calculation AS m
-    )
+)
 SELECT
     ocb_customer_id,
     remittance_id,
@@ -1102,204 +1102,196 @@ FROM rapidity_scores;
 GO
 
 -- 2. Inbound Remittance-to-P2P Value Correspondence Score
-CREATE
-        OR
-
-ALTER VIEW intelligence.vw_remittance_p2p_value_correspondence_score
+CREATE OR ALTER VIEW intelligence.vw_remittance_p2p_value_correspondence_score
 AS
-WITH inbound_remittances
-AS (
+WITH inbound_remittances AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.remittance_timestamp AS inbound_remittance_timestamp,
-        r.remittance_amount    AS inbound_remittance_amount,
+        r.remittance_amount AS inbound_remittance_amount,
         LEAD(r.remittance_timestamp) OVER (
-            PARTITION BY r.ocb_customer_id ORDER BY r.remittance_timestamp,
-                r.remittance_id
-            ) AS next_inbound_remittance_timestamp
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_inbound_remittance_timestamp
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_received'
-    ),
-remittance_p2ptransfer_profile
-AS (
+        AND r.remittance_status = 'successful'
+),
+remittance_p2ptransfer_profile AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.inbound_remittance_timestamp,
         r.inbound_remittance_amount,
         r.next_inbound_remittance_timestamp,
-        t.transaction_id        AS p2p_transfer_id,
+        t.transaction_id AS p2p_transfer_id,
         t.transaction_timestamp AS p2p_transfer_timestamp,
-        t.transaction_amount    AS p2p_transfer_amount
+        t.transaction_amount AS p2p_transfer_amount
     FROM inbound_remittances AS r
-    INNER JOIN gold.vw_transaction AS t ON
-            t.ocb_customer_id = r.ocb_customer_id
-                AND t.transaction_type = 'p2p transfer'
-                AND t.transaction_timestamp >= r.inbound_remittance_timestamp
-                AND (
-                r.next_inbound_remittance_timestamp IS NULL
-                    OR t.transaction_timestamp < r.next_inbound_remittance_timestamp
-                )
-    ),
-p2p_sequence_totals
-AS (
+    INNER JOIN gold.vw_transaction AS t
+        ON t.ocb_customer_id = r.ocb_customer_id
+        AND t.transaction_type = 'p2p transfer'
+        AND t.transaction_status = 'successful'
+        AND t.transaction_timestamp >= r.inbound_remittance_timestamp
+        AND (
+            r.next_inbound_remittance_timestamp IS NULL
+            OR t.transaction_timestamp < r.next_inbound_remittance_timestamp
+        )
+),
+p2p_sequence_totals AS (
     SELECT
         ocb_customer_id,
         remittance_id,
         inbound_remittance_timestamp,
         inbound_remittance_amount,
-        COUNT(p2p_transfer_id)   AS p2p_transfer_count,
+        COUNT(p2p_transfer_id) AS p2p_transfer_count,
         SUM(p2p_transfer_amount) AS total_p2p_transfer_amount
     FROM remittance_p2ptransfer_profile
-    GROUP BY ocb_customer_id,
+    GROUP BY
+        ocb_customer_id,
         remittance_id,
         inbound_remittance_timestamp,
         inbound_remittance_amount
-    ),
-value_correspondence
-AS (
+),
+value_correspondence AS (
     SELECT
         *,
-        total_p2p_transfer_amount / NULLIF(inbound_remittance_amount, 0) AS p2p_to_remittance_value_ratio
+        total_p2p_transfer_amount
+            / NULLIF(inbound_remittance_amount, 0) AS p2p_to_remittance_value_ratio
     FROM p2p_sequence_totals
-    ),
-log_value_ratio
-AS (
+),
+log_value_ratio AS (
     SELECT
         *,
         LOG(p2p_to_remittance_value_ratio) AS log_value_ratio
     FROM value_correspondence
     WHERE p2p_to_remittance_value_ratio > 0
-    ),
-median_deviation
-AS (
+),
+median_deviation AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY log_value_ratio
-            ) OVER () AS median_log_value_ratio
+        ) OVER () AS median_log_value_ratio
     FROM log_value_ratio
-    ),
-absolute_deviations
-AS (
+),
+absolute_deviations AS (
     SELECT
         a.*,
         m.median_log_value_ratio,
         ABS(a.log_value_ratio - m.median_log_value_ratio) AS absolute_deviation
     FROM log_value_ratio AS a
     CROSS JOIN median_deviation AS m
-    ),
-mad_calculation
-AS (
+),
+mad_calculation AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY absolute_deviation
-            ) OVER () AS mad_value_difference
+        ) OVER () AS mad_value_difference
     FROM absolute_deviations
-    ),
-value_correspondence_scores
-AS (
+),
+value_correspondence_scores AS (
     SELECT
         a.*,
         m.mad_value_difference,
-        CASE 
+        CASE
             WHEN m.mad_value_difference > 0
-                    AND a.log_value_ratio > a.median_log_value_ratio
-                THEN (a.log_value_ratio - a.median_log_value_ratio) / m.mad_value_difference
+                AND a.log_value_ratio > a.median_log_value_ratio
+            THEN
+                (a.log_value_ratio - a.median_log_value_ratio)
+                / m.mad_value_difference
             ELSE 0
-            END AS inbound_remittance_to_p2p_value_correspondence_score
+        END AS inbound_remittance_to_p2p_value_correspondence_score
     FROM absolute_deviations AS a
     CROSS JOIN mad_calculation AS m
-    )
-SELECT
-    *
+)
+SELECT *
 FROM value_correspondence_scores;
 GO
 
 -- 3. Inbound Remittance-to-P2P Recurrence Score
-CREATE
-        OR
-
-ALTER VIEW intelligence.vw_remittance_p2p_recurrence_score
+CREATE OR ALTER VIEW intelligence.vw_remittance_p2p_recurrence_score
 AS
-WITH inbound_remittances
-AS (
+WITH inbound_remittances AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.remittance_timestamp AS sequence_start_timestamp,
         LEAD(r.remittance_timestamp) OVER (
-            PARTITION BY r.ocb_customer_id ORDER BY r.remittance_timestamp,
-                r.remittance_id
-            ) AS sequence_2_start_timestamp
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS sequence_2_start_timestamp
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_received'
-    ),
-remittance_p2p_sequences
-AS (
+        AND r.remittance_status = 'successful'
+),
+remittance_p2p_sequences AS (
     SELECT
         r.ocb_customer_id,
-        r.remittance_id              AS sequence_1_remittance_id,
+        r.remittance_id AS sequence_1_remittance_id,
         r.sequence_start_timestamp,
         r.sequence_2_start_timestamp,
         MAX(t.transaction_timestamp) AS sequence_1_endpoint_timestamp,
-        COUNT(t.transaction_id)      AS sequence_1_p2p_transfer_count
+        COUNT(t.transaction_id) AS sequence_1_p2p_transfer_count
     FROM inbound_remittances AS r
-    INNER JOIN gold.vw_transaction AS t ON
-            t.ocb_customer_id = r.ocb_customer_id
-                AND t.transaction_type = 'p2p transfer'
-                AND t.transaction_timestamp >= r.sequence_start_timestamp
-                AND (
-                r.sequence_2_start_timestamp IS NULL
-                    OR t.transaction_timestamp < r.sequence_2_start_timestamp
-                )
-    GROUP BY r.ocb_customer_id,
+    INNER JOIN gold.vw_transaction AS t
+        ON t.ocb_customer_id = r.ocb_customer_id
+        AND t.transaction_type = 'p2p transfer'
+        AND t.transaction_status = 'successful'
+        AND t.transaction_timestamp >= r.sequence_start_timestamp
+        AND (
+            r.sequence_2_start_timestamp IS NULL
+            OR t.transaction_timestamp < r.sequence_2_start_timestamp
+        )
+    GROUP BY
+        r.ocb_customer_id,
         r.remittance_id,
         r.sequence_start_timestamp,
         r.sequence_2_start_timestamp
-    ),
-sequence_recurrence
-AS (
+),
+sequence_recurrence AS (
     SELECT
         ocb_customer_id,
         sequence_1_remittance_id,
         sequence_1_endpoint_timestamp,
         sequence_2_start_timestamp,
-        CAST(DATEDIFF_BIG(MILLISECOND, sequence_1_endpoint_timestamp, sequence_2_start_timestamp) AS DECIMAL(18, 4)) AS recurrence_interval_minutes
+        CAST(
+            DATEDIFF_BIG(
+                MILLISECOND,
+                sequence_1_endpoint_timestamp,
+                sequence_2_start_timestamp
+            ) / 60000.0
+            AS DECIMAL(18, 4)
+        ) AS recurrence_interval_minutes
     FROM remittance_p2p_sequences
     WHERE sequence_2_start_timestamp IS NOT NULL
-    ),
-median_deviation
-AS (
+),
+median_deviation AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY recurrence_interval_minutes
-            ) OVER () AS median_recurrence_interval_minutes
+        ) OVER () AS median_recurrence_interval_minutes
     FROM sequence_recurrence
-    ),
-absolute_deviations
-AS (
+),
+absolute_deviations AS (
     SELECT
         s.*,
         m.median_recurrence_interval_minutes,
-        ABS(s.recurrence_interval_minutes - m.median_recurrence_interval_minutes) AS absolute_deviation
+        ABS(
+            s.recurrence_interval_minutes
+            - m.median_recurrence_interval_minutes
+        ) AS absolute_deviation
     FROM sequence_recurrence AS s
     CROSS JOIN median_deviation AS m
-    ),
-mad_calculation
-AS (
+),
+mad_calculation AS (
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY absolute_deviation
-            ) OVER () AS mad_recurrence_interval_minutes
+        ) OVER () AS mad_recurrence_interval_minutes
     FROM absolute_deviations
-    ),
-recurrence_scores
-AS (
+),
+recurrence_scores AS (
     SELECT
         a.ocb_customer_id,
         a.sequence_1_remittance_id,
@@ -1309,15 +1301,19 @@ AS (
         a.median_recurrence_interval_minutes,
         a.absolute_deviation,
         m.mad_recurrence_interval_minutes,
-        CASE 
+        CASE
             WHEN m.mad_recurrence_interval_minutes > 0
-                    AND a.recurrence_interval_minutes < a.median_recurrence_interval_minutes
-                THEN (a.median_recurrence_interval_minutes - a.recurrence_interval_minutes) / m.mad_recurrence_interval_minutes
+                AND a.recurrence_interval_minutes
+                    < a.median_recurrence_interval_minutes
+            THEN
+                (a.median_recurrence_interval_minutes
+                    - a.recurrence_interval_minutes)
+                / m.mad_recurrence_interval_minutes
             ELSE 0
-            END AS inbound_remittance_to_p2p_recurrence_score
+        END AS inbound_remittance_to_p2p_recurrence_score
     FROM absolute_deviations AS a
     CROSS JOIN mad_calculation AS m
-    )
+)
 SELECT
     ocb_customer_id,
     sequence_1_remittance_id,
@@ -1410,27 +1406,26 @@ GO
 
 -- Inbound Remittance-to-Loan Repayment 
 -- 1. Inbound Remittance-to-Loan Repayment Rapidity Score
-CREATE
-        OR
 
-ALTER VIEW intelligence.vw_remittance_repayment_rapidity_score
+CREATE OR ALTER VIEW intelligence.vw_remittance_repayment_rapidity_score
 AS
-WITH inbound_remittances
-AS (
+WITH inbound_remittances AS
+(
     SELECT
         rm.ocb_customer_id,
         rm.remittance_id,
         rm.remittance_timestamp AS inbound_remittance_timestamp,
-        rm.remittance_amount    AS inbound_remittance_amount,
+        rm.remittance_amount AS inbound_remittance_amount,
         LEAD(rm.remittance_timestamp) OVER (
-            PARTITION BY rm.ocb_customer_id ORDER BY rm.remittance_timestamp,
-                rm.remittance_id
-            ) AS next_remittance_timestamp
+            PARTITION BY rm.ocb_customer_id
+            ORDER BY rm.remittance_timestamp, rm.remittance_id
+        ) AS next_remittance_timestamp
     FROM gold.vw_remittance AS rm
     WHERE rm.remittance_type = 'remittance_received'
-    ),
-repayment_sequences
-AS (
+        AND rm.remittance_status = 'successful'
+),
+repayment_sequences AS
+(
     SELECT
         rm.ocb_customer_id,
         rm.remittance_id,
@@ -1442,46 +1437,53 @@ AS (
         rp.repayment_timestamp,
         rp.repayment_amount,
         ROW_NUMBER() OVER (
-            PARTITION BY rm.ocb_customer_id,
-            rm.remittance_id ORDER BY rp.repayment_timestamp,
-                rp.repayment_id
-            ) AS repayment_sequence_number
+            PARTITION BY rm.ocb_customer_id, rm.remittance_id
+            ORDER BY rp.repayment_timestamp, rp.repayment_id
+        ) AS repayment_sequence_number
     FROM inbound_remittances AS rm
-    INNER JOIN gold.vw_repayment AS rp ON
-            rm.ocb_customer_id = rp.ocb_customer_id
-                AND rp.repayment_timestamp >= rm.inbound_remittance_timestamp
-                AND (
-                rp.repayment_timestamp < rm.next_remittance_timestamp
-                    OR rm.next_remittance_timestamp IS NULL
-                )
-    ),
-first_repayments
-AS (
+    INNER JOIN gold.vw_repayment AS rp
+        ON rm.ocb_customer_id = rp.ocb_customer_id
+        AND rp.repayment_timestamp >= rm.inbound_remittance_timestamp
+        AND (
+            rp.repayment_timestamp < rm.next_remittance_timestamp
+            OR rm.next_remittance_timestamp IS NULL
+        )
+),
+first_repayments AS
+(
     SELECT
         *,
-        CAST(DATEDIFF_BIG(MILLISECOND, inbound_remittance_timestamp, repayment_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS remittance_repayment_delay_minutes
+        CAST(
+            DATEDIFF_BIG(
+                MILLISECOND,
+                inbound_remittance_timestamp,
+                repayment_timestamp
+            ) / 60000.0
+            AS DECIMAL(18, 4)
+        ) AS remittance_repayment_delay_minutes
     FROM repayment_sequences
     WHERE repayment_sequence_number = 1
-    ),
-rapidity_statistics
-AS (
+),
+rapidity_statistics AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY remittance_repayment_delay_minutes
-            ) OVER () AS median_delay_minutes
+        ) OVER () AS median_delay_minutes
     FROM first_repayments
-    ),
-rapidity_mad
-AS (
+),
+rapidity_mad AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
-            ORDER BY ABS(fr.remittance_repayment_delay_minutes - rs.median_delay_minutes)
-            ) OVER () AS mad_delay_minutes
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
+            ORDER BY ABS(
+                fr.remittance_repayment_delay_minutes
+                - rs.median_delay_minutes
+            )
+        ) OVER () AS mad_delay_minutes
     FROM first_repayments AS fr
     CROSS JOIN rapidity_statistics AS rs
-    )
+)
 SELECT
     fr.ocb_customer_id,
     fr.remittance_id,
@@ -1495,39 +1497,41 @@ SELECT
     fr.remittance_repayment_delay_minutes,
     rs.median_delay_minutes,
     rm.mad_delay_minutes,
-    CASE 
+    CASE
         WHEN rm.mad_delay_minutes > 0
-                AND fr.remittance_repayment_delay_minutes < rs.median_delay_minutes
-            THEN (rs.median_delay_minutes - fr.remittance_repayment_delay_minutes) / rm.mad_delay_minutes
+            AND fr.remittance_repayment_delay_minutes < rs.median_delay_minutes
+        THEN
+            (rs.median_delay_minutes - fr.remittance_repayment_delay_minutes)
+            / rm.mad_delay_minutes
         ELSE 0
-        END AS remittance_repayment_rapidity_score
+    END AS remittance_repayment_rapidity_score
 FROM first_repayments AS fr
 CROSS JOIN rapidity_statistics AS rs
 CROSS JOIN rapidity_mad AS rm;
 GO
 
--- 2. Inbound Remittance-to-Repayment Value Correspondence Score
-CREATE
-        OR
 
-ALTER VIEW intelligence.vw_remittance_repayment_value_correspondence_score
+
+-- 2. Inbound Remittance-to-Repayment Value Correspondence Score
+CREATE OR ALTER VIEW intelligence.vw_remittance_repayment_value_correspondence_score
 AS
-WITH inbound_remittances
-AS (
+WITH inbound_remittances AS
+(
     SELECT
         rm.ocb_customer_id,
         rm.remittance_id,
         rm.remittance_timestamp AS inbound_remittance_timestamp,
-        rm.remittance_amount    AS inbound_remittance_amount,
+        rm.remittance_amount AS inbound_remittance_amount,
         LEAD(rm.remittance_timestamp) OVER (
-            PARTITION BY rm.ocb_customer_id ORDER BY rm.remittance_timestamp,
-                rm.remittance_id
-            ) AS next_remittance_timestamp
+            PARTITION BY rm.ocb_customer_id
+            ORDER BY rm.remittance_timestamp, rm.remittance_id
+        ) AS next_remittance_timestamp
     FROM gold.vw_remittance AS rm
     WHERE rm.remittance_type = 'remittance_received'
-    ),
-remittance_repayment_profile
-AS (
+        AND rm.remittance_status = 'successful'
+),
+remittance_repayment_profile AS
+(
     SELECT
         rm.ocb_customer_id,
         rm.remittance_id,
@@ -1537,91 +1541,95 @@ AS (
         rp.repayment_id,
         rp.repayment_amount
     FROM inbound_remittances AS rm
-    INNER JOIN gold.vw_repayment AS rp ON
-            rm.ocb_customer_id = rp.ocb_customer_id
-                AND rp.repayment_timestamp >= rm.inbound_remittance_timestamp
-                AND (
-                rm.next_remittance_timestamp IS NULL
-                    OR rp.repayment_timestamp < rm.next_remittance_timestamp
-                )
-    ),
-repayment_sequence_totals
-AS (
+    INNER JOIN gold.vw_repayment AS rp
+        ON rm.ocb_customer_id = rp.ocb_customer_id
+        AND rp.repayment_timestamp >= rm.inbound_remittance_timestamp
+        AND (
+            rm.next_remittance_timestamp IS NULL
+            OR rp.repayment_timestamp < rm.next_remittance_timestamp
+        )
+),
+repayment_sequence_totals AS
+(
     SELECT
         ocb_customer_id,
         remittance_id,
         inbound_remittance_timestamp,
         inbound_remittance_amount,
         next_remittance_timestamp,
-        COUNT(repayment_id)   AS qualifying_repayment_count,
+        COUNT(repayment_id) AS qualifying_repayment_count,
         SUM(repayment_amount) AS total_qualifying_repayment_amount
     FROM remittance_repayment_profile
-    GROUP BY ocb_customer_id,
+    GROUP BY
+        ocb_customer_id,
         remittance_id,
         inbound_remittance_timestamp,
         inbound_remittance_amount,
         next_remittance_timestamp
-    ),
-value_correspondence
-AS (
+),
+value_correspondence AS
+(
     SELECT
         *,
-        total_qualifying_repayment_amount / NULLIF(inbound_remittance_amount, 0) AS repayment_correspondence_ratio
+        total_qualifying_repayment_amount
+            / NULLIF(inbound_remittance_amount, 0)
+            AS repayment_correspondence_ratio
     FROM repayment_sequence_totals
-    ),
-log_value_ratio
-AS (
+),
+log_value_ratio AS
+(
     SELECT
         *,
         LOG(repayment_correspondence_ratio) AS log_value_ratio
     FROM value_correspondence
     WHERE repayment_correspondence_ratio > 0
-    ),
-median_deviation
-AS (
+),
+median_deviation AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY log_value_ratio
-            ) OVER () AS median_log_value_ratio
+        ) OVER () AS median_log_value_ratio
     FROM log_value_ratio
-    ),
-absolute_deviations
-AS (
+),
+absolute_deviations AS
+(
     SELECT
         a.*,
         m.median_log_value_ratio,
-        ABS(a.log_value_ratio - m.median_log_value_ratio) AS absolute_deviation
+        ABS(a.log_value_ratio - m.median_log_value_ratio)
+            AS absolute_deviation
     FROM log_value_ratio AS a
     CROSS JOIN median_deviation AS m
-    ),
-mad_calculation
-AS (
+),
+mad_calculation AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP (
             ORDER BY absolute_deviation
-            ) OVER () AS mad_value_difference
+        ) OVER () AS mad_value_difference
     FROM absolute_deviations
-    ),
-value_correspondence_scores
-AS (
+),
+value_correspondence_scores AS
+(
     SELECT
         a.*,
         m.mad_value_difference,
-        CASE 
+        CASE
             WHEN m.mad_value_difference > 0
-                    AND a.log_value_ratio > a.median_log_value_ratio
-                THEN (a.log_value_ratio - a.median_log_value_ratio) / m.mad_value_difference
+                AND a.log_value_ratio > a.median_log_value_ratio
+            THEN
+                (a.log_value_ratio - a.median_log_value_ratio)
+                / m.mad_value_difference
             ELSE 0
-            END AS remittance_repayment_value_correspondence_score
+        END AS remittance_repayment_value_correspondence_score
     FROM absolute_deviations AS a
     CROSS JOIN mad_calculation AS m
-    )
-SELECT
-    *
+)
+SELECT *
 FROM value_correspondence_scores;
 GO
+
 
 -- 3. Inbound Remittance-to-repayment Recurrence Score
 CREATE
@@ -1734,6 +1742,175 @@ SELECT
     inbound_remittance_to_repayment_recurrence_score
 FROM recurrence_scores;
 GO
+
+
+
+
+-THE REWRITE
+
+
+
+-- 3. Inbound Remittance-to-Repayment Recurrence Score
+
+CREATE OR ALTER VIEW intelligence.vw_remittance_repayment_recurrence_score
+AS
+WITH remittance_sequences AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+
+        LEAD(r.remittance_id) OVER
+        (
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_remittance_id,
+
+        LEAD(r.remittance_timestamp) OVER
+        (
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_remittance_timestamp
+
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_type = 'remittance_received'
+      AND r.remittance_status = 'successful'
+),
+repayment_sequences AS
+(
+    SELECT
+        rp.ocb_customer_id,
+        rp.repayment_id,
+        rp.repayment_timestamp,
+        rp.repayment_amount,
+        rp.loan_id,
+
+        LEAD(rp.repayment_id) OVER
+        (
+            PARTITION BY rp.ocb_customer_id
+            ORDER BY rp.repayment_timestamp, rp.repayment_id
+        ) AS next_repayment_id,
+
+        LEAD(rp.repayment_timestamp) OVER
+        (
+            PARTITION BY rp.ocb_customer_id
+            ORDER BY rp.repayment_timestamp, rp.repayment_id
+        ) AS next_repayment_timestamp
+
+    FROM gold.vw_repayment AS rp
+),
+remittance_repayment_sequences AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+        rp.repayment_id,
+        rp.repayment_timestamp,
+        rp.repayment_amount,
+        rp.loan_id,
+        r.next_remittance_id,
+        r.next_remittance_timestamp,
+        rp.next_repayment_id,
+        rp.next_repayment_timestamp
+
+    FROM remittance_sequences AS r
+    INNER JOIN repayment_sequences AS rp
+        ON rp.ocb_customer_id = r.ocb_customer_id
+       AND rp.repayment_timestamp >= r.remittance_timestamp
+       AND (
+            r.next_remittance_timestamp IS NULL
+            OR rp.repayment_timestamp < r.next_remittance_timestamp
+       )
+    WHERE r.next_remittance_timestamp IS NOT NULL
+      AND rp.next_repayment_timestamp IS NOT NULL
+      AND r.next_remittance_timestamp < rp.next_repayment_timestamp
+),
+recurrence_population AS
+(
+    SELECT
+        *,
+        CAST(
+            DATEDIFF_BIG(
+                MILLISECOND,
+                repayment_timestamp,
+                next_repayment_timestamp
+            ) / 60000.0
+            AS DECIMAL(18, 4)
+        ) AS recurrence_gap_minutes
+
+    FROM remittance_repayment_sequences
+),
+median_stage AS
+(
+    SELECT DISTINCT
+        PERCENTILE_CONT(0.5) WITHIN GROUP
+        (
+            ORDER BY recurrence_gap_minutes
+        ) OVER () AS median_recurrence_gap_minutes
+
+    FROM recurrence_population
+),
+mad_stage AS
+(
+    SELECT DISTINCT
+        PERCENTILE_CONT(0.5) WITHIN GROUP
+        (
+            ORDER BY ABS(
+                rp.recurrence_gap_minutes
+                - m.median_recurrence_gap_minutes
+            )
+        ) OVER () AS mad_recurrence_gap_minutes
+
+    FROM recurrence_population AS rp
+    CROSS JOIN median_stage AS m
+),
+recurrence_scores AS
+(
+    SELECT
+        rp.*,
+        m.median_recurrence_gap_minutes,
+        d.mad_recurrence_gap_minutes,
+
+        CASE
+            WHEN d.mad_recurrence_gap_minutes > 0
+             AND rp.recurrence_gap_minutes < m.median_recurrence_gap_minutes
+            THEN
+                (
+                    m.median_recurrence_gap_minutes
+                    - rp.recurrence_gap_minutes
+                ) / d.mad_recurrence_gap_minutes
+            ELSE 0
+        END AS inbound_remittance_to_repayment_recurrence_score
+
+    FROM recurrence_population AS rp
+    CROSS JOIN median_stage AS m
+    CROSS JOIN mad_stage AS d
+)
+SELECT
+    ocb_customer_id,
+    remittance_id,
+    remittance_timestamp,
+    remittance_amount,
+    repayment_id,
+    repayment_timestamp,
+    repayment_amount,
+    loan_id,
+    next_remittance_id,
+    next_remittance_timestamp,
+    next_repayment_id,
+    next_repayment_timestamp,
+    recurrence_gap_minutes,
+    median_recurrence_gap_minutes,
+    mad_recurrence_gap_minutes,
+    inbound_remittance_to_repayment_recurrence_score
+
+FROM recurrence_scores;
+GO
+
 
 /*
 -- WP5.3 Inbound Remittance → Loan Repayment Intelligence Engine — Process Documentation

@@ -1471,6 +1471,7 @@ SELECT
     remittance_amount,
     remittance_origin_country,
     remittance_status,
+    remittance_type,
     CASE 
         WHEN remittance_origin_country = 'cote d''ivoire'
                 AND CAST(remittance_timestamp AS DATE) >= '2024-10-01'
@@ -1488,8 +1489,7 @@ SELECT
             THEN 1
         ELSE 0
         END AS remittance_origin_risk_flag
-FROM gold.vw_remittance
-WHERE remittance_type = 'remittance_received';
+FROM gold.vw_remittance; 
 GO
 
 -- 6. Remittance Region Activity
