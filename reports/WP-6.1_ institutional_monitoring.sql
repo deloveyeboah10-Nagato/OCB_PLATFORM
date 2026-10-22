@@ -7,7 +7,12 @@ GO
 ====================================================================================================================================
 */
 -- 1. Overall Temporal Activity Analysis
-WITH overall_activity_analysis
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_ananse_institutional_monitoring
+AS
+WITH monthly_totals
 AS (
     SELECT
         CONVERT(CHAR(7), transaction_timestamp, 120) AS year_month,
@@ -17,9 +22,10 @@ AS (
         AVG(transaction_amount)                      AS average_transaction_value
     FROM gold.vw_transaction
     WHERE transaction_status = 'successful'
+            AND transaction_type <> 'merchant payment'
     GROUP BY CONVERT(CHAR(7), transaction_timestamp, 120)
     ),
-median_calc
+monthly_medians
 AS (
     SELECT DISTINCT
         CONVERT(CHAR(7), transaction_timestamp, 120) AS year_month,
@@ -29,15 +35,16 @@ AS (
             ) OVER (PARTITION BY CONVERT(CHAR(7), transaction_timestamp, 120)) AS median_transaction_value
     FROM gold.vw_transaction
     WHERE transaction_status = 'successful'
+            AND transaction_type <> 'merchant payment'
     ),
-monthly_activity
+monthly_summary
 AS (
     SELECT
-        o.*,
+        t.*,
         m.median_transaction_value
-    FROM overall_activity_analysis o
-    INNER JOIN median_calc m ON
-            o.year_month = m.year_month
+    FROM monthly_totals t
+    INNER JOIN monthly_medians m ON
+            t.year_month = m.year_month
     ),
 monthly_changes
 AS (
@@ -52,20 +59,20 @@ AS (
         LAG(total_transaction_value) OVER (
             ORDER BY year_month
             ) AS previous_transaction_value
-    FROM monthly_activity
+    FROM monthly_summary
     )
 SELECT
     year_month,
     distinct_customers,
     total_transaction_count,
-    CAST(ROUND(total_transaction_value, 4) AS DECIMAL(19, 3))                                                                                AS total_transaction_value,
-    CAST(ROUND(average_transaction_value, 4) AS DECIMAL(19, 3))                                                                              AS average_transaction_value,
-    CAST(ROUND(median_transaction_value, 4) AS DECIMAL(19, 3))                                                                               AS median_transaction_value,
+    CAST(ROUND(total_transaction_value, 3) AS DECIMAL(19, 3))                                                                                AS total_transaction_value,
+    CAST(ROUND(average_transaction_value, 3) AS DECIMAL(19, 3))                                                                              AS average_transaction_value,
+    CAST(ROUND(median_transaction_value, 3) AS DECIMAL(19, 3))                                                                               AS median_transaction_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3))    AS customers_mom_change_pct,
     CAST(ROUND((total_transaction_count - previous_transaction_count) * 100.0 / NULLIF(previous_transaction_count, 0), 3) AS DECIMAL(19, 3)) AS transaction_count_mom_change_pct,
     CAST(ROUND((total_transaction_value - previous_transaction_value) * 100.0 / NULLIF(previous_transaction_value, 0), 3) AS DECIMAL(19, 3)) AS transaction_value_mom_change_pct
-FROM monthly_changes
-ORDER BY year_month;
+FROM monthly_changes;
+GO
 
 -- 2. Transaction Type Activity
 WITH transaction_type_analysis
@@ -136,6 +143,7 @@ SELECT
 FROM monthly_changes
 ORDER BY transaction_type,
     year_month;
+GO
 
 -- 3. Transaction Channel Activity
 WITH channel_analysis
@@ -206,6 +214,7 @@ SELECT
 FROM monthly_changes
 ORDER BY transaction_channel,
     year_month;
+GO
 
 -- 4. Transaction Region Activity
 WITH region_analysis
@@ -282,6 +291,7 @@ SELECT
 FROM monthly_changes
 ORDER BY transaction_region,
     year_month;
+GO
 
 -- 5. Transaction Town Activity
 WITH town_analysis
@@ -358,8 +368,9 @@ SELECT
 FROM monthly_changes
 ORDER BY transaction_town,
     year_month;
+GO
 
--- 6. Successful vs Failure vs Rejection rates
+-- 6. Successful vs Failure vs Rejection rates (Monthly)
 WITH customer_outcome_analytics
 AS (
     SELECT
@@ -413,8 +424,185 @@ SELECT
     *
 FROM customer_outcome_analytics
 ORDER BY year_month;
+GO
 
--- 7. Customer Activity Analysis: Top 10 by Successful Transaction Value
+-- 7. Successful vs Failure vs Rejection rates (Channel)
+WITH customer_outcome_analytics
+AS (
+    SELECT
+        transaction_channel,
+        COUNT(*) AS total_transaction_count,
+        SUM(CASE transaction_status
+                WHEN 'successful'
+                    THEN 1
+                ELSE 0
+                END) AS successful_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'successful'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS successful_rate,
+        SUM(CASE transaction_status
+                WHEN 'failed'
+                    THEN 1
+                ELSE 0
+                END) AS failed_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'failed'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS failure_rate,
+        SUM(CASE transaction_status
+                WHEN 'rejected'
+                    THEN 1
+                ELSE 0
+                END) AS rejected_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'rejected'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS rejection_rate,
+        ROUND(CAST(100.0 * (
+                    SUM(CASE transaction_status
+                            WHEN 'failed'
+                                THEN 1
+                            ELSE 0
+                            END) + SUM(CASE transaction_status
+                            WHEN 'rejected'
+                                THEN 1
+                            ELSE 0
+                            END)
+                    ) AS FLOAT) / (COUNT(*)), 3) AS overall_unsuccessful_rate
+    FROM gold.vw_transaction
+    GROUP BY transaction_channel
+    )
+SELECT
+    *
+FROM customer_outcome_analytics;
+GO
+
+-- 8. Successful vs Failure vs Rejection rates (Type)
+WITH customer_outcome_analytics
+AS (
+    SELECT
+        transaction_type,
+        COUNT(*) AS total_transaction_count,
+        SUM(CASE transaction_status
+                WHEN 'successful'
+                    THEN 1
+                ELSE 0
+                END) AS successful_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'successful'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS successful_rate,
+        SUM(CASE transaction_status
+                WHEN 'failed'
+                    THEN 1
+                ELSE 0
+                END) AS failed_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'failed'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS failure_rate,
+        SUM(CASE transaction_status
+                WHEN 'rejected'
+                    THEN 1
+                ELSE 0
+                END) AS rejected_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'rejected'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS rejection_rate,
+        ROUND(CAST(100.0 * (
+                    SUM(CASE transaction_status
+                            WHEN 'failed'
+                                THEN 1
+                            ELSE 0
+                            END) + SUM(CASE transaction_status
+                            WHEN 'rejected'
+                                THEN 1
+                            ELSE 0
+                            END)
+                    ) AS FLOAT) / (COUNT(*)), 3) AS overall_unsuccessful_rate
+    FROM gold.vw_transaction
+    GROUP BY transaction_type
+    )
+SELECT
+    *
+FROM customer_outcome_analytics
+GO
+
+-- 9. Successful vs Failure vs Rejection rates (Customer)
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_ananse_customer_transaction_outcomes
+AS
+WITH customer_outcome_analytics
+AS (
+    SELECT
+        ocb_customer_id,
+        COUNT(*) AS total_transaction_count,
+        SUM(CASE transaction_status
+                WHEN 'successful'
+                    THEN 1
+                ELSE 0
+                END) AS successful_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'successful'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS successful_rate,
+        SUM(CASE transaction_status
+                WHEN 'failed'
+                    THEN 1
+                ELSE 0
+                END) AS failed_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'failed'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS failure_rate,
+        SUM(CASE transaction_status
+                WHEN 'rejected'
+                    THEN 1
+                ELSE 0
+                END) AS rejected_transactions,
+        ROUND(CAST(100.00 * SUM(CASE transaction_status
+                        WHEN 'rejected'
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS rejection_rate,
+        SUM(CASE 
+                WHEN transaction_status IN (
+                        'failed',
+                        'rejected'
+                        )
+                    THEN 1
+                ELSE 0
+                END) AS unsuccessful_transactions,
+        ROUND(CAST(100.00 * SUM(CASE 
+                        WHEN transaction_status IN (
+                                'failed',
+                                'rejected'
+                                )
+                            THEN 1
+                        ELSE 0
+                        END) AS FLOAT) / COUNT(*), 3) AS overall_unsuccessful_rate
+    FROM gold.vw_transaction
+    WHERE transaction_type <> 'merchant payment'
+    GROUP BY ocb_customer_id
+    )
+SELECT
+    *
+FROM customer_outcome_analytics;
+GO
+
+-- 10. Customer Activity Analysis: Top 10 by Successful Transaction Value
 WITH customer_transaction_analysis
 AS (
     SELECT
@@ -468,6 +656,7 @@ SELECT TOP 10
     CAST(ROUND(median_transaction_value, 3) AS DECIMAL(19, 3))      AS median_transaction_value
 FROM customer_summary
 ORDER BY total_transaction_value DESC;
+GO
 
 /*
 ====================================================================================================================================
@@ -479,7 +668,10 @@ WITH monthly_disbursements
 AS (
     SELECT
         CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
-        SUM(principal_amount)                         AS principal_disbursed
+        COUNT(DISTINCT ocb_customer_id)               AS distinct_loan_customers,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count,
+        AVG(principal_amount)                         AS average_principal_disbursed
     FROM gold.vw_loan
     GROUP BY CONVERT(CHAR(7), disbursement_timestamp, 120)
     ),
@@ -487,24 +679,39 @@ monthly_repayments
 AS (
     SELECT
         CONVERT(CHAR(7), repayment_timestamp, 120) AS year_month,
-        SUM(repayment_amount)                      AS principal_repaid
+        COUNT(DISTINCT ocb_customer_id)            AS distinct_repayment_customers,
+        SUM(repayment_amount)                      AS principal_repaid,
+        COUNT(*)                                   AS principal_repaid_count,
+        AVG(repayment_amount)                      AS average_principal_repaid
     FROM gold.vw_repayment
     GROUP BY CONVERT(CHAR(7), repayment_timestamp, 120)
     ),
 monthly_flows
 AS (
     SELECT
-        COALESCE(d.year_month, r.year_month) AS year_month,
-        COALESCE(d.principal_disbursed, 0)   AS principal_disbursed,
-        COALESCE(r.principal_repaid, 0)      AS principal_repaid
+        COALESCE(d.year_month, r.year_month)      AS year_month,
+        COALESCE(distinct_loan_customers, 0)      AS distinct_loan_customers,
+        COALESCE(average_principal_disbursed, 0)  AS average_principal_disbursed,
+        COALESCE(d.principal_disbursed, 0)        AS principal_disbursed,
+        COALESCE(d.principal_disbursed_count, 0)  AS principal_disbursed_count,
+        COALESCE(distinct_repayment_customers, 0) AS distinct_repayment_customers,
+        COALESCE(r.principal_repaid, 0)           AS principal_repaid,
+        COALESCE(average_principal_repaid, 0)     AS average_principal_repaid,
+        COALESCE(r.principal_repaid_count, 0)     AS principal_repaid_count
     FROM monthly_disbursements d
     FULL OUTER JOIN monthly_repayments r ON
             d.year_month = r.year_month
     )
 SELECT
     year_month,
+    distinct_loan_customers,
+    principal_disbursed_count,
     CAST(principal_disbursed AS DECIMAL(19, 3))                    AS principal_disbursed,
+    CAST(average_principal_disbursed AS DECIMAL(19, 3))            AS average_principal_disbursed,
+    distinct_repayment_customers,
+    principal_repaid_count,
     CAST(principal_repaid AS DECIMAL(19, 3))                       AS principal_repaid,
+    CAST(average_principal_repaid AS DECIMAL(19, 3))               AS average_principal_repaid,
     CAST(principal_disbursed - principal_repaid AS DECIMAL(19, 3)) AS net_principal_flow,
     CAST(SUM(principal_disbursed - principal_repaid) OVER (
             ORDER BY year_month ROWS BETWEEN UNBOUNDED PRECEDING
@@ -512,6 +719,7 @@ SELECT
             ) AS DECIMAL(19, 3)) AS cumulative_net_principal_flow
 FROM monthly_flows
 ORDER BY year_month;
+GO
 
 /*
     WP-6.1 — INSTITUTIONAL MONITORING
@@ -534,21 +742,22 @@ ORDER BY year_month;
     - Outstanding principal is calculated from observed loans.
     - Maturity exposure is evaluated at each month-end.
 */
-DECLARE @opening_outstanding_principal DECIMAL(19, 4) = 0;
-DECLARE @reporting_start DATE = '2023-04-01';
-DECLARE @reporting_end DATE = '2025-12-31';;
+CREATE
+        OR
 
+ALTER VIEW intelligence.vw_sikacredit_institutional_monitoring
+AS
 WITH reporting_months
 AS (
     SELECT
-        @reporting_start AS month_start
+        CAST('2023-04-01' AS DATE) AS month_start
     
     UNION ALL
     
     SELECT
         DATEADD(MONTH, 1, month_start)
     FROM reporting_months
-    WHERE month_start < DATEFROMPARTS(YEAR(@reporting_end), MONTH(@reporting_end), 1)
+    WHERE month_start < CAST('2025-12-01' AS DATE)
     ),
 monthly_disbursements
 AS (
@@ -558,8 +767,8 @@ AS (
         COUNT(DISTINCT ocb_customer_id)                                               AS distinct_borrowers,
         SUM(principal_amount)                                                         AS principal_disbursed
     FROM gold.vw_loan
-    WHERE disbursement_timestamp >= @reporting_start
-            AND disbursement_timestamp < DATEADD(DAY, 1, @reporting_end)
+    WHERE disbursement_timestamp >= '2023-04-01'
+            AND disbursement_timestamp < '2026-01-01'
     GROUP BY DATEFROMPARTS(YEAR(disbursement_timestamp), MONTH(disbursement_timestamp), 1)
     ),
 monthly_repayments
@@ -569,8 +778,8 @@ AS (
         COUNT(*)                                                                AS repayment_count,
         SUM(repayment_amount)                                                   AS principal_repaid
     FROM gold.vw_repayment
-    WHERE repayment_timestamp >= @reporting_start
-            AND repayment_timestamp < DATEADD(DAY, 1, @reporting_end)
+    WHERE repayment_timestamp >= '2023-04-01'
+            AND repayment_timestamp < '2026-01-01'
     GROUP BY DATEFROMPARTS(YEAR(repayment_timestamp), MONTH(repayment_timestamp), 1)
     ),
 monthly_flows
@@ -598,11 +807,11 @@ AS (
         repayment_count,
         principal_repaid,
         principal_disbursed - principal_repaid AS net_principal_flow,
-        @opening_outstanding_principal + COALESCE(SUM(principal_disbursed - principal_repaid) OVER (
+        COALESCE(SUM(principal_disbursed - principal_repaid) OVER (
                 ORDER BY month_start ROWS BETWEEN UNBOUNDED PRECEDING
                         AND 1 PRECEDING
                 ), 0) AS opening_outstanding_principal,
-        @opening_outstanding_principal + SUM(principal_disbursed - principal_repaid) OVER (
+        SUM(principal_disbursed - principal_repaid) OVER (
             ORDER BY month_start ROWS BETWEEN UNBOUNDED PRECEDING
                     AND CURRENT ROW
             ) AS closing_outstanding_principal
@@ -649,40 +858,13 @@ AS (
 health_metrics
 AS (
     SELECT
-        p.month_start,
-        p.loan_count,
-        p.distinct_borrowers,
-        p.principal_disbursed,
-        p.repayment_count,
-        p.principal_repaid,
-        p.net_principal_flow,
-        p.opening_outstanding_principal,
-        p.closing_outstanding_principal,
-        /*
-            Metric 1:
-            New principal relative to opening portfolio.
-        */
+        p.*,
         100.0 * p.principal_disbursed / NULLIF(p.opening_outstanding_principal, 0) AS principal_growth_rate_pct,
-        /*
-            Metric 2:
-            Monthly collections relative to new lending.
-        */
-        100.0 * p.principal_repaid / NULLIF(p.principal_disbursed, 0) AS principal_repayment_ratio_pct,
-        /*
-            Metric 3:
-            Difference between collection ratio and principal growth rate, in percentage points.
-        */
+        100.0 * p.principal_repaid / NULLIF(p.principal_disbursed, 0)              AS principal_repayment_ratio_pct,
         (100.0 * p.principal_repaid / NULLIF(p.principal_disbursed, 0)) - (100.0 * p.principal_disbursed / NULLIF(p.opening_outstanding_principal, 0)) AS principal_repayment_growth_spread_pp,
-        /*
-            Metric 4:
-            Monthly collections relative to opening portfolio.
-        */
-        100.0 * p.principal_repaid / NULLIF(p.opening_outstanding_principal, 0) AS repayment_to_opening_outstanding_pct,
-        /*
-            Maturity exposure.
-        */
-        COALESCE(e.post_maturity_outstanding_principal, 0) AS post_maturity_outstanding_principal,
-        COALESCE(e.post_maturity_outstanding_loan_count, 0) AS post_maturity_outstanding_loan_count
+        100.0 * p.principal_repaid / NULLIF(p.opening_outstanding_principal, 0)    AS repayment_to_opening_outstanding_pct,
+        COALESCE(e.post_maturity_outstanding_principal, 0)                         AS post_maturity_outstanding_principal,
+        COALESCE(e.post_maturity_outstanding_loan_count, 0)                        AS post_maturity_outstanding_loan_count
     FROM running_portfolio p
     LEFT JOIN monthly_maturity_exposure e ON
             p.month_start = e.month_start
@@ -704,10 +886,8 @@ SELECT
     CAST(post_maturity_outstanding_principal AS DECIMAL(19, 2))                                                    AS post_maturity_outstanding_principal,
     post_maturity_outstanding_loan_count,
     CAST(100.0 * post_maturity_outstanding_principal / NULLIF(closing_outstanding_principal, 0) AS DECIMAL(19, 2)) AS post_maturity_outstanding_ratio_pct
-FROM health_metrics
-ORDER BY month_start
-OPTION (MAXRECURSION 100);
-
+FROM health_metrics;
+GO
 
 /*
 -- WP-6.1 Institutional Health Monitoring — SikaCredit Credit Portfolio Construction
@@ -835,31 +1015,32 @@ OPTION (MAXRECURSION 100);
     passing maturity, and other changes in outstanding principal, reconciling these movements to changes in monthly post-maturity
     exposure.
 */
-
 -- Top 10 borrowers by total principal
-WITH loan_summary AS (
+WITH loan_summary
+AS (
     SELECT
         l.ocb_customer_id,
         SUM(l.principal_amount) AS total_principal_borrowed,
-        COUNT(*) AS loan_count,
+        COUNT(*)                AS loan_count,
         AVG(l.principal_amount) AS avg_loan_amount
     FROM gold.vw_loan l
     WHERE l.disbursement_timestamp < '2026-01-01'
     GROUP BY l.ocb_customer_id
-),
-repayment_summary AS (
+    ),
+repayment_summary
+AS (
     SELECT
         l.ocb_customer_id,
         SUM(r.repayment_amount) AS total_repaid,
-        COUNT(*) AS repayment_count,
+        COUNT(*)                AS repayment_count,
         AVG(r.repayment_amount) AS avg_repayment_amount
     FROM gold.vw_repayment r
-    INNER JOIN gold.vw_loan l
-        ON r.loan_id = l.loan_id
+    INNER JOIN gold.vw_loan l ON
+            r.loan_id = l.loan_id
     WHERE r.repayment_timestamp < '2026-01-01'
     GROUP BY l.ocb_customer_id
-)
-SELECT TOP 10
+    )
+SELECT --TOP 10
     l.ocb_customer_id,
     c.first_name,
     c.last_name,
@@ -869,39 +1050,42 @@ SELECT TOP 10
     l.total_principal_borrowed,
     l.loan_count,
     l.avg_loan_amount,
-    COALESCE(r.total_repaid, 0) AS total_repaid,
+    COALESCE(r.total_repaid, 0)    AS total_repaid,
     COALESCE(r.repayment_count, 0) AS repayment_count,
     r.avg_repayment_amount
 FROM loan_summary l
-INNER JOIN gold.vw_customer c
-    ON l.ocb_customer_id = c.ocb_customer_id
-LEFT JOIN repayment_summary r
-    ON l.ocb_customer_id = r.ocb_customer_id
+INNER JOIN gold.vw_customer c ON
+        l.ocb_customer_id = c.ocb_customer_id
+LEFT JOIN repayment_summary r ON
+        l.ocb_customer_id = r.ocb_customer_id
 ORDER BY total_principal_borrowed DESC;
+GO
 
 -- Top 10 borrowers by total outstanding principal
-WITH loan_summary AS (
+WITH loan_summary
+AS (
     SELECT
         l.ocb_customer_id,
         SUM(l.principal_amount) AS total_principal_borrowed,
-        COUNT(*) AS loan_count,
+        COUNT(*)                AS loan_count,
         AVG(l.principal_amount) AS avg_loan_amount
     FROM gold.vw_loan l
     WHERE l.disbursement_timestamp < '2026-01-01'
     GROUP BY l.ocb_customer_id
-),
-repayment_summary AS (
+    ),
+repayment_summary
+AS (
     SELECT
         l.ocb_customer_id,
         SUM(r.repayment_amount) AS total_repaid,
-        COUNT(*) AS repayment_count,
+        COUNT(*)                AS repayment_count,
         AVG(r.repayment_amount) AS avg_repayment_amount
     FROM gold.vw_repayment r
-    INNER JOIN gold.vw_loan l
-        ON r.loan_id = l.loan_id
+    INNER JOIN gold.vw_loan l ON
+            r.loan_id = l.loan_id
     WHERE r.repayment_timestamp < '2026-01-01'
     GROUP BY l.ocb_customer_id
-)
+    )
 SELECT TOP 10
     l.ocb_customer_id,
     c.first_name,
@@ -913,19 +1097,21 @@ SELECT TOP 10
     l.total_principal_borrowed,
     l.loan_count,
     l.avg_loan_amount,
-    COALESCE(r.total_repaid, 0) AS total_repaid,
-    COALESCE(r.repayment_count, 0) AS repayment_count,
+    COALESCE(r.total_repaid, 0)                              AS total_repaid,
+    COALESCE(r.repayment_count, 0)                           AS repayment_count,
     r.avg_repayment_amount
 FROM loan_summary l
-INNER JOIN gold.vw_customer c
-    ON l.ocb_customer_id = c.ocb_customer_id
-LEFT JOIN repayment_summary r
-    ON l.ocb_customer_id = r.ocb_customer_id
+INNER JOIN gold.vw_customer c ON
+        l.ocb_customer_id = c.ocb_customer_id
+LEFT JOIN repayment_summary r ON
+        l.ocb_customer_id = r.ocb_customer_id
 WHERE l.total_principal_borrowed - COALESCE(r.total_repaid, 0) > 0
 ORDER BY total_outstanding_principal DESC;
+GO
 
 -- Top 10 borrowers by post-maturity outstanding debt
-WITH loan_balances AS (
+WITH loan_balances
+AS (
     SELECT
         l.loan_id,
         l.ocb_customer_id,
@@ -933,38 +1119,38 @@ WITH loan_balances AS (
         l.maturity_date,
         l.principal_amount - COALESCE(SUM(r.repayment_amount), 0) AS outstanding_principal
     FROM gold.vw_loan l
-    LEFT JOIN gold.vw_repayment r
-        ON l.loan_id = r.loan_id
-        AND r.repayment_timestamp < '2026-01-01'
+    LEFT JOIN gold.vw_repayment r ON
+            l.loan_id = r.loan_id
+                AND r.repayment_timestamp < '2026-01-01'
     WHERE l.disbursement_timestamp < '2026-01-01'
-    GROUP BY
-        l.loan_id,
+    GROUP BY l.loan_id,
         l.ocb_customer_id,
         l.principal_amount,
         l.maturity_date
-),
-customer_summary AS (
+    ),
+customer_summary
+AS (
     SELECT
         ocb_customer_id,
-        SUM(CASE
-            WHEN maturity_date < '2026-01-01'
-             AND outstanding_principal > 0
-            THEN outstanding_principal
-            ELSE 0
-        END) AS post_maturity_outstanding,
-        COUNT(CASE
-            WHEN maturity_date < '2026-01-01'
-             AND outstanding_principal > 0
-            THEN loan_id
-        END) AS post_maturity_loan_count,
-        AVG(CASE
-            WHEN maturity_date < '2026-01-01'
-             AND outstanding_principal > 0
-            THEN outstanding_principal
-        END) AS avg_post_maturity_outstanding
+        SUM(CASE 
+                WHEN maturity_date < '2026-01-01'
+                        AND outstanding_principal > 0
+                    THEN outstanding_principal
+                ELSE 0
+                END) AS post_maturity_outstanding,
+        COUNT(CASE 
+                WHEN maturity_date < '2026-01-01'
+                        AND outstanding_principal > 0
+                    THEN loan_id
+                END) AS post_maturity_loan_count,
+        AVG(CASE 
+                WHEN maturity_date < '2026-01-01'
+                        AND outstanding_principal > 0
+                    THEN outstanding_principal
+                END) AS avg_post_maturity_outstanding
     FROM loan_balances
     GROUP BY ocb_customer_id
-)
+    )
 SELECT TOP 10
     s.ocb_customer_id,
     c.first_name,
@@ -976,20 +1162,24 @@ SELECT TOP 10
     s.post_maturity_loan_count,
     s.avg_post_maturity_outstanding
 FROM customer_summary s
-INNER JOIN gold.vw_customer c
-    ON s.ocb_customer_id = c.ocb_customer_id
+INNER JOIN gold.vw_customer c ON
+        s.ocb_customer_id = c.ocb_customer_id
 WHERE s.post_maturity_outstanding > 0
 ORDER BY s.post_maturity_outstanding DESC;
-
+GO
 
 /*
 ====================================================================================================================================
     Oman Remit Institutional Monitoring
 ====================================================================================================================================
 */
-
 -- 1. Overall Temporal Activity Analysis
-WITH overall_activity_analysis
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_oman_remit_institutional_monitoring
+AS
+WITH monthly_totals
 AS (
     SELECT
         CONVERT(CHAR(7), remittance_timestamp, 120) AS year_month,
@@ -1001,7 +1191,7 @@ AS (
     WHERE remittance_status = 'successful'
     GROUP BY CONVERT(CHAR(7), remittance_timestamp, 120)
     ),
-median_calc
+monthly_medians
 AS (
     SELECT DISTINCT
         CONVERT(CHAR(7), remittance_timestamp, 120) AS year_month,
@@ -1012,14 +1202,14 @@ AS (
     FROM gold.vw_remittance
     WHERE remittance_status = 'successful'
     ),
-monthly_activity
+monthly_summary
 AS (
     SELECT
-        o.*,
+        t.*,
         m.median_remittance_value
-    FROM overall_activity_analysis o
-    INNER JOIN median_calc m ON
-            o.year_month = m.year_month
+    FROM monthly_totals t
+    INNER JOIN monthly_medians m ON
+            t.year_month = m.year_month
     ),
 monthly_changes
 AS (
@@ -1034,20 +1224,20 @@ AS (
         LAG(total_remittance_value) OVER (
             ORDER BY year_month
             ) AS previous_remittance_value
-    FROM monthly_activity
+    FROM monthly_summary
     )
 SELECT
     year_month,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
-FROM monthly_changes
-ORDER BY year_month;
+FROM monthly_changes;
+GO
 
 -- 2. Remittance Type Activity
 WITH remittance_type_analysis
@@ -1109,15 +1299,16 @@ SELECT
     remittance_type,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
 FROM monthly_changes
 ORDER BY remittance_type,
     year_month;
+GO
 
 -- 3. Remittance Channel Activity
 WITH channel_analysis
@@ -1179,15 +1370,16 @@ SELECT
     remittance_transaction_channel,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
 FROM monthly_changes
 ORDER BY remittance_transaction_channel,
     year_month;
+GO
 
 -- 4. Remittance Origin Country Activity
 WITH country_analysis
@@ -1255,17 +1447,52 @@ SELECT
     remittance_origin_country,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
 FROM monthly_changes
 ORDER BY remittance_origin_country,
     year_month;
+GO
 
--- 5. Remittance Region Activity
+-- 5. Oman Remit FATF Origin-Risk Monitoring
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_oman_remit_fatf_monitoring
+AS
+SELECT
+    ocb_customer_id,
+    remittance_id,
+    remittance_timestamp,
+    remittance_amount,
+    remittance_origin_country,
+    remittance_status,
+    CASE 
+        WHEN remittance_origin_country = 'cote d''ivoire'
+                AND CAST(remittance_timestamp AS DATE) >= '2024-10-01'
+            THEN 1
+        WHEN remittance_origin_country = 'nigeria'
+                AND CAST(remittance_timestamp AS DATE) BETWEEN '2023-02-01'
+                AND '2025-09-30'
+            THEN 1
+        WHEN remittance_origin_country = 'south africa'
+                AND CAST(remittance_timestamp AS DATE) BETWEEN '2023-02-01'
+                AND '2025-09-30'
+            THEN 1
+        WHEN remittance_origin_country = 'united arab emirates'
+                AND CAST(remittance_timestamp AS DATE) < '2024-02-01'
+            THEN 1
+        ELSE 0
+        END AS remittance_origin_risk_flag
+FROM gold.vw_remittance
+WHERE remittance_type = 'remittance_received';
+GO
+
+-- 6. Remittance Region Activity
 WITH region_analysis
 AS (
     SELECT
@@ -1331,17 +1558,18 @@ SELECT
     remittance_location_region,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
 FROM monthly_changes
 ORDER BY remittance_location_region,
     year_month;
+GO
 
--- 6. Remittance Town Activity
+-- 7. Remittance Town Activity
 WITH town_analysis
 AS (
     SELECT
@@ -1407,42 +1635,56 @@ SELECT
     remittance_location_town,
     distinct_customers,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
-    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))                                                                              AS total_remittance_value,
+    CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3))                                                                            AS average_remittance_value,
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))                                                                             AS median_remittance_value,
     CAST(ROUND((distinct_customers - previous_distinct_customers) * 100.0 / NULLIF(previous_distinct_customers, 0), 3) AS DECIMAL(19, 3)) AS customers_mom_change_pct,
     CAST(ROUND((total_remittance_count - previous_remittance_count) * 100.0 / NULLIF(previous_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS remittance_count_mom_change_pct,
     CAST(ROUND((total_remittance_value - previous_remittance_value) * 100.0 / NULLIF(previous_remittance_value, 0), 3) AS DECIMAL(19, 3)) AS remittance_value_mom_change_pct
 FROM monthly_changes
 ORDER BY remittance_location_town,
     year_month;
+GO
 
--- 7. Successful vs Failed vs Rejected Remittance Rates
+-- 8. Successful vs Failed vs Rejected Remittance Rates
 WITH remittance_outcome_analysis
 AS (
     SELECT
         CONVERT(CHAR(7), remittance_timestamp, 120) AS year_month,
         COUNT(*)                                    AS total_remittance_count,
-        SUM(CASE WHEN remittance_status = 'successful' THEN 1 ELSE 0 END) AS successful_remittances,
-        SUM(CASE WHEN remittance_status = 'failed' THEN 1 ELSE 0 END) AS failed_remittances,
-        SUM(CASE WHEN remittance_status = 'rejected' THEN 1 ELSE 0 END) AS rejected_remittances
+        SUM(CASE 
+                WHEN remittance_status = 'successful'
+                    THEN 1
+                ELSE 0
+                END) AS successful_remittances,
+        SUM(CASE 
+                WHEN remittance_status = 'failed'
+                    THEN 1
+                ELSE 0
+                END) AS failed_remittances,
+        SUM(CASE 
+                WHEN remittance_status = 'rejected'
+                    THEN 1
+                ELSE 0
+                END) AS rejected_remittances
     FROM gold.vw_remittance
     GROUP BY CONVERT(CHAR(7), remittance_timestamp, 120)
-)
+    )
 SELECT
     year_month,
     total_remittance_count,
     successful_remittances,
-    CAST(ROUND(100.0 * successful_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS successful_rate_pct,
+    CAST(ROUND(100.0 * successful_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3))                      AS successful_rate_pct,
     failed_remittances,
-    CAST(ROUND(100.0 * failed_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS failure_rate_pct,
+    CAST(ROUND(100.0 * failed_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3))                          AS failure_rate_pct,
     rejected_remittances,
-    CAST(ROUND(100.0 * rejected_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS rejection_rate_pct,
+    CAST(ROUND(100.0 * rejected_remittances / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3))                        AS rejection_rate_pct,
     CAST(ROUND(100.0 * (failed_remittances + rejected_remittances) / NULLIF(total_remittance_count, 0), 3) AS DECIMAL(19, 3)) AS overall_unsuccessful_rate_pct
 FROM remittance_outcome_analysis
 ORDER BY year_month;
+GO
 
--- 8. Customer Activity Analysis: Top 10 by Successful Remittance Value
+-- 9. Customer Activity Analysis: Top 10 by Successful Remittance Value
 WITH customer_remittance_analysis
 AS (
     SELECT
@@ -1471,13 +1713,12 @@ AS (
         date_of_birth,
         phone_number,
         email,
-        COUNT(*) AS total_remittance_count,
-        SUM(remittance_amount) AS total_remittance_value,
-        AVG(remittance_amount) AS average_remittance_value,
+        COUNT(*)                     AS total_remittance_count,
+        SUM(remittance_amount)       AS total_remittance_value,
+        AVG(remittance_amount)       AS average_remittance_value,
         MAX(median_remittance_value) AS median_remittance_value
     FROM customer_remittance_analysis
-    GROUP BY
-        ocb_customer_id,
+    GROUP BY ocb_customer_id,
         first_name,
         last_name,
         date_of_birth,
@@ -1492,14 +1733,12 @@ SELECT TOP 10
     phone_number,
     email,
     total_remittance_count,
-    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3)) AS total_remittance_value,
+    CAST(ROUND(total_remittance_value, 3) AS DECIMAL(19, 3))   AS total_remittance_value,
     CAST(ROUND(average_remittance_value, 3) AS DECIMAL(19, 3)) AS average_remittance_value,
-    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3)) AS median_remittance_value
+    CAST(ROUND(median_remittance_value, 3) AS DECIMAL(19, 3))  AS median_remittance_value
 FROM customer_summary
 ORDER BY total_remittance_value DESC;
-
-
-
+GO
 
 
 

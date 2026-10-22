@@ -121,9 +121,9 @@ AS (
         vt.transaction_type
     FROM gold.vw_transaction AS vt
     WHERE vt.transaction_type IN (
-            'Cash In',
-            'P2P Transfer',
-            'Cash Out'
+            'cash in',
+            'p2p transfer',
+            'cash out'
             )
     ),
 sequence_events
@@ -170,9 +170,9 @@ AS (
         txn3_transaction_id,
         txn3_timestamp
     FROM sequence_events
-    WHERE txn1_type = 'Cash In'
-            AND txn2_type = 'P2P Transfer'
-            AND txn3_type = 'Cash Out'
+    WHERE txn1_type = 'cash in'
+            AND txn2_type = 'p2p transfer'
+            AND txn3_type = 'cash out'
     ),
 sequence_recurrence
 AS (
@@ -306,9 +306,9 @@ AS (
         vt.transaction_amount
     FROM gold.vw_transaction AS vt
     WHERE vt.transaction_type IN (
-            'Cash In',
-            'P2P Transfer',
-            'Cash Out'
+            'cash in',
+            'p2p transfer',
+            'cash out'
             )
     ),
 sequence_events
@@ -355,9 +355,9 @@ AS (
         txn2_amount AS p2p_value,
         txn3_amount AS cash_out_value
     FROM sequence_events
-    WHERE txn1_type = 'Cash In'
-            AND txn2_type = 'P2P Transfer'
-            AND txn3_type = 'Cash Out'
+    WHERE txn1_type = 'cash in'
+            AND txn2_type = 'p2p transfer'
+            AND txn3_type = 'cash out'
     ),
 log_socr
 AS (
@@ -801,7 +801,11 @@ AS (
         LEAD(disbursement_timestamp) OVER (
             PARTITION BY ocb_customer_id ORDER BY disbursement_timestamp,
                 loan_id
-            ) AS next_sequence_loan_timestamp
+            ) AS next_sequence_loan_timestamp,
+    LEAD(loan_id) OVER (
+            PARTITION BY ocb_customer_id ORDER BY disbursement_timestamp,
+                loan_id
+            ) AS next_sequence_loan_id
     FROM clean_population
     ),
 recurrence_interval
@@ -814,6 +818,7 @@ AS (
         transaction_id,
         cash_out_timestamp,
         cash_out_amount,
+        next_sequence_loan_id,
         next_sequence_loan_timestamp,
         CAST(DATEDIFF_BIG(MILLISECOND, cash_out_timestamp, next_sequence_loan_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS recurrence_gap_minutes
     FROM sequence_recurrence

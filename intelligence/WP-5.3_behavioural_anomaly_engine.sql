@@ -20,8 +20,11 @@ AS (
                 ELSE DATEADD(DAY, - 1, CAST(transaction_timestamp AS DATE))
                 END AS DATE) AS overnight_date
     FROM gold.vw_transaction
-    WHERE DATEPART(HOUR, transaction_timestamp) >= 23
-            OR DATEPART(HOUR, transaction_timestamp) < 5
+WHERE (
+        DATEPART(HOUR, transaction_timestamp) >= 23
+        OR DATEPART(HOUR, transaction_timestamp) < 5
+      )
+    AND transaction_type <> 'merchant payment'
     ),
 rapid_intervals
 AS (
@@ -111,8 +114,11 @@ AS (
         CAST(transaction_timestamp AS DATE) AS normal_date,
         SUM(transaction_amount)             AS normal_daily_value
     FROM gold.vw_transaction
-    WHERE DATEPART(HOUR, transaction_timestamp) >= 6
-            AND DATEPART(HOUR, transaction_timestamp) < 23
+    WHERE (
+        DATEPART(HOUR, transaction_timestamp) >= 23
+        OR DATEPART(HOUR, transaction_timestamp) < 5
+      )
+    AND transaction_type <> 'merchant payment'
     GROUP BY ocb_customer_id,
         CAST(transaction_timestamp AS DATE)
     ),

@@ -36,6 +36,7 @@ AS (
         ls.principal_amount,
         ls.next_loan_id,
         ls.next_loan_timestamp,
+        COALESCE(SUM(r.repayment_amount), 0) AS repayment_amount,
         1.0 - (COALESCE(SUM(r.repayment_amount), 0) / NULLIF(ls.principal_amount, 0)) AS repayment_deficiency_ratio
     FROM loan_sequence ls
     LEFT JOIN gold.vw_repayment r ON
@@ -83,6 +84,7 @@ SELECT
     drp.disbursement_timestamp,
     drp.maturity_date,
     drp.principal_amount,
+    drp.repayment_amount,
     drp.next_loan_id,
     drp.next_loan_timestamp,
     drp.repayment_deficiency_ratio,
@@ -228,7 +230,15 @@ AS (
         LEAD(l.disbursement_timestamp) OVER (
             PARTITION BY l.ocb_customer_id ORDER BY l.disbursement_timestamp,
                 l.loan_id
-            ) AS next_loan_timestamp
+            ) AS next_loan_timestamp,
+        LEAD(l.disbursement_timestamp,2) OVER (
+            PARTITION BY l.ocb_customer_id ORDER BY l.disbursement_timestamp,
+                l.loan_id
+            ) AS next_recycling_event_timestamp,
+        LEAD(l.loan_id,2) OVER (
+            PARTITION BY l.ocb_customer_id ORDER BY l.disbursement_timestamp,
+                l.loan_id
+            ) AS next_recycling_event_id
     FROM gold.vw_loan l
     ),
 repayment_deficiency
@@ -240,19 +250,24 @@ AS (
         ls.principal_amount,
         ls.next_loan_id,
         ls.next_loan_timestamp,
+        ls.next_recycling_event_timestamp,
+        ls.next_recycling_event_id,
         1.0 - (COALESCE(SUM(r.repayment_amount), 0) / NULLIF(ls.principal_amount, 0)) AS repayment_deficiency_ratio
     FROM loan_sequence ls
     LEFT JOIN gold.vw_repayment r ON
             r.loan_id = ls.loan_id
                 AND r.repayment_timestamp >= ls.disbursement_timestamp
-                AND r.repayment_timestamp < ls.next_loan_timestamp
+                AND r.repayment_timestamp < ls.next_recycling_event_timestamp
     WHERE ls.next_loan_id IS NOT NULL
+    AND ls.next_recycling_event_id IS NOT NULL
     GROUP BY ls.ocb_customer_id,
         ls.loan_id,
         ls.disbursement_timestamp,
         ls.principal_amount,
         ls.next_loan_id,
-        ls.next_loan_timestamp
+        ls.next_loan_timestamp,
+        ls.next_recycling_event_timestamp,
+        ls.next_recycling_event_id
     ),
 debt_recycling_population
 AS (
@@ -261,7 +276,7 @@ AS (
     FROM repayment_deficiency
     WHERE repayment_deficiency_ratio > 0
     ),
-qualified_recycling_events
+recurrence
 AS (
     SELECT
         drp.ocb_customer_id,
@@ -270,25 +285,11 @@ AS (
         drp.disbursement_timestamp,
         drp.next_loan_timestamp,
         drp.repayment_deficiency_ratio,
-        LEAD(drp.next_loan_timestamp) OVER (
-            PARTITION BY drp.ocb_customer_id ORDER BY drp.next_loan_timestamp,
-                drp.next_loan_id
-            ) AS next_recycling_event_timestamp
+        drp.next_recycling_event_id,
+        drp.next_recycling_event_timestamp,
+        CAST(DATEDIFF_BIG(MILLISECOND, drp.next_loan_timestamp, drp.next_recycling_event_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS recycling_recurrence_gap_minutes
     FROM debt_recycling_population drp
-    ),
-recurrence
-AS (
-    SELECT
-        qre.ocb_customer_id,
-        qre.loan_id,
-        qre.next_loan_id,
-        qre.disbursement_timestamp,
-        qre.next_loan_timestamp,
-        qre.repayment_deficiency_ratio,
-        qre.next_recycling_event_timestamp,
-        CAST(DATEDIFF_BIG(MILLISECOND, qre.next_loan_timestamp, qre.next_recycling_event_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS recycling_recurrence_gap_minutes
-    FROM qualified_recycling_events qre
-    WHERE qre.next_recycling_event_timestamp IS NOT NULL
+    WHERE drp.next_recycling_event_timestamp IS NOT NULL
     ),
 distribution
 AS (
@@ -316,6 +317,7 @@ SELECT
     r.disbursement_timestamp,
     r.next_loan_timestamp,
     r.repayment_deficiency_ratio,
+    r.next_recycling_event_id,
     r.next_recycling_event_timestamp,
     r.recycling_recurrence_gap_minutes,
     d.median_recurrence_gap,
@@ -327,7 +329,8 @@ SELECT
         END AS debt_recycling_recurrence_mad_score
 FROM recurrence r
 CROSS JOIN distribution d
-CROSS JOIN mad_base m;
+CROSS JOIN mad_base m
+;
 GO
 
 /*
@@ -360,10 +363,6 @@ GO
     re-borrowing becomes progressively more deficient relative to the Debt Recycling population.
 -- Re-borrowing Rapidity measures how quickly the customer takes the subsequent loan while still carrying the
     repayment deficiency from the preceding loan.
--- Where repayments existed against the preceding loan before the subsequent loan, the latest such repayment
-    timestamp was used as the temporal anchor.
--- Where no repayment existed before the subsequent loan, the preceding loan's disbursement timestamp was used
-    as the fallback anchor.
 -- The elapsed time between the selected anchor timestamp and the subsequent loan's disbursement timestamp was
     used as the re-borrowing delay.
 -- Re-borrowing Rapidity was scored using the population median and MAD, with shorter-than-median delays receiving
@@ -379,11 +378,9 @@ GO
 -- This prevents ordinary repeated borrowing from being interpreted as Debt Recycling Recurrence when the preceding
     loan had already been fully repaid.
 -- The recurrence interval was measured between the disbursement timestamp of the current qualifying subsequent
-    loan and the disbursement timestamp of the next qualifying subsequent loan.
+    loan (LEAD,1) and the disbursement timestamp of the next qualifying subsequent loan (LEAD,2).
 -- The next qualifying recycling event was identified using LEAD() over chronologically ordered qualifying
     transitions for each customer.
--- The final qualifying Debt Recycling event for a customer has no subsequent qualifying event and was therefore
-    excluded from recurrence scoring.
 -- Debt Recycling Recurrence was scored using the population median and MAD, with shorter inter-event gaps
     receiving positive scores and longer gaps receiving zero.
 -- The recurrence score therefore measures how quickly the customer repeats the Debt Recycling behaviour rather
@@ -441,7 +438,7 @@ GO
 CREATE
         OR
 
-ALTER VIEW intelligence.vw_credit_value_escaltion_score
+ALTER VIEW intelligence.vw_credit_value_escalation_score
 AS
 WITH loan_profile
 AS (
@@ -874,14 +871,12 @@ GO
 
 /*
 -- WP5.3 Credit Behaviour Anomaly Engine — Credit Behaviour Process Documentation
---
 -- The Credit Behaviour Anomaly Engine was designed to identify distinct forms of abnormal or escalating lending
     behaviour at customer and loan-event level.
 -- The engine evaluates three independent constructs:
     Credit Value Escalation,
     Credit Escalation Recurrence,
     Credit Obligation Escalation.
---
 -- The three constructs intentionally measure different dimensions of credit behaviour:
     Credit Value Escalation measures how much larger a current loan is relative to the customer's established
     borrowing scale.
@@ -1020,7 +1015,7 @@ FROM intelligence.vw_credit_obligation_escalation_flag o
 LEFT JOIN intelligence.vw_credit_escalation_recurrence_score r ON
         o.ocb_customer_id = r.ocb_customer_id
             AND o.loan_id = r.loan_id
-LEFT JOIN intelligence.vw_credit_value_escaltion_score v ON
+LEFT JOIN intelligence.vw_credit_value_escalation_score v ON
         o.ocb_customer_id = v.ocb_customer_id
             AND o.loan_id = v.loan_id;
 GO

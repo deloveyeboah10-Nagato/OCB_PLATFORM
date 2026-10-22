@@ -1,0 +1,2072 @@
+USE [ocb_platform];
+GO
+
+/*
+====================================================================================================================================
+  ---------------------------------------  PART I — Institution-Specific Investigations -------------------------------------------
+====================================================================================================================================
+*/
+/*
+====================================================================================================================================
+    1. SikaCredit: Lending surge and debt recycling
+
+    Question:
+    > During SikaCredit's November 2025 lending surge, which customers exhibit elevated debt-recycling repayment-deficiency,
+      reborrowing-rapidity and recurrence scores?
+
+    Institutional trigger:
+    > November principal disbursements increased from GHS 104,524 in October to GHS 210,646.56. The number of loans issued rose
+      from 82 to 146.
+====================================================================================================================================
+*/
+-- 1. Institutional trigger: November lending surge
+WITH monthly_disbursements
+AS (
+    SELECT
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        COUNT(DISTINCT ocb_customer_id)               AS distinct_loan_customers,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count,
+        AVG(principal_amount)                         AS average_principal_disbursed
+    FROM gold.vw_loan
+    GROUP BY CONVERT(CHAR(7), disbursement_timestamp, 120)
+    ),
+monthly_repayments
+AS (
+    SELECT
+        CONVERT(CHAR(7), repayment_timestamp, 120) AS year_month,
+        COUNT(DISTINCT ocb_customer_id)            AS distinct_repayment_customers,
+        SUM(repayment_amount)                      AS principal_repaid,
+        COUNT(*)                                   AS principal_repaid_count,
+        AVG(repayment_amount)                      AS average_principal_repaid
+    FROM gold.vw_repayment
+    GROUP BY CONVERT(CHAR(7), repayment_timestamp, 120)
+    ),
+monthly_flows
+AS (
+    SELECT
+        COALESCE(d.year_month, r.year_month)        AS year_month,
+        COALESCE(d.distinct_loan_customers, 0)      AS distinct_loan_customers,
+        COALESCE(d.principal_disbursed, 0)          AS principal_disbursed,
+        COALESCE(d.principal_disbursed_count, 0)    AS principal_disbursed_count,
+        COALESCE(d.average_principal_disbursed, 0)  AS average_principal_disbursed,
+        COALESCE(r.distinct_repayment_customers, 0) AS distinct_repayment_customers,
+        COALESCE(r.principal_repaid, 0)             AS principal_repaid,
+        COALESCE(r.principal_repaid_count, 0)       AS principal_repaid_count,
+        COALESCE(r.average_principal_repaid, 0)     AS average_principal_repaid
+    FROM monthly_disbursements AS d
+    FULL OUTER JOIN monthly_repayments AS r ON
+            d.year_month = r.year_month
+    ),
+monthly_changes
+AS (
+    SELECT
+        *,
+        LAG(distinct_loan_customers) OVER (
+            ORDER BY year_month
+            ) AS prev_loan_customers,
+        LAG(principal_disbursed) OVER (
+            ORDER BY year_month
+            ) AS prev_principal_disbursed,
+        LAG(principal_disbursed_count) OVER (
+            ORDER BY year_month
+            ) AS prev_disbursement_count,
+        LAG(average_principal_disbursed) OVER (
+            ORDER BY year_month
+            ) AS prev_average_disbursed,
+        LAG(distinct_repayment_customers) OVER (
+            ORDER BY year_month
+            ) AS prev_repayment_customers,
+        LAG(principal_repaid) OVER (
+            ORDER BY year_month
+            ) AS prev_principal_repaid,
+        LAG(principal_repaid_count) OVER (
+            ORDER BY year_month
+            ) AS prev_repayment_count,
+        LAG(average_principal_repaid) OVER (
+            ORDER BY year_month
+            ) AS prev_average_repaid
+    FROM monthly_flows
+    )
+SELECT
+    year_month,
+    -- Disbursement metrics: November values and changes from October
+    distinct_loan_customers,
+    distinct_loan_customers - prev_loan_customers                                                                                   AS loan_customers_change,
+    CAST(100.0 * (distinct_loan_customers - prev_loan_customers) / NULLIF(prev_loan_customers, 0) AS DECIMAL(10, 2))                AS loan_customers_change_pct,
+    principal_disbursed_count,
+    principal_disbursed_count - prev_disbursement_count                                                                             AS disbursement_count_change,
+    CAST(100.0 * (principal_disbursed_count - prev_disbursement_count) / NULLIF(prev_disbursement_count, 0) AS DECIMAL(10, 2))      AS disbursement_count_change_pct,
+    CAST(principal_disbursed AS DECIMAL(19, 3))                                                                                     AS principal_disbursed,
+    CAST(principal_disbursed - prev_principal_disbursed AS DECIMAL(19, 3))                                                          AS disbursement_sum_change,
+    CAST(100.0 * (principal_disbursed - prev_principal_disbursed) / NULLIF(prev_principal_disbursed, 0) AS DECIMAL(10, 2))          AS disbursement_sum_change_pct,
+    CAST(average_principal_disbursed AS DECIMAL(19, 3))                                                                             AS average_principal_disbursed,
+    CAST(average_principal_disbursed - prev_average_disbursed AS DECIMAL(19, 3))                                                    AS average_disbursement_change,
+    CAST(100.0 * (average_principal_disbursed - prev_average_disbursed) / NULLIF(prev_average_disbursed, 0) AS DECIMAL(10, 2))      AS average_disbursement_change_pct,
+    -- Repayment metrics: November values and changes from October
+    distinct_repayment_customers,
+    distinct_repayment_customers - prev_repayment_customers                                                                         AS repayment_customers_change,
+    CAST(100.0 * (distinct_repayment_customers - prev_repayment_customers) / NULLIF(prev_repayment_customers, 0) AS DECIMAL(10, 2)) AS repayment_customers_change_pct,
+    principal_repaid_count,
+    principal_repaid_count - prev_repayment_count                                                                                   AS repayment_count_change,
+    CAST(100.0 * (principal_repaid_count - prev_repayment_count) / NULLIF(prev_repayment_count, 0) AS DECIMAL(10, 2))               AS repayment_count_change_pct,
+    CAST(principal_repaid AS DECIMAL(19, 3))                                                                                        AS principal_repaid,
+    CAST(principal_repaid - prev_principal_repaid AS DECIMAL(19, 3))                                                                AS repayment_sum_change,
+    CAST(100.0 * (principal_repaid - prev_principal_repaid) / NULLIF(prev_principal_repaid, 0) AS DECIMAL(10, 2))                   AS repayment_sum_change_pct,
+    CAST(average_principal_repaid AS DECIMAL(19, 3))                                                                                AS average_principal_repaid,
+    CAST(average_principal_repaid - prev_average_repaid AS DECIMAL(19, 3))                                                          AS average_repayment_change,
+    CAST(100.0 * (average_principal_repaid - prev_average_repaid) / NULLIF(prev_average_repaid, 0) AS DECIMAL(10, 2))               AS average_repayment_change_pct
+FROM monthly_changes
+WHERE year_month >= '2025-10'
+        AND year_month < '2025-12';
+GO
+
+-- 2. SikaCredit Debt Recycling: Customer-Level Signal Aggregation for November Only (flag)
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_sikacredit_debt_recycling_customer_signals
+AS
+WITH customer_deficiency
+AS (
+    SELECT
+        ocb_customer_id,
+        CONVERT(CHAR(7), next_loan_timestamp, 120) AS year_month,
+        1                                          AS repayment_deficiency_flag
+    FROM intelligence.vw_repayment_deficiency_score
+    WHERE repayment_deficiency_mad_score > 0
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), next_loan_timestamp, 120)
+    ),
+customer_rapidity
+AS (
+    SELECT
+        ocb_customer_id,
+        CONVERT(CHAR(7), next_loan_timestamp, 120) AS year_month,
+        1                                          AS reborrowing_rapidity_flag
+    FROM intelligence.vw_reborrowing_rapidity_score
+    WHERE reborrowing_rapidity_mad_score > 0
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), next_loan_timestamp, 120)
+    ),
+customer_recurrence
+AS (
+    SELECT
+        ocb_customer_id,
+        CONVERT(CHAR(7), next_recycling_event_timestamp, 120) AS year_month,
+        1                                                     AS recycling_recurrence_flag
+    FROM intelligence.vw_debt_recycling_recurrence_score
+    WHERE debt_recycling_recurrence_mad_score > 0
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), next_recycling_event_timestamp, 120)
+    ),
+customer_signals
+AS (
+    SELECT
+        COALESCE(d.ocb_customer_id, r.ocb_customer_id, c.ocb_customer_id) AS ocb_customer_id,
+        COALESCE(d.year_month, r.year_month, c.year_month)                AS year_month,
+        COALESCE(d.repayment_deficiency_flag, 0)                          AS repayment_deficiency_flag,
+        COALESCE(r.reborrowing_rapidity_flag, 0)                          AS reborrowing_rapidity_flag,
+        COALESCE(c.recycling_recurrence_flag, 0)                          AS recycling_recurrence_flag
+    FROM customer_deficiency AS d
+    FULL OUTER JOIN customer_rapidity AS r ON
+            r.ocb_customer_id = d.ocb_customer_id
+                AND r.year_month = d.year_month
+    FULL OUTER JOIN customer_recurrence AS c ON
+            c.ocb_customer_id = COALESCE(d.ocb_customer_id, r.ocb_customer_id)
+                AND c.year_month = COALESCE(d.year_month, r.year_month)
+    ),
+customer_classification
+AS (
+    SELECT
+        ocb_customer_id,
+        year_month,
+        repayment_deficiency_flag,
+        reborrowing_rapidity_flag,
+        recycling_recurrence_flag,
+        repayment_deficiency_flag + reborrowing_rapidity_flag + recycling_recurrence_flag AS signal_count
+    FROM customer_signals
+    )
+SELECT
+    ocb_customer_id,
+    year_month,
+    repayment_deficiency_flag,
+    reborrowing_rapidity_flag,
+    recycling_recurrence_flag,
+    signal_count,
+    CASE signal_count
+        WHEN 1
+            THEN '1 Signal'
+        WHEN 2
+            THEN '2 Signals'
+        WHEN 3
+            THEN 'All 3 Signals'
+        ELSE 'No Signals'
+        END AS signal_classification
+FROM customer_classification;
+GO
+
+-- Which Customers Exhibited Elevated Debt-recycling signals, during the November, 2025 surge?
+SELECT
+    *
+FROM intelligence.vw_sikacredit_debt_recycling_customer_signals
+WHERE year_month = '2025-11'
+ORDER BY signal_count DESC,
+    ocb_customer_id;
+GO
+
+/*
+====================================================================================================================================
+    2. SikaCredit: What kind of borrowers drove the surge?
+
+    Question:
+    > Was SikaCredit's November 2025 lending surge driven primarily by first-time borrowers, repeat borrowers, or customers
+      exhibiting unusually frequent borrowing and short inter-loan intervals?
+
+    > Institutional trigger:
+      The number of loans issued nearly doubled in November, contributing to a sharp increase in principal disbursements.
+====================================================================================================================================
+*/
+-- Borrower composition
+WITH customer_borrowing_history
+AS (
+    SELECT
+        ocb_customer_id,
+        MIN(disbursement_timestamp) AS first_loan_timestamp
+    FROM gold.vw_loan
+    GROUP BY ocb_customer_id
+    ),
+november_borrowers
+AS (
+    SELECT
+        l.ocb_customer_id,
+        l.loan_id,
+        l.disbursement_timestamp,
+        l.principal_amount,
+        CASE 
+            WHEN h.first_loan_timestamp >= '2025-11-01'
+                    AND h.first_loan_timestamp < '2025-12-01'
+                THEN 'First-Time Borrower'
+            ELSE 'Repeat Borrower'
+            END AS borrower_type
+    FROM gold.vw_loan AS l
+    INNER JOIN customer_borrowing_history AS h ON
+            h.ocb_customer_id = l.ocb_customer_id
+    WHERE l.disbursement_timestamp >= '2025-11-01'
+            AND l.disbursement_timestamp < '2025-12-01'
+    )
+SELECT
+    borrower_type,
+    COUNT(DISTINCT ocb_customer_id) AS distinct_customers,
+    COUNT(*)                        AS loans_issued,
+    SUM(principal_amount)           AS principal_disbursed,
+    AVG(principal_amount)           AS average_loan_principal
+FROM november_borrowers
+GROUP BY borrower_type
+ORDER BY borrower_type;
+GO
+
+-- Borrowing behaviour of group
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_sikacredit_borrowing_surge
+AS
+WITH customer_borrowing_history
+AS (
+    SELECT
+        ocb_customer_id,
+        MIN(disbursement_timestamp) AS first_loan_timestamp
+    FROM gold.vw_loan
+    GROUP BY ocb_customer_id
+    ),
+customer_monthly_borrowing
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        principal_amount,
+        COUNT(*) OVER (
+            PARTITION BY ocb_customer_id,
+            YEAR(disbursement_timestamp),
+            MONTH(disbursement_timestamp)
+            ) AS monthly_borrowing_frequency
+    FROM gold.vw_loan
+    ),
+borrower_loans
+AS (
+    SELECT
+        l.ocb_customer_id,
+        l.loan_id,
+        l.disbursement_timestamp,
+        l.principal_amount,
+        l.monthly_borrowing_frequency,
+        CASE 
+            WHEN h.first_loan_timestamp = l.disbursement_timestamp
+                THEN 'First-Time Borrower'
+            ELSE 'Repeat Borrower'
+            END AS borrower_type
+    FROM customer_monthly_borrowing AS l
+    INNER JOIN customer_borrowing_history AS h ON
+            h.ocb_customer_id = l.ocb_customer_id
+    ),
+reborrowing
+AS (
+    SELECT
+        r.ocb_customer_id,
+        r.next_loan_id,
+        r.next_loan_timestamp,
+        r.reborrowing_delay_minutes,
+        r.reborrowing_rapidity_mad_score
+    FROM intelligence.vw_reborrowing_rapidity_score AS r
+    ),
+recurrence
+AS (
+    SELECT
+        c.ocb_customer_id,
+        c.next_recycling_event_id,
+        c.next_recycling_event_timestamp,
+        c.recycling_recurrence_gap_minutes,
+        c.debt_recycling_recurrence_mad_score
+    FROM intelligence.vw_debt_recycling_recurrence_score AS c
+    )
+SELECT
+    l.ocb_customer_id,
+    l.loan_id,
+    l.disbursement_timestamp,
+    l.principal_amount,
+    l.borrower_type,
+    l.monthly_borrowing_frequency,
+    r.reborrowing_delay_minutes,
+    r.reborrowing_rapidity_mad_score,
+    c.recycling_recurrence_gap_minutes,
+    c.debt_recycling_recurrence_mad_score
+FROM borrower_loans AS l
+LEFT JOIN reborrowing AS r ON
+        r.next_loan_id = l.loan_id
+LEFT JOIN recurrence AS c ON
+        c.next_recycling_event_id = l.loan_id;
+GO
+
+-- What kind of borrowers drove the November, 2025 surge?
+SELECT
+    ocb_customer_id,
+    principal_amount,
+    borrower_type,
+    monthly_borrowing_frequency,
+    reborrowing_rapidity_mad_score,
+    debt_recycling_recurrence_mad_score
+FROM intelligence.vw_sikacredit_borrowing_surge
+WHERE disbursement_timestamp >= '2025-11-01'
+        AND disbursement_timestamp < '2025-12-01'
+ORDER BY ocb_customer_id,
+    disbursement_timestamp;
+GO
+
+/*
+====================================================================================================================================
+    3. SikaCredit: Credit escalation during the lending surge
+
+    Question:
+    > Among customers receiving loans during the November 2025 lending surge, which exhibit elevated credit-value escalation,
+      escalation recurrence or credit-obligation escalation signals?
+
+    Institutional trigger:
+    > November's sharp increase in lending raises a separate question about the size and progression of individual borrowers' credit
+      exposure.
+====================================================================================================================================
+*/
+GO
+
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_sikacredit_credit_escalation_customer_signals
+AS
+WITH customer_escalation_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        loan_date,
+        1 AS escalation_value_flag
+    FROM intelligence.vw_credit_value_escalation_score
+    WHERE loan_escalation_mad_score > 0
+    GROUP BY ocb_customer_id,
+        loan_date,
+        loan_id
+    ),
+customer_recurrence
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        loan_date,
+        1 AS escalation_recurrence_flag
+    FROM intelligence.vw_credit_escalation_recurrence_score
+    WHERE escalation_recurrence_mad_score > 0
+    GROUP BY ocb_customer_id,
+        loan_date,
+        loan_id
+    ),
+customer_obligation
+AS (
+    SELECT
+        ocb_customer_id,
+        DATEFROMPARTS(YEAR(disbursement_timestamp), MONTH(disbursement_timestamp), 1) AS loan_date,
+        loan_id,
+        strike_1_pre_maturity_reborrowing,
+        strike_2_maturity_breach,
+        strike_3_post_maturity_reborrowing
+    FROM intelligence.vw_credit_obligation_escalation_flag
+    WHERE strike_1_pre_maturity_reborrowing IS NOT NULL
+            AND strike_2_maturity_breach IS NOT NULL
+            AND strike_3_post_maturity_reborrowing IS NOT NULL
+    GROUP BY ocb_customer_id,
+        DATEFROMPARTS(YEAR(disbursement_timestamp), MONTH(disbursement_timestamp), 1),
+        loan_id,
+        strike_1_pre_maturity_reborrowing,
+        strike_2_maturity_breach,
+        strike_3_post_maturity_reborrowing
+    ),
+customer_signals
+AS (
+    SELECT
+        COALESCE(co.ocb_customer_id, es.ocb_customer_id, r.ocb_customer_id) AS ocb_customer_id,
+        COALESCE(co.loan_date, r.loan_date, es.loan_date)                   AS year_month,
+        COALESCE(es.escalation_value_flag, 0)                               AS escalation_value_flag,
+        COALESCE(r.escalation_recurrence_flag, 0)                           AS escalation_recurrence_flag,
+        COALESCE(co.strike_1_pre_maturity_reborrowing, 0)                   AS strike_1_pre_maturity_reborrowing,
+        COALESCE(co.strike_2_maturity_breach, 0)                            AS strike_2_maturity_breach,
+        COALESCE(co.strike_3_post_maturity_reborrowing, 0)                  AS strike_3_post_maturity_reborrowing
+    FROM customer_obligation co
+    FULL OUTER JOIN customer_recurrence AS r ON
+            r.ocb_customer_id = co.ocb_customer_id
+                AND r.loan_id = co.loan_id
+                AND r.loan_date = co.loan_date
+    FULL OUTER JOIN customer_escalation_score AS es ON
+            es.ocb_customer_id = COALESCE(co.ocb_customer_id, r.ocb_customer_id)
+                AND es.loan_id = COALESCE(co.loan_id, r.loan_id)
+                AND es.loan_date = COALESCE(co.loan_date, r.loan_date)
+    ),
+signal_classification
+AS (
+    SELECT
+        *,
+        escalation_value_flag + escalation_recurrence_flag + strike_1_pre_maturity_reborrowing + strike_2_maturity_breach + strike_3_post_maturity_reborrowing AS signal_count
+    FROM customer_signals
+    )
+SELECT
+    *,
+    CASE 
+        WHEN signal_count = 1
+            THEN '1 Signal'
+        WHEN signal_count = 2
+            THEN '2 Signals'
+        WHEN signal_count >= 3
+            THEN '3+ Signals'
+        ELSE 'No Signals'
+        END AS signal_classification
+FROM signal_classification;
+GO
+
+-- Which Customers Exhibited Loan Escalation Signals For The November,2025 Surge?
+SELECT
+    *
+FROM intelligence.vw_sikacredit_credit_escalation_customer_signals
+WHERE year_month = '2025-11-01'
+ORDER BY signal_count DESC,
+    ocb_customer_id;
+GO
+
+/*
+====================================================================================================================================
+    4. Ananse Telecom: Who drove the December transaction surge?
+
+    Question:
+    > Which customers contributed materially to Ananse's December 2025 transaction surge, and which exhibited elevated
+      transaction-amount, velocity or rapid cash-in → P2P → cash-out sequence signals?
+
+    Institutional trigger:
+    > Successful transaction count increased from 37,913 in November to 53,173 in December. Successful transaction value rose from
+      approximately GHS 64.95 million to GHS 91.41 million.
+====================================================================================================================================
+*/
+-- December 2025 transaction surge
+SELECT
+    *
+FROM intelligence.vw_ananse_institutional_monitoring
+WHERE year_month BETWEEN '2025-11'
+        AND '2025-12';
+GO
+
+-- Customer Transaction Analysis
+CREATE
+        OR
+
+ALTER VIEW intelligence.vw_ananse_customer_transaction_analysis
+AS
+WITH monthly_totals
+AS (
+    SELECT
+        CONVERT(CHAR(7), transaction_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        COUNT(*)                                     AS total_transaction_count,
+        SUM(transaction_amount)                      AS total_transaction_value,
+        AVG(transaction_amount)                      AS average_transaction_value
+    FROM gold.vw_transaction
+    WHERE transaction_status = 'successful'
+            AND transaction_type <> 'merchant payment'
+    GROUP BY CONVERT(CHAR(7), transaction_timestamp, 120),
+        ocb_customer_id
+    ),
+monthly_medians
+AS (
+    SELECT DISTINCT
+        CONVERT(CHAR(7), transaction_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        PERCENTILE_CONT(0.50) WITHIN
+    GROUP (
+            ORDER BY transaction_amount
+            ) OVER (PARTITION BY CONVERT(CHAR(7), transaction_timestamp, 120)) AS median_transaction_value
+    FROM gold.vw_transaction
+    WHERE transaction_status = 'successful'
+            AND transaction_type <> 'merchant payment'
+    ),
+monthly_summary
+AS (
+    SELECT
+        t.*,
+        m.median_transaction_value
+    FROM monthly_totals t
+    INNER JOIN monthly_medians m ON
+            t.year_month = m.year_month
+                AND t.ocb_customer_id = m.ocb_customer_id
+    ),
+monthly_changes
+AS (
+    SELECT
+        *,
+        LAG(total_transaction_count) OVER (
+            PARTITION BY ocb_customer_id ORDER BY year_month
+            ) AS previous_transaction_count,
+        LAG(total_transaction_value) OVER (
+            PARTITION BY ocb_customer_id ORDER BY year_month
+            ) AS previous_transaction_value
+    FROM monthly_summary
+    )
+SELECT
+    year_month,
+    ocb_customer_id,
+    previous_transaction_count,
+    total_transaction_count,
+    total_transaction_count - previous_transaction_count                                                                                     AS transaction_count_mom_change,
+    CAST(ROUND((total_transaction_count - previous_transaction_count) * 100.0 / NULLIF(previous_transaction_count, 0), 3) AS DECIMAL(19, 3)) AS transaction_count_mom_change_pct,
+    CAST(ROUND(previous_transaction_value, 3) AS DECIMAL(19, 3))                                                                             AS previous_transaction_value,
+    CAST(ROUND(total_transaction_value, 3) AS DECIMAL(19, 3))                                                                                AS total_transaction_value,
+    CAST(ROUND((total_transaction_value - previous_transaction_value), 3) AS DECIMAL(19, 3))                                                 AS transaction_value_mom_change,
+    CAST(ROUND((total_transaction_value - previous_transaction_value) * 100.0 / NULLIF(previous_transaction_value, 0), 3) AS DECIMAL(19, 3)) AS transaction_value_mom_change_pct,
+    CAST(ROUND(average_transaction_value, 3) AS DECIMAL(19, 3))                                                                              AS average_transaction_value,
+    CAST(ROUND(median_transaction_value, 3) AS DECIMAL(19, 3))                                                                               AS median_transaction_value
+FROM monthly_changes;
+GO
+
+-- Which Customers Contributed Materially to Ananse's December 2025 Transaction Surge?
+SELECT TOP (50)
+    ocb_customer_id,
+    year_month,
+    previous_transaction_count   AS november_transaction_count,
+    total_transaction_count      AS december_transaction_count,
+    transaction_count_mom_change AS transaction_count_change,
+    previous_transaction_value   AS november_transaction_value,
+    total_transaction_value      AS december_transaction_value,
+    transaction_value_mom_change AS transaction_value_change,
+    transaction_count_mom_change_pct,
+    transaction_value_mom_change_pct
+FROM intelligence.vw_ananse_customer_transaction_analysis
+WHERE year_month = '2025-12'
+ORDER BY transaction_value_mom_change DESC;
+GO
+
+-- What TAE Signals Did The Top 50 Customers Who Contributed Materially to Ananse's December 2025 Transaction Surge Exhibit?
+WITH transaction_level
+AS (
+    SELECT
+        t.transaction_id,
+        t.ocb_customer_id,
+        CONVERT(CHAR(7), t.transaction_timestamp, 120) AS year_month,
+        t.transaction_timestamp,
+        t.transaction_type,
+        t.transaction_amount,
+        -- Global Amount
+        g.log_transaction_amount,
+        g.global_amount_score,
+        -- Velocity
+        v.txn_interval_mins,
+        v.velocity_score
+    FROM gold.vw_transaction AS t
+    LEFT JOIN intelligence.vw_signal_global_score AS g ON
+            t.transaction_id = g.transaction_id
+                AND t.ocb_customer_id = g.ocb_customer_id
+    LEFT JOIN intelligence.vw_signal_velocity_score AS v ON
+            t.transaction_id = v.transaction_id
+                AND t.ocb_customer_id = v.ocb_customer_id
+    WHERE t.transaction_status = 'successful'
+            AND t.transaction_type <> 'merchant payment'
+    ),
+top_50
+AS (
+    SELECT TOP (50)
+        ocb_customer_id,
+        year_month,
+        previous_transaction_count   AS november_transaction_count,
+        total_transaction_count      AS december_transaction_count,
+        transaction_count_mom_change AS transaction_count_change,
+        previous_transaction_value   AS november_transaction_value,
+        total_transaction_value      AS december_transaction_value,
+        transaction_value_mom_change AS transaction_value_change,
+        transaction_count_mom_change_pct,
+        transaction_value_mom_change_pct
+    FROM intelligence.vw_ananse_customer_transaction_analysis
+    WHERE year_month = '2025-12'
+    ORDER BY transaction_value_mom_change DESC
+    ),
+customer_month_signals
+AS (
+    SELECT
+        t50.ocb_customer_id,
+        t50.year_month,
+        t50.november_transaction_count,
+        t50.december_transaction_count,
+        t50.transaction_count_change,
+        t50.november_transaction_value,
+        t50.december_transaction_value,
+        t50.transaction_value_change,
+        t50.transaction_count_mom_change_pct,
+        t50.transaction_value_mom_change_pct,
+        cs.log_monthly_transaction_value,
+        cs.customer_amount_score
+    FROM top_50 t50
+    INNER JOIN intelligence.vw_signal_customer_score cs ON
+            t50.ocb_customer_id = cs.ocb_customer_id
+                AND t50.year_month = cs.year_month
+    )
+SELECT
+    t.ocb_customer_id,
+    t.year_month,
+    t.transaction_id,
+    c.november_transaction_count,
+    c.december_transaction_count,
+    c.transaction_count_change,
+    c.november_transaction_value,
+    c.december_transaction_value,
+    c.transaction_value_change,
+    -- Transaction-level signals
+    t.global_amount_score,
+    t.velocity_score,
+    -- Customer-month signals
+    c.customer_amount_score
+FROM transaction_level AS t
+INNER JOIN customer_month_signals AS c ON
+        t.ocb_customer_id = c.ocb_customer_id
+            AND t.year_month = c.year_month;
+GO
+
+-- What CIP2PCO Signals did the top 50 Customers Who Contributed Materially to Ananse's December,2025 Surge Ehibit? (Event view)
+WITH top_50
+AS (
+    SELECT TOP (50)
+        ocb_customer_id,
+        year_month,
+        transaction_count_mom_change AS transaction_count_change,
+        transaction_value_mom_change AS transaction_value_change,
+        transaction_count_mom_change_pct,
+        transaction_value_mom_change_pct
+    FROM intelligence.vw_ananse_customer_transaction_analysis
+    WHERE year_month = '2025-12'
+    ORDER BY transaction_value_mom_change DESC
+    ),
+duration_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_sequence_duration_score
+    WHERE txn3_time >= '2025-12-01'
+            AND txn3_time < '2026-01-01'
+    ),
+recurrence_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_recurrence_score
+    WHERE txn3_timestamp >= '2025-12-01'
+            AND txn3_timestamp < '2026-01-01'
+    ),
+socr_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_socr_score
+    WHERE txn3_timestamp >= '2025-12-01'
+            AND txn3_timestamp < '2026-01-01'
+    ),
+cip2pco_sequences
+AS (
+    SELECT
+        d.ocb_customer_id,
+        d.txn1_time AS cash_in_timestamp,
+        d.txn2_time AS p2p_timestamp,
+        d.txn3_time AS cash_out_timestamp,
+        d.sequence_duration_mins,
+        d.cip2pco_sequence_duration_score,
+        r.recurrence_gap_minutes,
+        r.cip2pco_recurrence_score,
+        s.cash_in_value,
+        s.p2p_value,
+        s.cash_out_value,
+        s.socr,
+        s.cip2pco_socr_score
+    FROM duration_sequences AS d
+    LEFT JOIN recurrence_sequences AS r ON
+            d.ocb_customer_id = r.ocb_customer_id
+                AND d.txn1_time = r.txn1_timestamp
+                AND d.txn2_time = r.txn2_timestamp
+                AND d.txn3_time = r.txn3_timestamp
+    LEFT JOIN socr_sequences AS s ON
+            d.ocb_customer_id = s.ocb_customer_id
+                AND d.txn1_time = s.txn1_timestamp
+                AND d.txn2_time = s.txn2_timestamp
+                AND d.txn3_time = s.txn3_timestamp
+    )
+SELECT
+    s.ocb_customer_id,
+    '2025-12' AS year_month,
+    -- Customer-month monitoring metrics
+    c.transaction_count_change,
+    c.transaction_value_change,
+    c.transaction_count_mom_change_pct,
+    c.transaction_value_mom_change_pct,
+    -- CIP2PCO sequence details
+    s.cash_in_timestamp,
+    s.p2p_timestamp,
+    s.cash_out_timestamp,
+    -- CIP2PCO signals
+    s.sequence_duration_mins,
+    s.cip2pco_sequence_duration_score,
+    s.recurrence_gap_minutes,
+    s.cip2pco_recurrence_score,
+    s.socr,
+    s.cip2pco_socr_score
+FROM cip2pco_sequences AS s
+INNER JOIN top_50 AS c ON
+        s.ocb_customer_id = c.ocb_customer_id
+ORDER BY c.transaction_value_change DESC,
+    s.ocb_customer_id,
+    s.cash_out_timestamp;
+GO
+
+-- What CIP2PCO Signals did the top 50 Customers Who Contributed Materially to Ananse's December,2025 Surge Ehibit? (Aggregated view)
+WITH top_50
+AS (
+    SELECT TOP (50)
+        ocb_customer_id,
+        year_month,
+        transaction_count_mom_change AS transaction_count_change,
+        transaction_value_mom_change AS transaction_value_change,
+        transaction_count_mom_change_pct,
+        transaction_value_mom_change_pct
+    FROM intelligence.vw_ananse_customer_transaction_analysis
+    WHERE year_month = '2025-12'
+    ORDER BY transaction_value_mom_change DESC
+    ),
+duration_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_sequence_duration_score
+    WHERE txn3_time >= '2025-12-01'
+            AND txn3_time < '2026-01-01'
+    ),
+recurrence_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_recurrence_score
+    WHERE txn3_timestamp >= '2025-12-01'
+            AND txn3_timestamp < '2026-01-01'
+    ),
+socr_sequences
+AS (
+    SELECT
+        *
+    FROM intelligence.vw_cip2pco_socr_score
+    WHERE txn3_timestamp >= '2025-12-01'
+            AND txn3_timestamp < '2026-01-01'
+    ),
+cip2pco_sequences
+AS (
+    SELECT
+        d.ocb_customer_id,
+        d.txn1_time AS cash_in_timestamp,
+        d.txn2_time AS p2p_timestamp,
+        d.txn3_time AS cash_out_timestamp,
+        d.cip2pco_sequence_duration_score,
+        r.cip2pco_recurrence_score,
+        s.cip2pco_socr_score
+    FROM duration_sequences AS d
+    LEFT JOIN recurrence_sequences AS r ON
+            d.ocb_customer_id = r.ocb_customer_id
+                AND d.txn1_time = r.txn1_timestamp
+                AND d.txn2_time = r.txn2_timestamp
+                AND d.txn3_time = r.txn3_timestamp
+    LEFT JOIN socr_sequences AS s ON
+            d.ocb_customer_id = s.ocb_customer_id
+                AND d.txn1_time = s.txn1_timestamp
+                AND d.txn2_time = s.txn2_timestamp
+                AND d.txn3_time = s.txn3_timestamp
+    ),
+customer_summary
+AS (
+    SELECT
+        ocb_customer_id,
+        COUNT(*) AS cip2pco_sequence_count,
+        SUM(CASE 
+                WHEN cip2pco_sequence_duration_score > 0
+                    THEN 1
+                ELSE 0
+                END) AS duration_score_count,
+        MAX(cip2pco_sequence_duration_score) AS max_duration_score,
+        SUM(CASE 
+                WHEN cip2pco_recurrence_score > 0
+                    THEN 1
+                ELSE 0
+                END) AS recurrence_score_count,
+        MAX(cip2pco_recurrence_score) AS max_recurrence_score,
+        SUM(CASE 
+                WHEN cip2pco_socr_score > 0
+                    THEN 1
+                ELSE 0
+                END) AS socr_score_count,
+        MAX(cip2pco_socr_score) AS max_socr_score
+    FROM cip2pco_sequences
+    GROUP BY ocb_customer_id
+    )
+SELECT
+    t.ocb_customer_id,
+    t.year_month,
+    t.transaction_count_change,
+    t.transaction_value_change,
+    t.transaction_count_mom_change_pct,
+    t.transaction_value_mom_change_pct,
+    COALESCE(c.cip2pco_sequence_count, 0) AS cip2pco_sequence_count,
+    COALESCE(c.duration_score_count, 0)   AS duration_score_count,
+    c.max_duration_score,
+    COALESCE(c.recurrence_score_count, 0) AS recurrence_score_count,
+    c.max_recurrence_score,
+    COALESCE(c.socr_score_count, 0)       AS socr_score_count,
+    c.max_socr_score
+FROM top_50 AS t
+LEFT JOIN customer_summary AS c ON
+        t.ocb_customer_id = c.ocb_customer_id
+ORDER BY t.transaction_value_change DESC;
+GO
+
+/*
+====================================================================================================================================
+     5. Ananse: Failed and rejected transactions versus overnight behaviour
+
+    Question:
+    > Are customers disproportionately associated with failed or rejected Ananse transactions also exhibiting elevated overnight
+    transaction rapidity or overnight residual-value signals?
+
+    Institutional trigger:
+    Some customers in Ananse Telecom exhibit high unsuccessful transaction count and rates. 
+====================================================================================================================================
+*/
+-- Which Customers Exhibit Disproportionately Large Failed/Rejected Transactions?
+SELECT TOP (50)
+    *
+FROM intelligence.vw_ananse_customer_transaction_outcomes
+ORDER BY unsuccessful_transactions DESC,
+    overall_unsuccessful_rate DESC,
+    ocb_customer_id;
+GO
+
+-- Do The Top 50 Customers Exhibit Elevated Overnight Transaction signals (Event grain)?
+WITH top_50
+AS (
+    SELECT TOP (50)
+        *
+    FROM intelligence.vw_ananse_customer_transaction_outcomes
+    ORDER BY unsuccessful_transactions DESC,
+        overall_unsuccessful_rate DESC,
+        ocb_customer_id
+    ),
+overnight_transactions_signals
+AS (
+    SELECT
+        v.ocb_customer_id,
+        v.overnight_date,
+        v.overnight_total_value,
+        v.normal_hours_median_value,
+        v.value_residual,
+        v.overnight_residual_score,
+        r.interval_minutes,
+        r.overnight_rapidity_mad_score
+    FROM intelligence.vw_signal_overnight_value_score AS v
+    LEFT JOIN intelligence.vw_signal_overnight_rapidity_score AS r ON
+            v.ocb_customer_id = r.ocb_customer_id
+                AND v.overnight_date = r.overnight_date
+    )
+SELECT
+    t50.ocb_customer_id,
+    t50.unsuccessful_transactions,
+    t50.overall_unsuccessful_rate,
+    o.value_residual,
+    o.overnight_residual_score,
+    o.interval_minutes,
+    o.overnight_rapidity_mad_score
+FROM top_50 t50
+LEFT JOIN overnight_transactions_signals o ON
+        t50.ocb_customer_id = o.ocb_customer_id
+ORDER BY t50.unsuccessful_transactions DESC,
+    t50.overall_unsuccessful_rate DESC,
+    t50.ocb_customer_id;
+GO
+
+-- Do The Top 50 Customers Exhibit Elevated Overnight Transaction signals (Aggregated)?
+WITH top_50
+AS (
+    SELECT TOP (50)
+        ocb_customer_id,
+        unsuccessful_transactions,
+        overall_unsuccessful_rate
+    FROM intelligence.vw_ananse_customer_transaction_outcomes
+    ORDER BY unsuccessful_transactions DESC,
+        overall_unsuccessful_rate DESC,
+        ocb_customer_id
+    ),
+value_signal_summary
+AS (
+    SELECT
+        ocb_customer_id,
+        COUNT(CASE 
+                WHEN overnight_residual_score > 0
+                    THEN 1
+                END) AS positive_value_signal_count,
+        MAX(overnight_residual_score) AS max_value_signal_score
+    FROM intelligence.vw_signal_overnight_value_score
+    GROUP BY ocb_customer_id
+    ),
+rapidity_signal_summary
+AS (
+    SELECT
+        ocb_customer_id,
+        COUNT(CASE 
+                WHEN overnight_rapidity_mad_score > 0
+                    THEN 1
+                END) AS positive_rapidity_signal_count,
+        MAX(overnight_rapidity_mad_score) AS max_rapidity_signal_score
+    FROM intelligence.vw_signal_overnight_rapidity_score
+    GROUP BY ocb_customer_id
+    )
+SELECT
+    t.ocb_customer_id,
+    t.unsuccessful_transactions,
+    t.overall_unsuccessful_rate,
+    COALESCE(v.positive_value_signal_count, 0)    AS positive_value_signal_count,
+    v.max_value_signal_score,
+    COALESCE(r.positive_rapidity_signal_count, 0) AS positive_rapidity_signal_count,
+    r.max_rapidity_signal_score
+FROM top_50 AS t
+LEFT JOIN value_signal_summary AS v ON
+        t.ocb_customer_id = v.ocb_customer_id
+LEFT JOIN rapidity_signal_summary AS r ON
+        t.ocb_customer_id = r.ocb_customer_id
+ORDER BY t.unsuccessful_transactions DESC,
+    t.overall_unsuccessful_rate DESC,
+    t.ocb_customer_id;
+GO
+
+/*
+====================================================================================================================================
+    6.Oman Remit: FATF Origin-Risk Remittance Exposure
+
+    Question:
+    Which customers account for the highest volume and value of successful inbound remittances from FATF-flagged origins,
+    and what failed or rejected remittance activity is associated with those customers?
+
+    Institutional trigger:
+    Origin-risk monitoring identified remittances originating from FATF-flagged countries during the specified periods. This
+    workload ranks customers by the value of successful inbound remittances from flagged origins, using remittance counts and
+    associated failed or rejected activity as supporting context.
+====================================================================================================================================
+*/
+-- Which Customers Received the Highest Inbound Remittances from Flagged FATF Countries?
+SELECT TOP 50
+    ocb_customer_id,
+    COUNT(*) AS flagged_origin_remittance_count,
+    COUNT(CASE 
+            WHEN remittance_status = 'successful'
+                THEN 1
+            END) AS successful_count,
+    COUNT(CASE 
+            WHEN remittance_status = 'failed'
+                THEN 1
+            END) AS failed_count,
+    COUNT(CASE 
+            WHEN remittance_status = 'rejected'
+                THEN 1
+            END) AS rejected_count,
+    COALESCE(SUM(CASE 
+                WHEN remittance_status = 'successful'
+                    THEN remittance_amount
+                END), 0) AS successful_amount,
+    COALESCE(SUM(CASE 
+                WHEN remittance_status = 'failed'
+                    THEN remittance_amount
+                END), 0) AS failed_amount,
+    COALESCE(SUM(CASE 
+                WHEN remittance_status = 'rejected'
+                    THEN remittance_amount
+                END), 0) AS rejected_amount
+FROM intelligence.vw_oman_remit_fatf_monitoring
+WHERE remittance_origin_risk_flag = 1
+GROUP BY ocb_customer_id
+ORDER BY successful_amount DESC,
+    successful_count DESC;
+GO
+
+/*
+====================================================================================================================================
+  ---------------------------------------- PART II — Cross-Institution Investigations -------------------------------------------
+====================================================================================================================================
+*/
+/*
+====================================================================================================================================
+    7. SikaCredit: Loan disbursement followed by cash-out
+
+    Question:
+    > Among customers receiving SikaCredit loans during the November 2025 lending surge, which exhibit qualifying
+    loan-disbursement → Ananse cash-out sequences with elevated rapidity, amount-ratio or recurrence signals?
+
+    Institutional trigger:
+    The November increase in loan disbursements provides a defined population to investigate for subsequent cash-out activity.
+====================================================================================================================================
+*/
+-- November lending surge
+SELECT
+    year_month,
+    distinct_borrowers,
+    loans_disbursed_count,
+    principal_disbursed,
+    opening_outstanding_principal,
+    closing_outstanding_principal,
+    principal_growth_rate_pct
+FROM intelligence.vw_sikacredit_institutional_monitoring
+WHERE year_month = '2025-11';
+
+-- Which Customers Contributed to SikaCredit's November,2025 Lending Surge?
+SELECT TOP 50
+    ocb_customer_id,
+    CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+    SUM(principal_amount)                         AS principal_disbursed,
+    COUNT(*)                                      AS principal_disbursed_count
+FROM gold.vw_loan
+WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+GROUP BY ocb_customer_id,
+    CONVERT(CHAR(7), disbursement_timestamp, 120)
+ORDER BY principal_disbursed DESC;
+
+-- Which Of The Top 50 Customers Exhibited Elevated Loan-Cashout Signals?
+-- Event Grain: Successful Cash-Outs Only
+WITH top_50
+AS (
+    SELECT TOP 50
+        ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count
+    FROM gold.vw_loan
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120)
+    ORDER BY SUM(principal_amount) DESC
+    ),
+amount_ratio_score
+AS (
+    SELECT
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        principal_amount,
+        transaction_id,
+        cash_out_timestamp,
+        cash_out_amt,
+        cash_out_to_loan_ratio,
+        amount_ratio_score
+    FROM intelligence.vw_loan_cashout_amount_ratio_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+rapidity_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_delay_minutes,
+        loan_cashout_rapidity_score
+    FROM intelligence.vw_loan_cashout_rapidity_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+recurrence_score
+AS (
+    SELECT
+        CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        next_sequence_loan_id,
+        next_sequence_loan_timestamp,
+        recurrence_gap_minutes,
+        loan_cashout_recurrence_score
+    FROM intelligence.vw_loan_cashout_recurrence_score
+    WHERE CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) = '2025-11'
+    ),
+loan_cashout_signals
+AS (
+    SELECT
+        ar.year_month,
+        ar.ocb_customer_id,
+        ar.loan_id,
+        ar.disbursement_timestamp,
+        ar.principal_amount,
+        ar.transaction_id,
+        ar.cash_out_timestamp,
+        ar.cash_out_amt,
+        ar.cash_out_to_loan_ratio,
+        ar.amount_ratio_score,
+        ra.cash_out_delay_minutes,
+        ra.loan_cashout_rapidity_score,
+        re.next_sequence_loan_id,
+        re.next_sequence_loan_timestamp,
+        re.recurrence_gap_minutes,
+        re.loan_cashout_recurrence_score
+    FROM amount_ratio_score ar
+    LEFT JOIN rapidity_score ra ON
+            ar.ocb_customer_id = ra.ocb_customer_id
+                AND ar.loan_id = ra.loan_id
+                AND ar.disbursement_timestamp = ra.disbursement_timestamp
+    LEFT JOIN recurrence_score re ON
+            ar.ocb_customer_id = re.ocb_customer_id
+                AND ar.loan_id = re.next_sequence_loan_id
+                AND ar.disbursement_timestamp = re.next_sequence_loan_timestamp
+    )
+SELECT
+    t50.year_month,
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    t50.principal_disbursed_count,
+    lc.loan_id,
+    lc.disbursement_timestamp,
+    lc.transaction_id,
+    lc.cash_out_timestamp,
+    lc.cash_out_amt,
+    lc.cash_out_to_loan_ratio,
+    lc.amount_ratio_score,
+    lc.cash_out_delay_minutes,
+    lc.loan_cashout_rapidity_score,
+    lc.next_sequence_loan_id,
+    lc.next_sequence_loan_timestamp,
+    lc.recurrence_gap_minutes,
+    lc.loan_cashout_recurrence_score
+FROM top_50 t50
+LEFT JOIN loan_cashout_signals lc ON
+        t50.ocb_customer_id = lc.ocb_customer_id
+            AND t50.year_month = lc.year_month
+INNER JOIN gold.vw_transaction t ON
+        lc.transaction_id = t.transaction_id
+            AND t.transaction_status = 'successful'
+ORDER BY t50.principal_disbursed DESC,
+    t50.ocb_customer_id;
+
+-- Which Top 50 November Borrowers Exhibited Elevated Loan-Cashout Signals?
+-- Aggregated: Successful Cash-Outs Only
+WITH top_50
+AS (
+    SELECT TOP 50
+        ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count
+    FROM gold.vw_loan
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120)
+    ORDER BY SUM(principal_amount) DESC
+    ),
+amount_ratio_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_amt,
+        cash_out_to_loan_ratio,
+        amount_ratio_score
+    FROM intelligence.vw_loan_cashout_amount_ratio_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+rapidity_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_delay_minutes,
+        loan_cashout_rapidity_score
+    FROM intelligence.vw_loan_cashout_rapidity_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+recurrence_score
+AS (
+    SELECT
+        ocb_customer_id,
+        next_sequence_loan_id,
+        next_sequence_loan_timestamp,
+        recurrence_gap_minutes,
+        loan_cashout_recurrence_score
+    FROM intelligence.vw_loan_cashout_recurrence_score
+    WHERE CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) = '2025-11'
+    ),
+loan_cashout_signals
+AS (
+    SELECT
+        ar.ocb_customer_id,
+        ar.loan_id,
+        ar.disbursement_timestamp,
+        ar.transaction_id,
+        ar.cash_out_amt,
+        ar.cash_out_to_loan_ratio,
+        ar.amount_ratio_score,
+        ra.cash_out_delay_minutes,
+        ra.loan_cashout_rapidity_score,
+        re.recurrence_gap_minutes,
+        re.loan_cashout_recurrence_score
+    FROM amount_ratio_score ar
+    LEFT JOIN rapidity_score ra ON
+            ar.ocb_customer_id = ra.ocb_customer_id
+                AND ar.loan_id = ra.loan_id
+                AND ar.disbursement_timestamp = ra.disbursement_timestamp
+    LEFT JOIN recurrence_score re ON
+            ar.ocb_customer_id = re.ocb_customer_id
+                AND ar.loan_id = re.next_sequence_loan_id
+                AND ar.disbursement_timestamp = re.next_sequence_loan_timestamp
+    INNER JOIN gold.vw_transaction t ON
+            ar.transaction_id = t.transaction_id
+                AND t.transaction_status = 'successful'
+    )
+SELECT
+    t50.year_month,
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    t50.principal_disbursed_count,
+    COUNT(CASE 
+            WHEN lc.amount_ratio_score > 0
+                THEN 1
+            END) AS elevated_amount_ratio_signal_count,
+    MAX(lc.amount_ratio_score) AS max_amount_ratio_score,
+    COUNT(CASE 
+            WHEN lc.loan_cashout_rapidity_score > 0
+                THEN 1
+            END) AS elevated_rapidity_signal_count,
+    MAX(lc.loan_cashout_rapidity_score) AS max_rapidity_score,
+    COUNT(CASE 
+            WHEN lc.loan_cashout_recurrence_score > 0
+                THEN 1
+            END) AS elevated_recurrence_signal_count,
+    MAX(lc.loan_cashout_recurrence_score) AS max_recurrence_score
+FROM top_50 t50
+LEFT JOIN loan_cashout_signals lc ON
+        t50.ocb_customer_id = lc.ocb_customer_id
+            AND t50.year_month = CONVERT(CHAR(7), lc.disbursement_timestamp, 120)
+GROUP BY t50.year_month,
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    t50.principal_disbursed_count
+ORDER BY t50.principal_disbursed DESC;
+
+-- Which November SikaCredit borrowers exhibit both debt-recycling and elevated post-disbursement cash-out signals?
+WITH top_50
+AS (
+    SELECT TOP 50
+        ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count
+    FROM gold.vw_loan
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120)
+    ORDER BY SUM(principal_amount) DESC
+    ),
+amount_ratio_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_amt,
+        cash_out_to_loan_ratio,
+        amount_ratio_score
+    FROM intelligence.vw_loan_cashout_amount_ratio_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+rapidity_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_delay_minutes,
+        loan_cashout_rapidity_score
+    FROM intelligence.vw_loan_cashout_rapidity_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) = '2025-11'
+    ),
+recurrence_score
+AS (
+    SELECT
+        ocb_customer_id,
+        next_sequence_loan_id,
+        next_sequence_loan_timestamp,
+        recurrence_gap_minutes,
+        loan_cashout_recurrence_score
+    FROM intelligence.vw_loan_cashout_recurrence_score
+    WHERE CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) = '2025-11'
+    ),
+loan_cashout_signals
+AS (
+    SELECT
+        ar.ocb_customer_id,
+        ar.loan_id,
+        ar.disbursement_timestamp,
+        ar.transaction_id,
+        ar.cash_out_amt,
+        ar.cash_out_to_loan_ratio,
+        ar.amount_ratio_score,
+        ra.cash_out_delay_minutes,
+        ra.loan_cashout_rapidity_score,
+        re.recurrence_gap_minutes,
+        re.loan_cashout_recurrence_score
+    FROM amount_ratio_score ar
+    LEFT JOIN rapidity_score ra ON
+            ar.ocb_customer_id = ra.ocb_customer_id
+                AND ar.loan_id = ra.loan_id
+                AND ar.disbursement_timestamp = ra.disbursement_timestamp
+    LEFT JOIN recurrence_score re ON
+            ar.ocb_customer_id = re.ocb_customer_id
+                AND ar.loan_id = re.next_sequence_loan_id
+                AND ar.disbursement_timestamp = re.next_sequence_loan_timestamp
+    INNER JOIN gold.vw_transaction t ON
+            ar.transaction_id = t.transaction_id
+                AND t.transaction_status = 'successful'
+    )
+SELECT
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    dr.reborrowing_rapidity_flag,
+    dr.recycling_recurrence_flag,
+    dr.repayment_deficiency_flag,
+    COUNT(CASE 
+            WHEN lc.amount_ratio_score > 0
+                THEN 1
+            END) AS elevated_amount_ratio_signal_count,
+    COUNT(CASE 
+            WHEN lc.loan_cashout_rapidity_score > 0
+                THEN 1
+            END) AS elevated_rapidity_signal_count,
+    COUNT(CASE 
+            WHEN lc.loan_cashout_recurrence_score > 0
+                THEN 1
+            END) AS elevated_recurrence_signal_count,
+    COALESCE(dr.reborrowing_rapidity_flag, 0) + COALESCE(dr.recycling_recurrence_flag, 0) + COALESCE(dr.repayment_deficiency_flag, 0) + COUNT(CASE 
+            WHEN lc.amount_ratio_score > 0
+                THEN 1
+            END) + COUNT(CASE 
+            WHEN lc.loan_cashout_rapidity_score > 0
+                THEN 1
+            END) + COUNT(CASE 
+            WHEN lc.loan_cashout_recurrence_score > 0
+                THEN 1
+            END) AS total_signal_count
+FROM top_50 t50
+LEFT JOIN loan_cashout_signals lc ON
+        t50.ocb_customer_id = lc.ocb_customer_id
+            AND t50.year_month = CONVERT(CHAR(7), lc.disbursement_timestamp, 120)
+LEFT JOIN intelligence.vw_sikacredit_debt_recycling_customer_signals dr ON
+        t50.ocb_customer_id = dr.ocb_customer_id
+            AND t50.year_month = dr.year_month
+GROUP BY t50.year_month,
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    t50.principal_disbursed_count,
+    dr.reborrowing_rapidity_flag,
+    dr.recycling_recurrence_flag,
+    dr.repayment_deficiency_flag
+ORDER BY t50.principal_disbursed DESC;
+/*
+Some borrowers in SikaCredit's November 2025 lending-surge cohort exhibit both debt-recycling indicators and elevated
+loan-disbursement-to-successful-cash-out signals. The overlap provides a basis for examining credit behaviour alongside subsequent
+transaction behaviour, while preserving the distinction between the two analytical questions.
+*/
+
+
+/*
+====================================================================================================================================
+    8. Oman Remit: Remittance-to-Cash-Out, Origin-Risk Flags and TAE Anomalies
+
+    Investigation Question:
+    > Which FATF-flagged Oman Remit remittance-to-cash-out sequences during Q4 2025 also exhibit TAE transaction-type
+      amount anomalies in the associated Ananse cash-out transactions?
+
+    Institutional Trigger:
+    > Oman Remit's 2025 Q4 had the highest total of inbound 1,300,618.46 remittances and a quarter over quarter value
+      change of 217,678.44 .
+====================================================================================================================================
+*/
+
+
+-- Oman Remit Institutional Trigger: Q4 2025 Remittance Activity
+WITH quarterly_inbound AS
+(
+    SELECT
+        DATEPART(YEAR, remittance_timestamp) AS reporting_year,
+        DATEPART(QUARTER, remittance_timestamp) AS reporting_quarter,
+        COUNT(*) AS inbound_remittance_count,
+        COUNT(DISTINCT ocb_customer_id) AS distinct_customers,
+        SUM(remittance_amount) AS inbound_remittance_value
+    FROM gold.vw_remittance
+    WHERE remittance_type = 'remittance_received'
+      AND remittance_status = 'successful'
+    GROUP BY
+        DATEPART(YEAR, remittance_timestamp),
+        DATEPART(QUARTER, remittance_timestamp)
+),
+quarterly_changes AS
+(
+    SELECT
+        reporting_year,
+        reporting_quarter,
+        inbound_remittance_count,
+        distinct_customers,
+        inbound_remittance_value,
+
+        LAG(inbound_remittance_count) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_count,
+
+        LAG(distinct_customers) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_customers,
+
+        LAG(inbound_remittance_value) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_value
+    FROM quarterly_inbound
+)
+SELECT
+    CONCAT(reporting_year, '-Q', reporting_quarter) AS year_quarter,
+    inbound_remittance_count,
+    distinct_customers,
+    inbound_remittance_value,
+
+    inbound_remittance_count - previous_quarter_count
+        AS count_qoq_change,
+
+    CAST(
+        100.0 * (inbound_remittance_count - previous_quarter_count)
+        / NULLIF(previous_quarter_count, 0)
+        AS DECIMAL(10, 2)
+    ) AS count_qoq_pct,
+
+    distinct_customers - previous_quarter_customers
+        AS customers_qoq_change,
+
+    CAST(
+        100.0 * (distinct_customers - previous_quarter_customers)
+        / NULLIF(previous_quarter_customers, 0)
+        AS DECIMAL(10, 2)
+    ) AS customers_qoq_pct,
+
+    inbound_remittance_value - previous_quarter_value
+        AS value_qoq_change,
+
+    CAST(
+        100.0 * (inbound_remittance_value - previous_quarter_value)
+        / NULLIF(previous_quarter_value, 0)
+        AS DECIMAL(10, 2)
+    ) AS value_qoq_pct
+FROM quarterly_changes
+WHERE CONCAT(reporting_year, '-Q', reporting_quarter) IN ('2025-Q3', '2025-Q4')
+ORDER BY reporting_year, reporting_quarter;
+
+
+
+-- Which Remittance-to-Cash-Out Sequences During Q4 2025 Were FATF Flagged?
+WITH remittance_cashout_signals AS
+(
+    SELECT
+        orf.ocb_customer_id,
+        orf.remittance_id,
+        CONVERT(CHAR(7), orf.remittance_timestamp, 120) AS year_month,
+        orf.remittance_timestamp,
+        orf.remittance_amount,
+        orf.remittance_origin_country,
+        orf.transaction_id,
+        orf.cash_out_timestamp,
+        orf.cash_out_amt,
+        orf.remittance_cashout_origin_risk_flag,
+        a.cash_out_to_remittance_ratio,
+        a.remittance_cashout_amt_score,
+        ra.cash_out_delay_minutes,
+        ra.remittance_cashout_rapidity_score,
+        re.recurrence_gap_minutes,
+        re.remittance_cashout_recurrence_score
+    FROM intelligence.remittance_cashout_origin_risk_flag orf
+    LEFT JOIN intelligence.remittance_cashout_amt_score a
+        ON a.ocb_customer_id = orf.ocb_customer_id
+       AND a.remittance_id = orf.remittance_id
+    LEFT JOIN intelligence.remittance_cashout_rapidity_score ra
+        ON ra.ocb_customer_id = orf.ocb_customer_id
+       AND ra.remittance_id = orf.remittance_id
+    LEFT JOIN intelligence.vw_remittance_cashout_recurrence_score re
+        ON re.ocb_customer_id = orf.ocb_customer_id
+       AND re.next_sequence_remittance_timestamp = orf.remittance_timestamp
+)
+SELECT
+    rc.*
+FROM remittance_cashout_signals rc
+INNER JOIN gold.vw_transaction t
+    ON rc.ocb_customer_id = t.ocb_customer_id
+   AND rc.transaction_id = t.transaction_id
+INNER JOIN gold.vw_remittance r
+ON rc.ocb_customer_id = r.ocb_customer_id
+   AND rc.remittance_id = r.remittance_id
+WHERE rc.remittance_cashout_origin_risk_flag = 1
+  AND rc.year_month BETWEEN '2025-10' AND '2025-12'
+  AND t.transaction_status = 'successful'
+  AND r.remittance_type='remittance_received';
+
+
+-- Which FATF-Flagged Remittance-to-Cash-Out Sequences Also Exhibited Elevated TAE Transaction-Type Amount Anomalies?
+
+WITH FATF_flag AS
+(
+    SELECT
+        orf.ocb_customer_id,
+        orf.remittance_id,
+        orf.remittance_timestamp,
+        orf.remittance_amount,
+        orf.remittance_origin_country,
+        orf.transaction_id,
+        orf.cash_out_timestamp,
+        orf.cash_out_amt,
+        orf.remittance_cashout_origin_risk_flag,
+        a.cash_out_to_remittance_ratio,
+        a.remittance_cashout_amt_score,
+        ra.cash_out_delay_minutes,
+        ra.remittance_cashout_rapidity_score,
+        re.recurrence_gap_minutes,
+        re.remittance_cashout_recurrence_score
+    FROM intelligence.remittance_cashout_origin_risk_flag orf
+
+    LEFT JOIN intelligence.remittance_cashout_amt_score a
+        ON a.ocb_customer_id = orf.ocb_customer_id
+       AND a.remittance_id = orf.remittance_id
+
+    LEFT JOIN intelligence.remittance_cashout_rapidity_score ra
+        ON ra.ocb_customer_id = orf.ocb_customer_id
+       AND ra.remittance_id = orf.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_cashout_recurrence_score re
+        ON re.ocb_customer_id = orf.ocb_customer_id
+       AND re.next_sequence_remittance_timestamp = orf.remittance_timestamp
+
+    WHERE orf.remittance_cashout_origin_risk_flag = 1
+      AND orf.remittance_timestamp >= '2025-10-01'
+      AND orf.remittance_timestamp <  '2026-01-01'
+
+      AND EXISTS
+      (
+          SELECT 1
+          FROM gold.vw_transaction t
+          WHERE t.ocb_customer_id = orf.ocb_customer_id
+            AND t.transaction_id = orf.transaction_id
+            AND t.transaction_status = 'successful'
+            AND t.transaction_type = 'cash out'
+      )
+
+      AND EXISTS
+      (
+          SELECT 1
+          FROM gold.vw_remittance r
+          WHERE r.ocb_customer_id = orf.ocb_customer_id
+            AND r.remittance_id = orf.remittance_id
+            AND r.remittance_type = 'remittance_received'
+      )
+)
+SELECT
+    fl.ocb_customer_id,
+    fl.remittance_id,
+    fl.remittance_timestamp,
+    fl.remittance_origin_country,
+    fl.remittance_amount,
+    fl.cash_out_timestamp,
+    fl.cash_out_amt,
+    fl.cash_out_to_remittance_ratio,
+    fl.remittance_cashout_amt_score,
+    fl.cash_out_delay_minutes,
+    fl.remittance_cashout_rapidity_score,
+    fl.recurrence_gap_minutes,
+    fl.remittance_cashout_recurrence_score,
+    fl.remittance_cashout_origin_risk_flag,
+    ty.transaction_type_amount_score
+FROM FATF_flag fl
+INNER JOIN intelligence.vw_signal_transaction_type_score ty
+    ON ty.ocb_customer_id = fl.ocb_customer_id
+   AND ty.transaction_id = fl.transaction_id
+   AND ty.transaction_type = 'cash out'
+   AND ty.transaction_type_amount_score > 0;
+
+/*
+====================================================================================================================================
+    9. Oman Remit: Outbound remittances following domestic funding or credit
+
+    Question:
+    > Among customers contributing to Oman Remit's Q4 2024 increase in outbound remittances, which exhibit domestic
+      cash-in → outbound remittance or SikaCredit loan-disbursement → outbound remittance signals?
+
+    Institutional trigger:
+    > Outbound remittance value increased from GHS 274,048.05 to GHS 417,456.75 (+52.33%). The simultaneous increases in
+      transaction volume, customer participation and outbound value warrant further examination of the activity driving the
+      quarterly change.
+
+====================================================================================================================================
+*/
+-- 1. Domestic Cash-In → Outbound Remittance Signals
+-- OmanRemit 2024 Q4 Surge
+WITH quarterly_outbound AS
+(
+    SELECT
+        DATEPART(YEAR, remittance_timestamp) AS reporting_year,
+        DATEPART(QUARTER, remittance_timestamp) AS reporting_quarter,
+        COUNT(*) AS outbound_remittance_count,
+        COUNT(DISTINCT ocb_customer_id) AS distinct_customers,
+        SUM(remittance_amount) AS outbound_remittance_value
+    FROM gold.vw_remittance
+    WHERE remittance_type = 'remittance_sent'
+      AND remittance_status = 'successful'
+    GROUP BY
+        DATEPART(YEAR, remittance_timestamp),
+        DATEPART(QUARTER, remittance_timestamp)
+),
+quarterly_changes AS
+(
+    SELECT
+        reporting_year,
+        reporting_quarter,
+        outbound_remittance_count,
+        distinct_customers,
+        outbound_remittance_value,
+
+        LAG(outbound_remittance_count) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_count,
+
+        LAG(distinct_customers) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_customers,
+
+        LAG(outbound_remittance_value) OVER (
+            ORDER BY reporting_year, reporting_quarter
+        ) AS previous_quarter_value
+    FROM quarterly_outbound
+)
+SELECT
+    CONCAT(reporting_year, '-Q', reporting_quarter) AS year_quarter,
+    outbound_remittance_count,
+    distinct_customers,
+    outbound_remittance_value,
+
+    outbound_remittance_count - previous_quarter_count
+        AS count_qoq_change,
+
+    CAST(
+        100.0 * (outbound_remittance_count - previous_quarter_count)
+        / NULLIF(previous_quarter_count, 0)
+        AS DECIMAL(10, 2)
+    ) AS count_qoq_pct,
+
+    distinct_customers - previous_quarter_customers
+        AS customers_qoq_change,
+
+    CAST(
+        100.0 * (distinct_customers - previous_quarter_customers)
+        / NULLIF(previous_quarter_customers, 0)
+        AS DECIMAL(10, 2)
+    ) AS customers_qoq_pct,
+
+    outbound_remittance_value - previous_quarter_value
+        AS value_qoq_change,
+
+    CAST(
+        100.0 * (outbound_remittance_value - previous_quarter_value)
+        / NULLIF(previous_quarter_value, 0)
+        AS DECIMAL(10, 2)
+    ) AS value_qoq_pct
+FROM quarterly_changes
+--WHERE CONCAT(reporting_year, '-Q', reporting_quarter) IN ('2024-Q3', '2024-Q4')
+ORDER BY reporting_year, reporting_quarter;
+
+
+
+-- Which Of The Qualifying Sequences Exhibit Domestic Cash-In → Outbound Remittance Signals During OmanRemit's 2024 Q4 Surge?
+WITH q4_2024_outbound AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+        r.remittance_origin_country
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_type = 'remittance_sent'
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp <  '2025-01-01'
+)
+SELECT
+    q.ocb_customer_id,
+    rp.cash_in_id,
+    rp.cash_in_timestamp,
+    q.remittance_id,
+    q.remittance_timestamp,
+   -- rp.cashin_remittance_delay_minutes,
+    rp.funding_remittance_rapidity_score,
+    --vc.funding_remittance_ratio,
+    vc.funding_remittance_value_correspondence_score,
+    --rc.recurrence_gap_minutes,
+    rc.funding_remittance_recurrence_score
+FROM q4_2024_outbound AS q
+LEFT JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp
+    ON rp.first_remittance_id = q.remittance_id
+    AND rp.ocb_customer_id=q.ocb_customer_id
+LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc
+    ON vc.ocb_customer_id = q.ocb_customer_id
+   AND q.remittance_timestamp >= vc.cash_in_timestamp
+   AND (
+        vc.next_cash_in_timestamp IS NULL
+        OR q.remittance_timestamp < vc.next_cash_in_timestamp
+   )
+
+LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc
+    ON rc.ocb_customer_id = q.ocb_customer_id
+   AND rc.next_remittance_id = q.remittance_id
+
+WHERE (rp.cash_in_id IS NOT NULL)
+ORDER BY
+    q.ocb_customer_id,
+    q.remittance_timestamp,
+    q.remittance_id;
+
+
+-- Which Customers Exhibit Elevated Domestic Cash-In → Outbound Remittance Signals During OmanRemit's 2024 Q4 Surge?
+
+WITH qualifying_sequences AS
+(
+    SELECT
+        q.ocb_customer_id,
+        rp.cash_in_id,
+        q.remittance_id,
+        rp.funding_remittance_rapidity_score,
+        vc.funding_remittance_value_correspondence_score,
+        rc.funding_remittance_recurrence_score
+    FROM gold.vw_remittance AS q
+    INNER JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp
+        ON rp.first_remittance_id = q.remittance_id
+       AND rp.ocb_customer_id = q.ocb_customer_id
+
+    LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc
+        ON vc.ocb_customer_id = q.ocb_customer_id
+       AND q.remittance_timestamp >= vc.cash_in_timestamp
+       AND (
+            vc.next_cash_in_timestamp IS NULL
+            OR q.remittance_timestamp < vc.next_cash_in_timestamp
+       )
+
+    LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc
+        ON rc.ocb_customer_id = q.ocb_customer_id
+       AND rc.next_remittance_id = q.remittance_id
+
+    WHERE q.remittance_type = 'remittance_sent'
+      AND q.remittance_status = 'successful'
+      AND q.remittance_timestamp >= '2024-10-01'
+      AND q.remittance_timestamp <  '2025-01-01'
+)
+SELECT
+    ocb_customer_id,
+
+    COUNT(*) AS qualifying_sequence_count,
+
+    SUM(CASE
+            WHEN funding_remittance_rapidity_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_rapidity_sequence_count,
+
+    MAX(funding_remittance_rapidity_score) AS max_rapidity_score,
+
+    SUM(CASE
+            WHEN funding_remittance_value_correspondence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_value_correspondence_sequence_count,
+
+    MAX(funding_remittance_value_correspondence_score) AS max_value_correspondence_score,
+
+    SUM(CASE
+            WHEN funding_remittance_recurrence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_recurrence_sequence_count,
+
+    MAX(funding_remittance_recurrence_score) AS max_recurrence_score
+
+FROM qualifying_sequences
+GROUP BY ocb_customer_id
+ORDER BY ocb_customer_id;
+
+
+
+-- 2. Domestic Credit → Outbound Remittance Signals
+-- Which Of The Qualifying Sequences Exhibit Credit → Outbound Remittance Signals During OmanRemit's 2024 Q4 Surge?
+
+WITH q4_2024_outbound AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+        r.remittance_origin_country
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_type = 'remittance_sent'
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp <  '2025-01-01'
+)
+SELECT
+    q.ocb_customer_id,
+    rp.loan_id,
+    rp.loan_timestamp,
+    q.remittance_id,
+    q.remittance_timestamp,
+    -- rp.credit_to_remittance_rapidity_minutes,
+    rp.credit_to_remittance_rapidity_score,
+    -- vc.credit_to_remittance_value_ratio,
+    vc.credit_to_remittance_value_correspondence_score,
+    -- rc.credit_to_remittance_recurrence_minutes,
+    rc.credit_to_remittance_recurrence_score
+FROM q4_2024_outbound AS q
+
+LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+    ON rp.remittance_id = q.remittance_id
+   AND rp.ocb_customer_id = q.ocb_customer_id
+
+LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+    ON vc.remittance_id = q.remittance_id
+   AND vc.ocb_customer_id = q.ocb_customer_id
+
+LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+    ON rc.next_remittance_id = q.remittance_id
+   AND rc.ocb_customer_id = q.ocb_customer_id
+
+WHERE rp.loan_id IS NOT NULL
+
+ORDER BY
+    q.ocb_customer_id,
+    q.remittance_timestamp,
+    q.remittance_id;
+
+
+-- Which Customers Exhibit Elevated Credit → Outbound Remittance Signals During OmanRemit's 2024 Q4 Surge?
+
+WITH qualifying_sequences AS
+(
+    SELECT
+        q.ocb_customer_id,
+        rp.loan_id,
+        q.remittance_id,
+        rp.credit_to_remittance_rapidity_score,
+        vc.credit_to_remittance_value_correspondence_score,
+        rc.credit_to_remittance_recurrence_score
+    FROM gold.vw_remittance AS q
+
+    INNER JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+        ON rp.remittance_id = q.remittance_id
+       AND rp.ocb_customer_id = q.ocb_customer_id
+
+    LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+        ON vc.remittance_id = q.remittance_id
+       AND vc.ocb_customer_id = q.ocb_customer_id
+
+    LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+        ON rc.next_remittance_id = q.remittance_id
+       AND rc.ocb_customer_id = q.ocb_customer_id
+
+    WHERE q.remittance_type = 'remittance_sent'
+      AND q.remittance_status = 'successful'
+      AND q.remittance_timestamp >= '2024-10-01'
+      AND q.remittance_timestamp <  '2025-01-01'
+)
+SELECT
+    ocb_customer_id,
+
+    COUNT(*) AS qualifying_sequence_count,
+
+    SUM(CASE
+            WHEN credit_to_remittance_rapidity_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_rapidity_sequence_count,
+
+    MAX(credit_to_remittance_rapidity_score) AS max_rapidity_score,
+
+    SUM(CASE
+            WHEN credit_to_remittance_value_correspondence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_value_correspondence_sequence_count,
+
+    MAX(credit_to_remittance_value_correspondence_score)
+        AS max_value_correspondence_score,
+
+    SUM(CASE
+            WHEN credit_to_remittance_recurrence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_recurrence_sequence_count,
+
+    MAX(credit_to_remittance_recurrence_score) AS max_recurrence_score
+
+FROM qualifying_sequences
+GROUP BY ocb_customer_id
+ORDER BY ocb_customer_id;
+
+
+
+
+
+
+
+
+
+
+
+
+WITH q4_2024_outbound AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+        r.remittance_origin_country
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_type = 'remittance_sent'
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp <  '2025-01-01'
+),
+qualifying_sequences AS
+(
+    SELECT
+    q.ocb_customer_id,
+    rp.loan_id,
+    rp.loan_timestamp,
+    q.remittance_id,
+    q.remittance_timestamp,
+    -- rp.credit_to_remittance_rapidity_minutes,
+    rp.credit_to_remittance_rapidity_score,
+    -- vc.credit_to_remittance_value_ratio,
+    vc.credit_to_remittance_value_correspondence_score,
+    -- rc.credit_to_remittance_recurrence_minutes,
+    rc.credit_to_remittance_recurrence_score
+FROM q4_2024_outbound AS q
+
+LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+    ON rp.remittance_id = q.remittance_id
+   AND rp.ocb_customer_id = q.ocb_customer_id
+
+LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+    ON vc.remittance_id = q.remittance_id
+   AND vc.ocb_customer_id = q.ocb_customer_id
+
+LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+    ON rc.next_remittance_id = q.remittance_id
+   AND rc.ocb_customer_id = q.ocb_customer_id
+
+WHERE rp.loan_id IS NOT NULL
+)
+SELECT
+    ocb_customer_id,
+
+    COUNT(*) AS qualifying_sequence_count,
+
+    SUM(CASE
+            WHEN credit_to_remittance_rapidity_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_rapidity_sequence_count,
+
+    MAX(credit_to_remittance_rapidity_score) AS max_rapidity_score,
+
+    SUM(CASE
+            WHEN credit_to_remittance_value_correspondence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_value_correspondence_sequence_count,
+
+    MAX(credit_to_remittance_value_correspondence_score)
+        AS max_value_correspondence_score,
+
+    SUM(CASE
+            WHEN credit_to_remittance_recurrence_score > 0 THEN 1
+            ELSE 0
+        END) AS positive_recurrence_sequence_count,
+
+    MAX(credit_to_remittance_recurrence_score) AS max_recurrence_score
+
+FROM qualifying_sequences
+GROUP BY ocb_customer_id
+ORDER BY ocb_customer_id;
+
+
+
+
+
+
+
+
+
+
+ORDER BY
+    q.ocb_customer_id,
+    q.remittance_timestamp,
+    q.remittance_id;
+
+
+
+
+
+
+
+
+

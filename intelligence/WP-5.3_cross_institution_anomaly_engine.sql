@@ -21,6 +21,7 @@ AS (
             ) AS next_cash_in_timestamp
     FROM gold.vw_transaction AS t
     WHERE t.transaction_type = 'cash in'
+            AND t.transaction_status = 'successful'
     ),
 cashin_remittance_profile
 AS (
@@ -42,6 +43,7 @@ AS (
     INNER JOIN gold.vw_remittance AS r ON
             r.ocb_customer_id = c.ocb_customer_id
                 AND r.remittance_type = 'remittance_sent'
+                AND r.remittance_status = 'successful'
                 AND r.remittance_timestamp >= c.cash_in_timestamp
                 AND (
                 c.next_cash_in_timestamp IS NULL
@@ -133,6 +135,7 @@ AS (
             ) AS next_cash_in_timestamp
     FROM gold.vw_transaction AS t
     WHERE t.transaction_type = 'cash in'
+            AND t.transaction_status = 'successful'
     ),
 cashin_remittance_profile
 AS (
@@ -149,6 +152,7 @@ AS (
     INNER JOIN gold.vw_remittance AS r ON
             r.ocb_customer_id = c.ocb_customer_id
                 AND r.remittance_type = 'remittance_sent'
+                AND r.remittance_status = 'successful'
                 AND r.remittance_timestamp >= c.cash_in_timestamp
                 AND (
                 c.next_cash_in_timestamp IS NULL
@@ -261,6 +265,45 @@ AS (
             ) AS next_cash_in_id
     FROM gold.vw_transaction AS t
     WHERE t.transaction_type = 'cash in'
+            AND t.transaction_status = 'successful'
+    ),
+remittance_sequences
+AS (
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+        LEAD(r.remittance_timestamp) OVER (
+            PARTITION BY r.ocb_customer_id ORDER BY r.remittance_timestamp,
+                r.remittance_id
+            ) AS next_remittance_timestamp,
+        LEAD(r.remittance_id) OVER (
+            PARTITION BY r.ocb_customer_id ORDER BY r.remittance_timestamp,
+                r.remittance_id
+            ) AS next_remittance_id
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_status = 'successful'
+            AND r.remittance_type = 'remittance_sent'
+    ),
+remittance_counts
+AS (
+    SELECT
+        c.ocb_customer_id,
+        c.cash_in_id,
+        COUNT(r.remittance_id) AS remittance_count
+    FROM cashin_sequences AS c
+    INNER JOIN gold.vw_remittance AS r ON
+            r.ocb_customer_id = c.ocb_customer_id
+                AND r.remittance_type = 'remittance_sent'
+                AND r.remittance_status = 'successful'
+                AND r.remittance_timestamp >= c.cash_in_timestamp
+                AND (
+                c.next_cash_in_timestamp IS NULL
+                    OR r.remittance_timestamp < c.next_cash_in_timestamp
+                )
+    GROUP BY c.ocb_customer_id,
+        c.cash_in_id
     ),
 cashin_remittance_sequences
 AS (
@@ -269,40 +312,33 @@ AS (
         c.cash_in_id,
         c.cash_in_timestamp,
         c.cash_in_amount,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
         c.next_cash_in_id,
         c.next_cash_in_timestamp,
-        MAX(r.remittance_timestamp) AS last_remittance_timestamp,
-        COUNT(r.remittance_id)      AS remittance_count
+        r.next_remittance_id,
+        r.next_remittance_timestamp,
+        rc.remittance_count
     FROM cashin_sequences AS c
-    INNER JOIN gold.vw_remittance AS r ON
+    INNER JOIN remittance_sequences AS r ON
             r.ocb_customer_id = c.ocb_customer_id
-                AND r.remittance_type = 'remittance_sent'
                 AND r.remittance_timestamp >= c.cash_in_timestamp
+                AND c.next_cash_in_timestamp < r.next_remittance_timestamp
                 AND (
                 c.next_cash_in_timestamp IS NULL
                     OR r.remittance_timestamp < c.next_cash_in_timestamp
                 )
-    GROUP BY c.ocb_customer_id,
-        c.cash_in_id,
-        c.cash_in_timestamp,
-        c.cash_in_amount,
-        c.next_cash_in_id,
-        c.next_cash_in_timestamp
+    INNER JOIN remittance_counts AS rc ON
+            rc.ocb_customer_id = c.ocb_customer_id
+                AND rc.cash_in_id = c.cash_in_id
     ),
 recurrence_population
 AS (
     SELECT
-        ocb_customer_id,
-        cash_in_id,
-        cash_in_timestamp,
-        cash_in_amount,
-        last_remittance_timestamp,
-        next_cash_in_id,
-        next_cash_in_timestamp,
-        remittance_count,
-        CAST(DATEDIFF_BIG(MILLISECOND, last_remittance_timestamp, next_cash_in_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS recurrence_gap_minutes
+        *,
+        CAST(DATEDIFF_BIG(MILLISECOND, remittance_timestamp, next_remittance_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS recurrence_gap_minutes
     FROM cashin_remittance_sequences
-    WHERE next_cash_in_timestamp IS NOT NULL
     ),
 median_stage
 AS (
@@ -344,9 +380,13 @@ SELECT
     cash_in_id,
     cash_in_timestamp,
     cash_in_amount,
-    last_remittance_timestamp,
+    remittance_id,
+    remittance_timestamp,
+    remittance_amount,
     next_cash_in_id,
     next_cash_in_timestamp,
+    next_remittance_id,
+    next_remittance_timestamp,
     remittance_count,
     recurrence_gap_minutes,
     median_recurrence_gap_minutes,
@@ -419,17 +459,14 @@ GO
 -- of an individual cash-in.
 -- A ratio above one does not establish that the cash-in directly funded the excess remittance
 -- value, since customers may have had pre-existing balances or other sources of funds.
--- Funding → Remittance Recurrence measures the interval between the last Remittance Sent
--- event in a cash-in sequence and the next Cash In transaction for the same customer.
--- The last remittance is identified using the maximum remittance timestamp within the sequence.
+-- Funding → Remittance Recurrence measures the time between the current remittance and the next remittance
+-- transaction event for the same customer.
+-- The next remittance is identified using the LEAD() remittance timestamp within the sequence.
 -- The next cash-in transaction establishes the start of the subsequent sequence.
--- The recurrence interval is measured in minutes from the last remittance timestamp to the
--- next cash-in timestamp.
--- The recurrence population includes qualifying sequences that contain at least one remittance
--- and have a subsequent cash-in transaction.
--- Sequences without a subsequent cash-in transaction are excluded from recurrence scoring.
+-- The recurrence interval is measured in minutes from the current remittance timestamp to the
+-- next remittance timestamp.
 -- The population median of the recurrence intervals establishes the reference level for typical
--- intervals between the end of outbound remittance activity and the next cash-in.
+-- intervals between each recurring remittance event.
 -- The Median Absolute Deviation (MAD) measures the dispersion of recurrence intervals around
 -- the population median.
 -- Recurrence intervals shorter than the population median receive positive recurrence scores
@@ -438,12 +475,11 @@ GO
 -- recurrence interval, divided by the population MAD.
 -- Recurrence intervals at or above the population median receive zero scores.
 -- Where the population MAD is zero, the recurrence score is zero.
--- The recurrence score therefore increases as the interval between the last remittance in one
--- sequence and the next cash-in becomes shorter relative to the observed population.
+-- The recurrence score therefore increases as the interval between the current remittance in one
+-- sequence and the next remittance becomes shorter relative to the observed population.
 -- Rapidity measures the timing of the first outbound remittance following a cash-in.
 -- Value Correspondence measures aggregate outbound remittance value relative to the cash-in.
--- Recurrence measures the interval between the last outbound remittance in one sequence and
--- the next cash-in.
+-- Recurrence measures the interval between the current remittance and the next remittance event.
 -- The three signals represent distinct temporal and value dimensions of Funding → Remittance
 -- behaviour and are evaluated independently.
 -- Their scoring populations are related but not identical because each signal has different
@@ -521,6 +557,7 @@ AS (
     INNER JOIN gold.vw_remittance r ON
             l.ocb_customer_id = r.ocb_customer_id
                 AND r.remittance_type = 'remittance_sent'
+                AND r.remittance_status = 'successful'
                 AND r.remittance_timestamp >= l.disbursement_timestamp
     ),
 first_remittance_per_loan_disbursed
@@ -608,7 +645,7 @@ CROSS JOIN median_stage m
 CROSS JOIN mad_stage d;
 GO
 
--- Credit-to-Remittance Value
+-- 2. Credit-to-Remittance Value
 CREATE
         OR
 
@@ -633,6 +670,7 @@ AS (
     INNER JOIN gold.vw_remittance r ON
             l.ocb_customer_id = r.ocb_customer_id
                 AND r.remittance_type = 'remittance_sent'
+               AND r.remittance_status = 'successful'
                 AND r.remittance_timestamp >= l.disbursement_timestamp
     ),
 first_remittance_per_loan_disbursed
@@ -724,152 +762,162 @@ CROSS JOIN median_stage m
 CROSS JOIN mad_stage d;
 GO
 
--- Credit-to-Remittance Recurrence Score.
-CREATE
-        OR
-
-ALTER VIEW intelligence.vw_credit_to_remittance_recurrence_score
+-- 3. Credit-to-Remittance Recurrence Score
+CREATE OR ALTER VIEW intelligence.vw_credit_to_remittance_recurrence_score
 AS
-WITH loan_remittance_profile
-AS (
+WITH loan_sequences AS
+(
     SELECT
         l.ocb_customer_id,
         l.loan_id,
-        l.disbursement_timestamp,
+        l.disbursement_timestamp AS loan_timestamp,
+        l.principal_amount,
+
+        LEAD(l.loan_id) OVER
+        (
+            PARTITION BY l.ocb_customer_id
+            ORDER BY l.disbursement_timestamp, l.loan_id
+        ) AS next_loan_id,
+
+        LEAD(l.disbursement_timestamp) OVER
+        (
+            PARTITION BY l.ocb_customer_id
+            ORDER BY l.disbursement_timestamp, l.loan_id
+        ) AS next_loan_timestamp
+
+    FROM gold.vw_loan AS l
+),
+remittance_sequences AS
+(
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount,
+
+        LEAD(r.remittance_id) OVER
+        (
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_remittance_id,
+
+        LEAD(r.remittance_timestamp) OVER
+        (
+            PARTITION BY r.ocb_customer_id
+            ORDER BY r.remittance_timestamp, r.remittance_id
+        ) AS next_remittance_timestamp
+
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_type = 'remittance_sent'
+      AND r.remittance_status = 'successful'
+),
+loan_remittance_sequences AS
+(
+    SELECT
+        r.ocb_customer_id,
+        l.loan_id,
+        l.loan_timestamp,
         l.principal_amount,
         r.remittance_id,
         r.remittance_timestamp,
-        r.remittance_amount AS remittance_amount_sent,
-        ROW_NUMBER() OVER (
-            PARTITION BY l.ocb_customer_id,
-            l.loan_id ORDER BY r.remittance_timestamp ASC,
-                r.remittance_id ASC
-            ) AS loan_rn
-    FROM gold.vw_loan l
-    INNER JOIN gold.vw_remittance r ON
-            l.ocb_customer_id = r.ocb_customer_id
-                AND r.remittance_type = 'remittance_sent'
-                AND r.remittance_timestamp >= l.disbursement_timestamp
-    ),
-first_remittance_per_loan_disbursed
-AS (
-    SELECT
-        *
-    FROM loan_remittance_profile
-    WHERE loan_rn = 1
-    ),
-deduplicated_remittances
-AS (
+        r.remittance_amount,
+        l.next_loan_id,
+        l.next_loan_timestamp,
+        r.next_remittance_id,
+        r.next_remittance_timestamp
+
+    FROM remittance_sequences AS r
+    INNER JOIN loan_sequences AS l
+        ON l.ocb_customer_id = r.ocb_customer_id
+       AND l.loan_timestamp <= r.remittance_timestamp
+       AND (
+            l.next_loan_timestamp IS NULL
+            OR l.next_loan_timestamp > r.remittance_timestamp
+       )
+
+    WHERE r.next_remittance_timestamp IS NOT NULL
+),
+recurrence_population AS
+(
     SELECT
         *,
-        ROW_NUMBER() OVER (
-            PARTITION BY ocb_customer_id,
-            remittance_id ORDER BY disbursement_timestamp DESC,
-                loan_id DESC
-            ) AS remittance_rn
-    FROM first_remittance_per_loan_disbursed
-    ),
-clean_population
-AS (
-    SELECT
-        ocb_customer_id,
-        loan_id,
-        disbursement_timestamp AS loan_timestamp,
-        principal_amount,
-        remittance_id,
-        remittance_timestamp,
-        remittance_amount_sent
-    FROM deduplicated_remittances
-    WHERE remittance_rn = 1
-    ),
-sequenced_credit_remittance
-AS (
-    SELECT
-        ocb_customer_id,
-        loan_id,
-        loan_timestamp,
-        principal_amount,
-        remittance_id,
-        remittance_timestamp,
-        remittance_amount_sent,
-        LEAD(loan_id) OVER (
-            PARTITION BY ocb_customer_id ORDER BY loan_timestamp,
-                loan_id
-            ) AS next_loan_id,
-        LEAD(loan_timestamp) OVER (
-            PARTITION BY ocb_customer_id ORDER BY loan_timestamp,
-                loan_id
-            ) AS next_loan_timestamp,
-        LEAD(remittance_id) OVER (
-            PARTITION BY ocb_customer_id ORDER BY loan_timestamp,
-                loan_id
-            ) AS next_remittance_id,
-        LEAD(remittance_timestamp) OVER (
-            PARTITION BY ocb_customer_id ORDER BY loan_timestamp,
-                loan_id
-            ) AS next_remittance_timestamp
-    FROM clean_population
-    ),
-recurrence
-AS (
-    SELECT
-        ocb_customer_id,
-        loan_id,
-        loan_timestamp,
-        principal_amount,
-        remittance_id,
-        remittance_timestamp,
-        next_loan_id,
-        next_loan_timestamp,
-        next_remittance_id,
-        next_remittance_timestamp,
-        CAST(DATEDIFF_BIG(MILLISECOND, remittance_timestamp, next_loan_timestamp) / 60000.0 AS DECIMAL(18, 4)) AS credit_to_remittance_recurrence_minutes
-    FROM sequenced_credit_remittance
-    ),
-median_stage
-AS (
+        CAST(
+            DATEDIFF_BIG(
+                MILLISECOND,
+                remittance_timestamp,
+                next_remittance_timestamp
+            ) / 60000.0
+            AS DECIMAL(18, 4)
+        ) AS credit_to_remittance_recurrence_minutes
+
+    FROM loan_remittance_sequences
+    WHERE next_loan_timestamp IS NOT NULL
+      AND next_loan_timestamp < next_remittance_timestamp
+),
+median_stage AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
+        PERCENTILE_CONT(0.5) WITHIN GROUP
+        (
             ORDER BY credit_to_remittance_recurrence_minutes
-            ) OVER () AS median_recurrence_minutes
-    FROM recurrence
-    WHERE credit_to_remittance_recurrence_minutes IS NOT NULL
-    ),
-mad_stage
-AS (
+        ) OVER () AS median_recurrence_minutes
+
+    FROM recurrence_population
+),
+mad_stage AS
+(
     SELECT DISTINCT
-        PERCENTILE_CONT(0.5) WITHIN
-    GROUP (
-            ORDER BY ABS(r.credit_to_remittance_recurrence_minutes - m.median_recurrence_minutes)
-            ) OVER () AS mad_recurrence_minutes
-    FROM recurrence r
-    CROSS JOIN median_stage m
-    WHERE r.credit_to_remittance_recurrence_minutes IS NOT NULL
-    )
-SELECT
-    r.ocb_customer_id,
-    r.loan_id,
-    r.loan_timestamp,
-    r.principal_amount,
-    r.remittance_id,
-    r.remittance_timestamp,
-    r.next_loan_id,
-    r.next_loan_timestamp,
-    r.next_remittance_id,
-    r.next_remittance_timestamp,
-    r.credit_to_remittance_recurrence_minutes,
-    m.median_recurrence_minutes,
-    d.mad_recurrence_minutes,
-    CASE 
-        WHEN r.credit_to_remittance_recurrence_minutes < m.median_recurrence_minutes
-                AND d.mad_recurrence_minutes > 0
-            THEN (m.median_recurrence_minutes - r.credit_to_remittance_recurrence_minutes) / d.mad_recurrence_minutes
-        ELSE 0
+        PERCENTILE_CONT(0.5) WITHIN GROUP
+        (
+            ORDER BY ABS(
+                rp.credit_to_remittance_recurrence_minutes
+                - m.median_recurrence_minutes
+            )
+        ) OVER () AS mad_recurrence_minutes
+
+    FROM recurrence_population AS rp
+    CROSS JOIN median_stage AS m
+),
+recurrence_scores AS
+(
+    SELECT
+        rp.*,
+        m.median_recurrence_minutes,
+        d.mad_recurrence_minutes,
+
+        CASE
+            WHEN d.mad_recurrence_minutes > 0
+             AND rp.credit_to_remittance_recurrence_minutes
+                 < m.median_recurrence_minutes
+            THEN (
+                m.median_recurrence_minutes
+                - rp.credit_to_remittance_recurrence_minutes
+            ) / d.mad_recurrence_minutes
+            ELSE 0
         END AS credit_to_remittance_recurrence_score
-FROM recurrence r
-CROSS JOIN median_stage m
-CROSS JOIN mad_stage d;
+
+    FROM recurrence_population AS rp
+    CROSS JOIN median_stage AS m
+    CROSS JOIN mad_stage AS d
+)
+SELECT
+    ocb_customer_id,
+    loan_id,
+    loan_timestamp,
+    principal_amount,
+    remittance_id,
+    remittance_timestamp,
+    remittance_amount,
+    next_loan_id,
+    next_loan_timestamp,
+    next_remittance_id,
+    next_remittance_timestamp,
+    credit_to_remittance_recurrence_minutes,
+    median_recurrence_minutes,
+    mad_recurrence_minutes,
+    credit_to_remittance_recurrence_score
+
+FROM recurrence_scores;
 GO
 
 /*
