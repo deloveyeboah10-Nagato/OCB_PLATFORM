@@ -1,0 +1,110 @@
+-- Adapted from WP-6.3-supervisory_intelligence_investigations.sql; report window applied and TOP 50 cap removed.
+
+-- Event Grain: Successful Cash-Outs Only
+WITH customer_population
+AS (
+    SELECT ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        SUM(principal_amount)                         AS principal_disbursed,
+        COUNT(*)                                      AS principal_disbursed_count
+    FROM gold.vw_loan
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) BETWEEN '{START_MONTH}' AND '{END_MONTH}'
+    GROUP BY ocb_customer_id,
+        CONVERT(CHAR(7), disbursement_timestamp, 120)
+    ),
+amount_ratio_score
+AS (
+    SELECT
+        CONVERT(CHAR(7), disbursement_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        principal_amount,
+        transaction_id,
+        cash_out_timestamp,
+        cash_out_amt,
+        cash_out_to_loan_ratio,
+        amount_ratio_score
+    FROM intelligence.vw_loan_cashout_amount_ratio_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) BETWEEN '{START_MONTH}' AND '{END_MONTH}'
+    ),
+rapidity_score
+AS (
+    SELECT
+        ocb_customer_id,
+        loan_id,
+        disbursement_timestamp,
+        transaction_id,
+        cash_out_delay_minutes,
+        loan_cashout_rapidity_score
+    FROM intelligence.vw_loan_cashout_rapidity_score
+    WHERE CONVERT(CHAR(7), disbursement_timestamp, 120) BETWEEN '{START_MONTH}' AND '{END_MONTH}'
+    ),
+recurrence_score
+AS (
+    SELECT
+        CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) AS year_month,
+        ocb_customer_id,
+        next_sequence_loan_id,
+        next_sequence_loan_timestamp,
+        recurrence_gap_minutes,
+        loan_cashout_recurrence_score
+    FROM intelligence.vw_loan_cashout_recurrence_score
+    WHERE CONVERT(CHAR(7), next_sequence_loan_timestamp, 120) BETWEEN '{START_MONTH}' AND '{END_MONTH}'
+    ),
+loan_cashout_signals
+AS (
+    SELECT
+        ar.year_month,
+        ar.ocb_customer_id,
+        ar.loan_id,
+        ar.disbursement_timestamp,
+        ar.principal_amount,
+        ar.transaction_id,
+        ar.cash_out_timestamp,
+        ar.cash_out_amt,
+        ar.cash_out_to_loan_ratio,
+        ar.amount_ratio_score,
+        ra.cash_out_delay_minutes,
+        ra.loan_cashout_rapidity_score,
+        re.next_sequence_loan_id,
+        re.next_sequence_loan_timestamp,
+        re.recurrence_gap_minutes,
+        re.loan_cashout_recurrence_score
+    FROM amount_ratio_score ar
+    LEFT JOIN rapidity_score ra ON
+            ar.ocb_customer_id = ra.ocb_customer_id
+                AND ar.loan_id = ra.loan_id
+                AND ar.disbursement_timestamp = ra.disbursement_timestamp
+    LEFT JOIN recurrence_score re ON
+            ar.ocb_customer_id = re.ocb_customer_id
+                AND ar.loan_id = re.next_sequence_loan_id
+                AND ar.disbursement_timestamp = re.next_sequence_loan_timestamp
+    )
+SELECT
+    t50.year_month,
+    t50.ocb_customer_id,
+    t50.principal_disbursed,
+    t50.principal_disbursed_count,
+    lc.loan_id,
+    lc.disbursement_timestamp,
+    lc.transaction_id,
+    lc.cash_out_timestamp,
+    lc.cash_out_amt,
+    lc.cash_out_to_loan_ratio,
+    lc.amount_ratio_score,
+    lc.cash_out_delay_minutes,
+    lc.loan_cashout_rapidity_score,
+    lc.next_sequence_loan_id,
+    lc.next_sequence_loan_timestamp,
+    lc.recurrence_gap_minutes,
+    lc.loan_cashout_recurrence_score
+FROM customer_population t50
+LEFT JOIN loan_cashout_signals lc ON
+        t50.ocb_customer_id = lc.ocb_customer_id
+            AND t50.year_month = lc.year_month
+INNER JOIN gold.vw_transaction t ON
+        lc.transaction_id = t.transaction_id
+            AND t.transaction_status = 'successful'
+ORDER BY t50.principal_disbursed DESC,
+    t50.ocb_customer_id;

@@ -1695,8 +1695,7 @@ ORDER BY reporting_year,
     reporting_quarter;
 
 -- Which qualifying sequences exhibit domestic cash-in → outbound remittance signals during OmanRemit's Q4 2024 surge?
-WITH q4_2024_outbound
-AS (
+WITH q4_2024_outbound AS (
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
@@ -1705,99 +1704,122 @@ AS (
         r.remittance_origin_country
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_sent'
-            AND r.remittance_status = 'successful'
-            AND r.remittance_timestamp >= '2024-10-01'
-            AND r.remittance_timestamp < '2025-01-01'
-    )
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp <  '2025-01-01'
+)
 SELECT
     q.ocb_customer_id,
     rp.cash_in_id,
     rp.cash_in_timestamp,
     q.remittance_id,
     q.remittance_timestamp,
-    -- rp.cashin_remittance_delay_minutes,
+    rp.cashin_remittance_delay_minutes,
     rp.funding_remittance_rapidity_score,
-    --vc.funding_remittance_ratio,
+    vc.funding_remittance_ratio,
     vc.funding_remittance_value_correspondence_score,
-    --rc.recurrence_gap_minutes,
+    rc.recurrence_gap_minutes,
     rc.funding_remittance_recurrence_score
 FROM q4_2024_outbound AS q
-LEFT JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp ON
-        rp.first_remittance_id = q.remittance_id
-            AND rp.ocb_customer_id = q.ocb_customer_id
-LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc ON
-        vc.ocb_customer_id = q.ocb_customer_id
-            AND q.remittance_timestamp >= vc.cash_in_timestamp
-            AND (
-            vc.next_cash_in_timestamp IS NULL
-                OR q.remittance_timestamp < vc.next_cash_in_timestamp
-            )
-LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc ON
-        rc.ocb_customer_id = q.ocb_customer_id
-            AND rc.next_remittance_id = q.remittance_id
-WHERE (rp.cash_in_id IS NOT NULL)
-ORDER BY q.ocb_customer_id,
+LEFT JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp
+    ON rp.first_remittance_id = q.remittance_id
+   AND rp.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc
+    ON vc.ocb_customer_id = q.ocb_customer_id
+   AND q.remittance_timestamp >= vc.cash_in_timestamp
+   AND (
+        vc.next_cash_in_timestamp IS NULL
+        OR q.remittance_timestamp < vc.next_cash_in_timestamp)
+LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc
+    ON rc.ocb_customer_id = q.ocb_customer_id
+   AND rc.next_remittance_id = q.remittance_id
+WHERE rp.cash_in_id IS NOT NULL
+ORDER BY
+    q.ocb_customer_id,
     q.remittance_timestamp,
     q.remittance_id;
 
 -- Which customers exhibit domestic cash-in → outbound remittance signals during OmanRemit's Q4 2024 surge?
-WITH qualifying_sequences
-AS (
+WITH q4_2024_outbound AS (
+    SELECT
+        r.ocb_customer_id,
+        r.remittance_id,
+        r.remittance_timestamp,
+        r.remittance_amount
+    FROM gold.vw_remittance AS r
+    WHERE r.remittance_status = 'successful'
+      AND r.remittance_type = 'remittance_sent'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp <  '2025-01-01'
+),
+qualifying_sequences AS (
     SELECT
         q.ocb_customer_id,
-        rp.cash_in_id,
         q.remittance_id,
+
+        rp.cash_in_id,
         rp.funding_remittance_rapidity_score,
+
         vc.funding_remittance_value_correspondence_score,
+
         rc.funding_remittance_recurrence_score
-    FROM gold.vw_remittance AS q
-    INNER JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp ON
-            rp.first_remittance_id = q.remittance_id
-                AND rp.ocb_customer_id = q.ocb_customer_id
-    LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc ON
-            vc.ocb_customer_id = q.ocb_customer_id
-                AND q.remittance_timestamp >= vc.cash_in_timestamp
-                AND (
-                vc.next_cash_in_timestamp IS NULL
-                    OR q.remittance_timestamp < vc.next_cash_in_timestamp
-                )
-    LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc ON
-            rc.ocb_customer_id = q.ocb_customer_id
-                AND rc.next_remittance_id = q.remittance_id
-    WHERE q.remittance_type = 'remittance_sent'
-            AND q.remittance_status = 'successful'
-            AND q.remittance_timestamp >= '2024-10-01'
-            AND q.remittance_timestamp < '2025-01-01'
-    )
+    FROM q4_2024_outbound AS q
+
+    INNER JOIN intelligence.vw_cashin_remittance_rapidity_score AS rp
+        ON rp.ocb_customer_id = q.ocb_customer_id
+       AND rp.first_remittance_id = q.remittance_id
+
+    LEFT JOIN intelligence.vw_cashin_remittance_value_correspondence_score AS vc
+        ON vc.ocb_customer_id = q.ocb_customer_id
+       AND q.remittance_timestamp >= vc.cash_in_timestamp
+       AND (
+            vc.next_cash_in_timestamp IS NULL
+            OR q.remittance_timestamp < vc.next_cash_in_timestamp
+       )
+
+    LEFT JOIN intelligence.vw_cashin_remittance_recurrence_score AS rc
+        ON rc.ocb_customer_id = q.ocb_customer_id
+       AND rc.next_remittance_id = q.remittance_id
+)
 SELECT
     ocb_customer_id,
+
     COUNT(*) AS qualifying_sequence_count,
-    SUM(CASE 
-            WHEN funding_remittance_rapidity_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_rapidity_sequence_count,
-    MAX(funding_remittance_rapidity_score) AS max_rapidity_score,
-    SUM(CASE 
-            WHEN funding_remittance_value_correspondence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_value_correspondence_sequence_count,
-    MAX(funding_remittance_value_correspondence_score) AS max_value_correspondence_score,
-    SUM(CASE 
-            WHEN funding_remittance_recurrence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_recurrence_sequence_count,
-    MAX(funding_remittance_recurrence_score) AS max_recurrence_score
+
+    SUM(CASE
+        WHEN funding_remittance_rapidity_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_rapidity_signal_count,
+
+    SUM(CASE
+        WHEN funding_remittance_value_correspondence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_value_correspondence_signal_count,
+
+    SUM(CASE
+        WHEN funding_remittance_recurrence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_recurrence_signal_count,
+
+    MAX(funding_remittance_rapidity_score)
+        AS max_rapidity_score,
+
+    MAX(funding_remittance_value_correspondence_score)
+        AS max_value_correspondence_score,
+
+    MAX(funding_remittance_recurrence_score)
+        AS max_recurrence_score
+
 FROM qualifying_sequences
 GROUP BY ocb_customer_id
-ORDER BY ocb_customer_id;
+ORDER BY qualifying_sequence_count DESC, ocb_customer_id;
+
 
 -- 2. SikaCredit Loan Disbursement → Outbound Remittance Signals
--- Which qualifying sequences exhibit credit → outbound remittance signals during OmanRemit's Q4 2024 surge?
-WITH q4_2024_outbound
-AS (
+
+-- Which qualifying sequences exhibit credit → outbound remittance signals during Oman Remit's Q4 2024 surge?
+WITH q4_2024_outbound AS
+(
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
@@ -1806,40 +1828,39 @@ AS (
         r.remittance_origin_country
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_sent'
-            AND r.remittance_status = 'successful'
-            AND r.remittance_timestamp >= '2024-10-01'
-            AND r.remittance_timestamp < '2025-01-01'
-    )
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2024-10-01'
+      AND r.remittance_timestamp < '2025-01-01'
+)
 SELECT
     q.ocb_customer_id,
     rp.loan_id,
     rp.loan_timestamp,
     q.remittance_id,
     q.remittance_timestamp,
-    -- rp.credit_to_remittance_rapidity_minutes,
     rp.credit_to_remittance_rapidity_score,
-    -- vc.credit_to_remittance_value_ratio,
     vc.credit_to_remittance_value_correspondence_score,
-    -- rc.credit_to_remittance_recurrence_minutes,
     rc.credit_to_remittance_recurrence_score
 FROM q4_2024_outbound AS q
-LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp ON
-        rp.remittance_id = q.remittance_id
-            AND rp.ocb_customer_id = q.ocb_customer_id
-LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc ON
-        vc.remittance_id = q.remittance_id
-            AND vc.ocb_customer_id = q.ocb_customer_id
-LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc ON
-        rc.next_remittance_id = q.remittance_id
-            AND rc.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+    ON rp.remittance_id = q.remittance_id
+   AND rp.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+    ON vc.remittance_id = q.remittance_id
+   AND vc.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+    ON rc.next_remittance_id = q.remittance_id
+   AND rc.ocb_customer_id = q.ocb_customer_id
 WHERE rp.loan_id IS NOT NULL
-ORDER BY q.ocb_customer_id,
+ORDER BY
+    q.ocb_customer_id,
     q.remittance_timestamp,
     q.remittance_id;
 
--- Which customers exhibit credit → outbound remittance signals during OmanRemit's Q4 2024 surge?
-WITH qualifying_sequences
-AS (
+
+-- Which customers exhibit credit → outbound remittance signals during Oman Remit's Q4 2024 surge?
+WITH qualifying_sequences AS
+(
     SELECT
         q.ocb_customer_id,
         rp.loan_id,
@@ -1848,40 +1869,37 @@ AS (
         vc.credit_to_remittance_value_correspondence_score,
         rc.credit_to_remittance_recurrence_score
     FROM gold.vw_remittance AS q
-    INNER JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp ON
-            rp.remittance_id = q.remittance_id
-                AND rp.ocb_customer_id = q.ocb_customer_id
-    LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc ON
-            vc.remittance_id = q.remittance_id
-                AND vc.ocb_customer_id = q.ocb_customer_id
-    LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc ON
-            rc.next_remittance_id = q.remittance_id
-                AND rc.ocb_customer_id = q.ocb_customer_id
+    INNER JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+        ON rp.remittance_id = q.remittance_id
+       AND rp.ocb_customer_id = q.ocb_customer_id
+    LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+        ON vc.remittance_id = q.remittance_id
+       AND vc.ocb_customer_id = q.ocb_customer_id
+    LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+        ON rc.next_remittance_id = q.remittance_id
+       AND rc.ocb_customer_id = q.ocb_customer_id
     WHERE q.remittance_type = 'remittance_sent'
-            AND q.remittance_status = 'successful'
-            AND q.remittance_timestamp >= '2024-10-01'
-            AND q.remittance_timestamp < '2025-01-01'
-    )
+      AND q.remittance_status = 'successful'
+      AND q.remittance_timestamp >= '2024-10-01'
+      AND q.remittance_timestamp < '2025-01-01'
+)
 SELECT
     ocb_customer_id,
     COUNT(*) AS qualifying_sequence_count,
-    SUM(CASE 
-            WHEN credit_to_remittance_rapidity_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_rapidity_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_rapidity_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_rapidity_sequence_count,
     MAX(credit_to_remittance_rapidity_score) AS max_rapidity_score,
-    SUM(CASE 
-            WHEN credit_to_remittance_value_correspondence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_value_correspondence_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_value_correspondence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_value_correspondence_sequence_count,
     MAX(credit_to_remittance_value_correspondence_score) AS max_value_correspondence_score,
-    SUM(CASE 
-            WHEN credit_to_remittance_recurrence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_recurrence_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_recurrence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_recurrence_sequence_count,
     MAX(credit_to_remittance_recurrence_score) AS max_recurrence_score
 FROM qualifying_sequences
 GROUP BY ocb_customer_id
@@ -1900,9 +1918,10 @@ ORDER BY ocb_customer_id;
       credit-to-remittance signals; it is supplementary and is not treated as a second surge investigation.
 ==================================================================================================================================
 */
+
 -- Which qualifying sequences exhibit credit → outbound remittance signals during the Q4 2025 supplementary analysis?
-WITH q4_2025_outbound
-AS (
+WITH q4_2025_outbound AS
+(
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
@@ -1911,40 +1930,38 @@ AS (
         r.remittance_origin_country
     FROM gold.vw_remittance AS r
     WHERE r.remittance_type = 'remittance_sent'
-            AND r.remittance_status = 'successful'
-            AND r.remittance_timestamp >= '2025-10-01'
-            AND r.remittance_timestamp < '2026-01-01'
-    )
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2025-10-01'
+      AND r.remittance_timestamp < '2026-01-01'
+)
 SELECT
     q.ocb_customer_id,
     rp.loan_id,
     rp.loan_timestamp,
     q.remittance_id,
     q.remittance_timestamp,
-    -- rp.credit_to_remittance_rapidity_minutes,
     rp.credit_to_remittance_rapidity_score,
-    -- vc.credit_to_remittance_value_ratio,
     vc.credit_to_remittance_value_correspondence_score,
-    -- rc.credit_to_remittance_recurrence_minutes,
     rc.credit_to_remittance_recurrence_score
 FROM q4_2025_outbound AS q
-LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp ON
-        rp.remittance_id = q.remittance_id
-            AND rp.ocb_customer_id = q.ocb_customer_id
-LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc ON
-        vc.remittance_id = q.remittance_id
-            AND vc.ocb_customer_id = q.ocb_customer_id
-LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc ON
-        rc.next_remittance_id = q.remittance_id
-            AND rc.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+    ON rp.remittance_id = q.remittance_id
+   AND rp.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+    ON vc.remittance_id = q.remittance_id
+   AND vc.ocb_customer_id = q.ocb_customer_id
+LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+    ON rc.next_remittance_id = q.remittance_id
+   AND rc.ocb_customer_id = q.ocb_customer_id
 WHERE rp.loan_id IS NOT NULL
-ORDER BY q.ocb_customer_id,
+ORDER BY
+    q.ocb_customer_id,
     q.remittance_timestamp,
     q.remittance_id;
 
 -- Which customers exhibit credit → outbound remittance signals during the Q4 2025 supplementary analysis?
-WITH qualifying_sequences
-AS (
+WITH qualifying_sequences AS
+(
     SELECT
         q.ocb_customer_id,
         rp.loan_id,
@@ -1953,40 +1970,37 @@ AS (
         vc.credit_to_remittance_value_correspondence_score,
         rc.credit_to_remittance_recurrence_score
     FROM gold.vw_remittance AS q
-    INNER JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp ON
-            rp.remittance_id = q.remittance_id
-                AND rp.ocb_customer_id = q.ocb_customer_id
-    LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc ON
-            vc.remittance_id = q.remittance_id
-                AND vc.ocb_customer_id = q.ocb_customer_id
-    LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc ON
-            rc.next_remittance_id = q.remittance_id
-                AND rc.ocb_customer_id = q.ocb_customer_id
+    INNER JOIN intelligence.vw_credit_to_remittance_rapidity_score AS rp
+        ON rp.remittance_id = q.remittance_id
+       AND rp.ocb_customer_id = q.ocb_customer_id
+    LEFT JOIN intelligence.vw_credit_to_remittance_value_correspondence_score AS vc
+        ON vc.remittance_id = q.remittance_id
+       AND vc.ocb_customer_id = q.ocb_customer_id
+    LEFT JOIN intelligence.vw_credit_to_remittance_recurrence_score AS rc
+        ON rc.next_remittance_id = q.remittance_id
+       AND rc.ocb_customer_id = q.ocb_customer_id
     WHERE q.remittance_type = 'remittance_sent'
-            AND q.remittance_status = 'successful'
-            AND q.remittance_timestamp >= '2025-10-01'
-            AND q.remittance_timestamp < '2026-01-01'
-    )
+      AND q.remittance_status = 'successful'
+      AND q.remittance_timestamp >= '2025-10-01'
+      AND q.remittance_timestamp < '2026-01-01'
+)
 SELECT
     ocb_customer_id,
     COUNT(*) AS qualifying_sequence_count,
-    SUM(CASE 
-            WHEN credit_to_remittance_rapidity_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_rapidity_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_rapidity_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_rapidity_sequence_count,
     MAX(credit_to_remittance_rapidity_score) AS max_rapidity_score,
-    SUM(CASE 
-            WHEN credit_to_remittance_value_correspondence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_value_correspondence_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_value_correspondence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_value_correspondence_sequence_count,
     MAX(credit_to_remittance_value_correspondence_score) AS max_value_correspondence_score,
-    SUM(CASE 
-            WHEN credit_to_remittance_recurrence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS positive_recurrence_sequence_count,
+    SUM(CASE
+        WHEN credit_to_remittance_recurrence_score > 0 THEN 1
+        ELSE 0
+    END) AS positive_recurrence_sequence_count,
     MAX(credit_to_remittance_recurrence_score) AS max_recurrence_score
 FROM qualifying_sequences
 GROUP BY ocb_customer_id
@@ -2014,9 +2028,10 @@ WHERE year_month IN (
         '2025-12'
         );
 
+
 -- Which FATF-flagged inbound remittances in December 2025 exhibit Ananse P2P redistribution signals?
-WITH fatf_flagged_remittances
-AS (
+WITH fatf_flagged_remittances AS
+(
     SELECT
         ocb_customer_id,
         remittance_id,
@@ -2028,76 +2043,76 @@ AS (
         remittance_origin_risk_flag
     FROM intelligence.vw_oman_remit_fatf_monitoring
     WHERE remittance_origin_risk_flag = 1
-            AND remittance_type = 'remittance_received'
-            AND remittance_status = 'successful'
-            AND remittance_timestamp >= '2025-12-01'
-            AND remittance_timestamp < '2026-01-01'
-    ),
-remittance_p2p_signals
-AS (
+      AND remittance_type = 'remittance_received'
+      AND remittance_status = 'successful'
+      AND remittance_timestamp >= '2025-12-01'
+      AND remittance_timestamp <  '2026-01-01'
+),
+remittance_p2p_signals AS
+(
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
         r.remittance_timestamp,
+        ra.first_p2p_transfer_id,
         r.remittance_amount,
         r.remittance_origin_country,
-        ra.first_p2p_transfer_id,
-        ra.first_p2p_transfer_timestamp,
         ra.elapsed_minutes,
-        ra.median_elapsed_minutes,
-        ra.mad_elapsed_minutes,
         ra.inbound_remittance_to_p2p_rapidity_score,
-        vc.p2p_transfer_count,
-        vc.total_p2p_transfer_amount,
         vc.p2p_to_remittance_value_ratio,
-        vc.median_log_value_ratio,
-        vc.mad_value_difference,
         vc.inbound_remittance_to_p2p_value_correspondence_score,
-        re.sequence_1_endpoint_timestamp,
-        re.sequence_2_start_timestamp,
         re.recurrence_interval_minutes,
-        re.median_recurrence_interval_minutes,
-        re.mad_recurrence_interval_minutes,
         re.inbound_remittance_to_p2p_recurrence_score
+
     FROM gold.vw_remittance AS r
-    LEFT JOIN intelligence.vw_remittance_p2p_rapidity_score AS ra ON
-            ra.ocb_customer_id = r.ocb_customer_id
-                AND ra.remittance_id = r.remittance_id
-    LEFT JOIN intelligence.vw_remittance_p2p_value_correspondence_score AS vc ON
-            vc.ocb_customer_id = r.ocb_customer_id
-                AND vc.remittance_id = r.remittance_id
-    LEFT JOIN intelligence.vw_remittance_p2p_recurrence_score AS re ON
-            re.ocb_customer_id = r.ocb_customer_id
-                AND re.sequence_1_remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_rapidity_score AS ra
+        ON ra.ocb_customer_id = r.ocb_customer_id
+       AND ra.remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_value_correspondence_score AS vc
+        ON vc.ocb_customer_id = r.ocb_customer_id
+       AND vc.remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_recurrence_score AS re
+        ON re.ocb_customer_id = r.ocb_customer_id
+       AND re.sequence_1_remittance_id = r.remittance_id
+
     WHERE r.remittance_type = 'remittance_received'
-            AND r.remittance_status = 'successful'
-            AND r.remittance_timestamp >= '2025-12-01'
-            AND r.remittance_timestamp < '2026-01-01'
-    )
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2025-12-01'
+      AND r.remittance_timestamp <  '2026-01-01'
+)
 SELECT
     s.ocb_customer_id,
     s.remittance_id,
+    s.remittance_timestamp,
+    s.remittance_amount,
     s.first_p2p_transfer_id,
+    s.remittance_origin_country,
+    f.remittance_origin_risk_flag,
     s.elapsed_minutes,
     s.inbound_remittance_to_p2p_rapidity_score,
     s.p2p_to_remittance_value_ratio,
     s.inbound_remittance_to_p2p_value_correspondence_score,
     s.recurrence_interval_minutes,
-    s.inbound_remittance_to_p2p_recurrence_score,
-    f.remittance_origin_risk_flag
-FROM remittance_p2p_signals AS s
-INNER JOIN fatf_flagged_remittances AS f ON
-        f.ocb_customer_id = s.ocb_customer_id
-            AND f.remittance_id = s.remittance_id
-            AND f.remittance_timestamp = s.remittance_timestamp
-WHERE (first_p2p_transfer_id IS NOT NULL)
-ORDER BY s.remittance_timestamp,
-    s.ocb_customer_id,
-    s.remittance_id;
+    s.inbound_remittance_to_p2p_recurrence_score
 
--- Which Customers With FATF-flagged inbound remittances in December 2025 Exhibit Ananse P2P redistribution signals?
-WITH fatf_flagged_remittances
-AS (
+FROM remittance_p2p_signals AS s
+
+INNER JOIN fatf_flagged_remittances AS f
+    ON f.ocb_customer_id = s.ocb_customer_id
+   AND f.remittance_id = s.remittance_id
+   AND f.remittance_timestamp = s.remittance_timestamp
+
+WHERE s.first_p2p_transfer_id IS NOT NULL
+ORDER BY
+    s.ocb_customer_id;
+
+
+-- Which customers with FATF-flagged inbound remittances in December 2025 exhibit Ananse P2P redistribution signals?
+WITH fatf_flagged_remittances AS
+(
     SELECT
         ocb_customer_id,
         remittance_id,
@@ -2105,13 +2120,13 @@ AS (
         remittance_origin_risk_flag
     FROM intelligence.vw_oman_remit_fatf_monitoring
     WHERE remittance_origin_risk_flag = 1
-            AND remittance_type = 'remittance_received'
-            AND remittance_status = 'successful'
-            AND remittance_timestamp >= '2025-12-01'
-            AND remittance_timestamp < '2026-01-01'
-    ),
-remittance_p2p_signals
-AS (
+      AND remittance_type = 'remittance_received'
+      AND remittance_status = 'successful'
+      AND remittance_timestamp >= '2025-12-01'
+      AND remittance_timestamp <  '2026-01-01'
+),
+remittance_p2p_signals AS
+(
     SELECT
         r.ocb_customer_id,
         r.remittance_id,
@@ -2120,53 +2135,69 @@ AS (
         ra.inbound_remittance_to_p2p_rapidity_score,
         vc.inbound_remittance_to_p2p_value_correspondence_score,
         re.inbound_remittance_to_p2p_recurrence_score
+
     FROM gold.vw_remittance AS r
-    LEFT JOIN intelligence.vw_remittance_p2p_rapidity_score AS ra ON
-            ra.ocb_customer_id = r.ocb_customer_id
-                AND ra.remittance_id = r.remittance_id
-    LEFT JOIN intelligence.vw_remittance_p2p_value_correspondence_score AS vc ON
-            vc.ocb_customer_id = r.ocb_customer_id
-                AND vc.remittance_id = r.remittance_id
-    LEFT JOIN intelligence.vw_remittance_p2p_recurrence_score AS re ON
-            re.ocb_customer_id = r.ocb_customer_id
-                AND re.sequence_1_remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_rapidity_score AS ra
+        ON ra.ocb_customer_id = r.ocb_customer_id
+       AND ra.remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_value_correspondence_score AS vc
+        ON vc.ocb_customer_id = r.ocb_customer_id
+       AND vc.remittance_id = r.remittance_id
+
+    LEFT JOIN intelligence.vw_remittance_p2p_recurrence_score AS re
+        ON re.ocb_customer_id = r.ocb_customer_id
+       AND re.sequence_1_remittance_id = r.remittance_id
+
     WHERE r.remittance_type = 'remittance_received'
-            AND r.remittance_status = 'successful'
-            AND r.remittance_timestamp >= '2025-12-01'
-            AND r.remittance_timestamp < '2026-01-01'
-    )
+      AND r.remittance_status = 'successful'
+      AND r.remittance_timestamp >= '2025-12-01'
+      AND r.remittance_timestamp <  '2026-01-01'
+)
 SELECT
     s.ocb_customer_id,
     COUNT(DISTINCT s.remittance_id) AS sequence_count,
-    SUM(CASE 
-            WHEN s.inbound_remittance_to_p2p_rapidity_score > 0
-                THEN 1
-            ELSE 0
-            END) AS rapidity_positive_count,
-    MAX(s.inbound_remittance_to_p2p_rapidity_score) AS rapidity_max_score,
-    SUM(CASE 
-            WHEN s.inbound_remittance_to_p2p_value_correspondence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS value_correspondence_positive_count,
-    MAX(s.inbound_remittance_to_p2p_value_correspondence_score) AS value_correspondence_max_score,
-    SUM(CASE 
-            WHEN s.inbound_remittance_to_p2p_recurrence_score > 0
-                THEN 1
-            ELSE 0
-            END) AS recurrence_positive_count,
-    MAX(s.inbound_remittance_to_p2p_recurrence_score) AS recurrence_max_score
+
+    SUM(CASE
+        WHEN s.inbound_remittance_to_p2p_rapidity_score > 0 THEN 1
+        ELSE 0
+    END) AS rapidity_positive_count,
+
+    MAX(s.inbound_remittance_to_p2p_rapidity_score)
+        AS rapidity_max_score,
+
+    SUM(CASE
+        WHEN s.inbound_remittance_to_p2p_value_correspondence_score > 0 THEN 1
+        ELSE 0
+    END) AS value_correspondence_positive_count,
+
+    MAX(s.inbound_remittance_to_p2p_value_correspondence_score)
+        AS value_correspondence_max_score,
+
+    SUM(CASE
+        WHEN s.inbound_remittance_to_p2p_recurrence_score > 0 THEN 1
+        ELSE 0
+    END) AS recurrence_positive_count,
+
+    MAX(s.inbound_remittance_to_p2p_recurrence_score)
+        AS recurrence_max_score
+
 FROM remittance_p2p_signals AS s
-INNER JOIN fatf_flagged_remittances AS f ON
-        f.ocb_customer_id = s.ocb_customer_id
-            AND f.remittance_id = s.remittance_id
-            AND f.remittance_timestamp = s.remittance_timestamp
+
+INNER JOIN fatf_flagged_remittances AS f
+    ON f.ocb_customer_id = s.ocb_customer_id
+   AND f.remittance_id = s.remittance_id
+   AND f.remittance_timestamp = s.remittance_timestamp
+
 WHERE s.first_p2p_transfer_id IS NOT NULL
-GROUP BY s.ocb_customer_id
-ORDER BY sequence_count DESC,
+
+GROUP BY
+    s.ocb_customer_id
+
+ORDER BY
+    sequence_count DESC,
     s.ocb_customer_id;
-
-
 
 /*
 ====================================================================================================================================
@@ -2184,70 +2215,135 @@ ORDER BY sequence_count DESC,
 ====================================================================================================================================
 */
 
--- Primary investigation window: SikeCredit's February,2025 Decline in Repayments.
-
-SELECT * FROM 
-intelligence.vw_sikacredit_institutional_monitoring
-WHERE year_month BETWEEN '2024-11' AND '2025-02'
-
-
+-- Primary Investigation Window: SikaCredit's Repayment Decline
+SELECT *
+FROM intelligence.vw_sikacredit_institutional_monitoring
+WHERE year_month BETWEEN '2024-11' AND '2025-02';
+GO
 
 
 
+-- Which February, 2025 Repayments Exhibited Inbound Remittance → Loan Repayment Signals?
 
-
-
-
-
-WITH combined_signals AS
+WITH february_repayments AS
 (
     SELECT
-        r.ocb_customer_id,
-        r.repayment_id,
-        r.loan_id,
-        r.repayment_timestamp,
-        r.repayment_amount,
-
-        rap.remittance_id AS rapidity_remittance_id,
-        rap.remittance_timestamp AS rapidity_remittance_timestamp,
-        rap.repayment_timestamp AS rapidity_repayment_timestamp,
-        rap.remittance_repayment_gap_minutes,
-        rap.remittance_repayment_rapidity_score,
-
-        val.value_correspondence_remittance_id,
-        val.remittance_amount AS correspondence_remittance_amount,
-        val.repayment_amount AS correspondence_repayment_amount,
-        val.remittance_repayment_value_difference,
-        val.remittance_repayment_value_correspondence_score,
-
-        rec.remittance_id AS recurrence_remittance_id,
-        rec.next_remittance_id AS recurrence_next_remittance_id,
-        rec.repayment_id AS recurrence_repayment_id,
-        rec.next_repayment_id AS recurrence_next_repayment_id,
-        rec.recurrence_gap_minutes,
-        rec.inbound_remittance_to_repayment_recurrence_score
-
-    FROM gold.vw_repayment AS r
-
-    LEFT JOIN intelligence.vw_remittance_repayment_rapidity_score AS rap
-        ON rap.repayment_id = r.repayment_id
-
-    LEFT JOIN intelligence.vw_remittance_repayment_value_correspondence_score AS val
-        ON val.repayment_id = r.repayment_id
-
-    LEFT JOIN intelligence.vw_remittance_repayment_recurrence_score AS rec
-        ON rec.repayment_id = r.repayment_id
+        rp.ocb_customer_id,
+        rp.loan_id,
+        rp.repayment_timestamp,
+        rp.repayment_amount
+    FROM gold.vw_repayment AS rp
+    WHERE rp.repayment_timestamp >= '2025-02-01'
+      AND rp.repayment_timestamp < '2025-03-01'
 )
-SELECT *
-FROM combined_signals;
+SELECT
+    f.ocb_customer_id,
+    f.loan_id,
+    f.repayment_timestamp,
+    f.repayment_amount,
+    rap.remittance_repayment_delay_minutes,
+    rap.remittance_repayment_rapidity_score,
+    val.repayment_correspondence_ratio,
+    val.remittance_repayment_value_correspondence_score,
+    rec.recurrence_gap_minutes,
+    rec.inbound_remittance_to_repayment_recurrence_score
+FROM february_repayments AS f
+LEFT JOIN intelligence.vw_remittance_repayment_rapidity_score AS rap
+    ON rap.ocb_customer_id = f.ocb_customer_id
+   AND rap.repayment_timestamp = f.repayment_timestamp
+LEFT JOIN intelligence.vw_remittance_repayment_value_correspondence_score AS val
+    ON val.ocb_customer_id = f.ocb_customer_id
+   AND val.repayment_timestamp = f.repayment_timestamp
+LEFT JOIN intelligence.vw_remittance_repayment_recurrence_score AS rec
+    ON rec.ocb_customer_id = f.ocb_customer_id
+   AND rec.next_repayment_timestamp = f.repayment_timestamp
+ORDER BY
+    f.ocb_customer_id,
+    f.repayment_timestamp;
+GO
 
 
-
-
-
-
-
-
+-- Which Customers Exhibited Exhibited Inbound Remittance → Loan Repayment Signals for February, 2025?
+WITH february_repayments AS
+(
+    SELECT
+        rp.ocb_customer_id,
+        rp.repayment_timestamp
+    FROM gold.vw_repayment AS rp
+    WHERE rp.repayment_timestamp >= '2025-02-01'
+      AND rp.repayment_timestamp < '2025-03-01'
+),
+rapidity_by_customer AS
+(
+    SELECT
+        f.ocb_customer_id,
+        COUNT(*) AS rapidity_sequence_count,
+        SUM(CASE WHEN rap.remittance_repayment_rapidity_score > 0 THEN 1 ELSE 0 END)
+            AS rapidity_positive_sequence_count,
+        MAX(rap.remittance_repayment_rapidity_score) AS rapidity_max_score
+    FROM february_repayments AS f
+    INNER JOIN intelligence.vw_remittance_repayment_rapidity_score AS rap
+        ON rap.ocb_customer_id = f.ocb_customer_id
+       AND rap.repayment_timestamp = f.repayment_timestamp
+    GROUP BY f.ocb_customer_id
+),
+value_correspondence_by_customer AS
+(
+    SELECT
+        f.ocb_customer_id,
+        COUNT(*) AS value_correspondence_sequence_count,
+        SUM(CASE WHEN val.remittance_repayment_value_correspondence_score > 0 THEN 1 ELSE 0 END)
+            AS value_correspondence_positive_sequence_count,
+        MAX(val.remittance_repayment_value_correspondence_score)
+            AS value_correspondence_max_score
+    FROM february_repayments AS f
+    INNER JOIN intelligence.vw_remittance_repayment_value_correspondence_score AS val
+        ON val.ocb_customer_id = f.ocb_customer_id
+       AND val.repayment_timestamp = f.repayment_timestamp
+    GROUP BY f.ocb_customer_id
+),
+recurrence_by_customer AS
+(
+    SELECT
+        f.ocb_customer_id,
+        COUNT(*) AS recurrence_sequence_count,
+        SUM(CASE WHEN rec.inbound_remittance_to_repayment_recurrence_score > 0 THEN 1 ELSE 0 END)
+            AS recurrence_positive_sequence_count,
+        MAX(rec.inbound_remittance_to_repayment_recurrence_score)
+            AS recurrence_max_score
+    FROM february_repayments AS f
+    INNER JOIN intelligence.vw_remittance_repayment_recurrence_score AS rec
+        ON rec.ocb_customer_id = f.ocb_customer_id
+       AND rec.next_repayment_timestamp = f.repayment_timestamp
+    GROUP BY f.ocb_customer_id
+)
+SELECT
+    c.ocb_customer_id,
+    COALESCE(rap.rapidity_sequence_count, 0) AS rapidity_sequence_count,
+    COALESCE(rap.rapidity_positive_sequence_count, 0) AS rapidity_positive_sequence_count,
+    rap.rapidity_max_score,
+    COALESCE(val.value_correspondence_sequence_count, 0) AS value_correspondence_sequence_count,
+    COALESCE(val.value_correspondence_positive_sequence_count, 0) AS value_correspondence_positive_sequence_count,
+    val.value_correspondence_max_score,
+    COALESCE(rec.recurrence_sequence_count, 0) AS recurrence_sequence_count,
+    COALESCE(rec.recurrence_positive_sequence_count, 0) AS recurrence_positive_sequence_count,
+    rec.recurrence_max_score
+FROM
+(
+    SELECT DISTINCT ocb_customer_id
+    FROM february_repayments
+) AS c
+LEFT JOIN rapidity_by_customer AS rap
+    ON rap.ocb_customer_id = c.ocb_customer_id
+LEFT JOIN value_correspondence_by_customer AS val
+    ON val.ocb_customer_id = c.ocb_customer_id
+LEFT JOIN recurrence_by_customer AS rec
+    ON rec.ocb_customer_id = c.ocb_customer_id
+ORDER BY
+    COALESCE(rap.rapidity_positive_sequence_count, 0) DESC,
+    COALESCE(val.value_correspondence_positive_sequence_count, 0) DESC,
+    COALESCE(rec.recurrence_positive_sequence_count, 0) DESC;
+GO
 
 
 
