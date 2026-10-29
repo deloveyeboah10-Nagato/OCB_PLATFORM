@@ -59,7 +59,7 @@ st.markdown(f"""
 [data-testid="stMetricValue"] {{ color:{TEXT}; font-size:1.08rem; line-height:1.25; font-weight:720; letter-spacing:-.015em; overflow:visible !important; text-overflow:clip !important; }}
 [data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] p {{ white-space:normal !important; overflow:visible !important; text-overflow:clip !important; overflow-wrap:anywhere; }}
 [data-testid="stMetricDelta"] {{ font-size:.74rem; }}
-[data-testid="stPlotlyChart"], [data-testid="stVegaLiteChart"] {{ background:{PANEL}; border:1px solid rgba(190,210,230,.10); border-radius:16px; padding:.35rem; overflow:hidden; }}
+[data-testid="stPlotlyChart"], [data-testid="stVegaLiteChart"] {{ background:{PANEL}; border:1px solid rgba(242,183,101,.30); border-radius:16px; padding:.35rem; overflow:hidden; box-shadow:0 5px 18px rgba(242,183,101,.075), 0 0 14px rgba(242,183,101,.055), inset 0 1px 0 rgba(255,255,255,.018); }}
 [data-testid="stDataFrame"] {{ border:1px solid rgba(190,210,230,.13); border-radius:11px; overflow:hidden; }}
 [data-testid="stExpander"] {{ background:rgba(17,29,45,.62); border:1px solid rgba(190,210,230,.12); border-radius:12px; }}
 [data-testid="stSelectbox"] label, [data-testid="stMultiSelect"] label, [data-testid="stDateInput"] label {{ color:{TEXT}; font-weight:650; }}
@@ -290,7 +290,7 @@ if view == "System overview":
     s_repaid = float(s["principal_repaid"].sum()) if not s.empty else 0
     s_latest = latest_row(s)
     cards = [
-        institution_card("Ananse Telecom · Mobile Money", "Successful transactions", integer(a_count), "Successful value", ghs(a_value, True), f"Peak monthly active customers: {integer(a_customers)}"),
+        institution_card("Ananse Telecom · e-money", "Successful transactions", integer(a_count), "Successful value", ghs(a_value, True), f"Peak monthly active customers: {integer(a_customers)}"),
         institution_card("SikaCredit · digital lending", "Principal disbursed", ghs(s_disbursed, True), "Principal repaid", ghs(s_repaid, True), f"Latest closing outstanding: {ghs(s_latest['closing_outstanding_principal'], True) if s_latest is not None else '—'}"),
         institution_card("Oman Remit · remittance", "Successful remittances", integer(o_count), "Successful value", ghs(o_value, True), f"Peak monthly active customers: {integer(o_customers)}"),
     ]

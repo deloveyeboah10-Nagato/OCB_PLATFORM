@@ -1,7 +1,8 @@
 """SQL Server data access for the OCB dashboard.
 
-This SQL-integrated package defaults to SQL Server. Set OCB_DATA_SOURCE=csv
-explicitly only when you intentionally want the prototype snapshots. Connection details are read only from environment variables.
+The dashboard defaults to packaged CSV snapshots so it can run in public hosting
+without a private SQL Server connection. Set OCB_DATA_SOURCE=sql explicitly
+for the local SQL-integrated workflow. Connection details are read only from environment variables.
 """
 from __future__ import annotations
 
@@ -75,7 +76,7 @@ INVESTIGATION_QUERIES = {
 
 
 def sql_mode() -> bool:
-    return os.getenv("OCB_DATA_SOURCE", "sql").strip().lower() == "sql"
+    return os.getenv("OCB_DATA_SOURCE", "csv").strip().lower() == "sql"
 
 
 @lru_cache(maxsize=1)
