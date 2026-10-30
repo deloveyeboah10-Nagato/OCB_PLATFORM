@@ -234,7 +234,7 @@ def institution_card(title, first_label, first_value, second_label, second_value
 DATA_SOURCE_MODE = "sql" if sql_mode() else "csv"
 try:
     A = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["ananse_monthly", "ananse_region", "ananse_town", "ananse_type", "ananse_channel", "ananse_outcomes", "ananse_top10"]}
-    S = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["sika_monthly", "sika_flows", "sika_loan_activity", "sika_repayment_activity", "sika_top_post_maturity", "sika_top_outstanding"]}
+    S = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["sika_monthly", "sika_flows", "sika_top_post_maturity", "sika_top_outstanding"]}
     O = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["oman_monthly", "oman_channel", "oman_origin_country", "oman_type", "oman_region", "oman_town", "oman_outcomes", "oman_top10"]}
     O["oman_outbound_monthly_trigger"] = load_dataset("oman_outbound_monthly_trigger", DATA_SOURCE_MODE)
     O["oman_fatf_monthly_trigger"] = load_dataset("oman_fatf_monthly_trigger", DATA_SOURCE_MODE) if DATA_SOURCE_MODE == "sql" else pd.DataFrame()
@@ -365,24 +365,36 @@ elif view == "Ananse Telecom":
         bar_chart(ch, "transaction_channel", "total_transaction_value", "Successful value by channel", PURPLE, horizontal=True, value_format="money", height=350)
     with c2:
         typ = types.groupby("transaction_type",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).sort_values("total_transaction_value",ascending=False) if not types.empty else types
-        bar_chart(typ, "transaction_type", "total_transaction_value", "Successful value by transaction type", GREEN, horizontal=True, value_format="money", height=350)
+        if not typ.empty and "transaction_type" in typ.columns:
+            bar_chart(typ, "transaction_type", "total_transaction_value", "Successful value by transaction type", GREEN, horizontal=True, value_format="money", height=350)
+        else:
+            st.info("Transaction-type breakdown is not included in the published CSV snapshot.")
     c1,c2 = st.columns(2)
     with c1:
         reg = regions.groupby("transaction_region",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).nlargest(10,"total_transaction_value") if not regions.empty else regions
         bar_chart(reg, "transaction_region", "total_transaction_value", "Top regions by successful transaction value", CYAN, horizontal=True, value_format="money", height=330)
     with c2:
         town = towns.groupby("transaction_town",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).nlargest(10,"total_transaction_value") if not towns.empty and "transaction_town" in towns.columns else towns.iloc[0:0]
-        bar_chart(town, "transaction_town", "total_transaction_value", "Top towns by successful transaction value", AMBER, horizontal=True, value_format="money", height=330)
+        if not town.empty and "transaction_town" in town.columns:
+            bar_chart(town, "transaction_town", "total_transaction_value", "Top towns by successful transaction value", AMBER, horizontal=True, value_format="money", height=330)
+        else:
+            st.info("Town-level breakdown is not included in the published CSV snapshot.")
     c1,c2 = st.columns(2)
     with c1:
         bar_chart(ch, "transaction_channel", "total_transaction_count", "Successful volume by channel", PURPLE, horizontal=True, value_format="integer", height=350)
     with c2:
-        bar_chart(typ, "transaction_type", "total_transaction_count", "Successful volume by transaction type", GREEN, horizontal=True, value_format="integer", height=350)
+        if not typ.empty and "transaction_type" in typ.columns:
+            bar_chart(typ, "transaction_type", "total_transaction_count", "Successful volume by transaction type", GREEN, horizontal=True, value_format="integer", height=350)
+        else:
+            st.info("Transaction-type breakdown is not included in the published CSV snapshot.")
     c1,c2 = st.columns(2)
     with c1:
         bar_chart(reg, "transaction_region", "total_transaction_count", "Top regions by successful transaction volume", CYAN, horizontal=True, value_format="integer", height=330)
     with c2:
-        bar_chart(town, "transaction_town", "total_transaction_count", "Top towns by successful transaction volume", AMBER, horizontal=True, value_format="integer", height=330)
+        if not town.empty and "transaction_town" in town.columns:
+            bar_chart(town, "transaction_town", "total_transaction_count", "Top towns by successful transaction volume", AMBER, horizontal=True, value_format="integer", height=330)
+        else:
+            st.info("Town-level breakdown is not included in the published CSV snapshot.")
     st.markdown("---")
     c1,c2 = st.columns(2)
     with c1:
@@ -414,25 +426,25 @@ elif view == "SikaCredit":
         fig.update_coloraxes(showscale=False); fig.update_yaxes(tickprefix="GHS ",tickformat="~s"); chart_theme(fig,320); st.plotly_chart(fig, use_container_width=True, key="ocb_sika_net_principal_flow", config={"displaylogo": False, "responsive": True})
     with c2: line_chart(monthly,"year_month","post_maturity_outstanding_ratio_pct","Post-maturity outstanding / closing outstanding",AMBER,value_format="percent",height=320)
     st.markdown("---")
-    loan_activity = filtered("sika_loan_activity", S["sika_loan_activity"])
-    repayment_activity = filtered("sika_repayment_activity", S["sika_repayment_activity"])
+    loan_activity = monthly.copy()
+    repayment_activity = monthly.copy()
     st.markdown("---")
     section("Loan and repayment activity", "Separate views expose the lending and repayment activity behind the portfolio-level indicators.")
     c1,c2 = st.columns(2)
     with c1:
-        loan_count_col = "principal_disbursed_count" if "principal_disbursed_count" in loan_activity.columns else None
+        loan_count_col = "loans_disbursed_count" if "loans_disbursed_count" in loan_activity.columns else None
         if loan_count_col: line_chart(loan_activity,"year_month",loan_count_col,"Loans disbursed per month",CYAN,value_format="integer",height=300)
         else: st.info("Loan-count field is not available in this source view.")
     with c2:
-        repay_count_col = "principal_repaid_count" if "principal_repaid_count" in repayment_activity.columns else None
+        repay_count_col = "repayment_count" if "repayment_count" in repayment_activity.columns else None
         if repay_count_col: line_chart(repayment_activity,"year_month",repay_count_col,"Repayment events per month",PURPLE,value_format="integer",height=300)
         else: st.info("Repayment-count field is not available in this source view.")
     c1,c2 = st.columns(2)
     with c1:
-        if "principal_disbursed" in loan_activity.columns: line_chart(loan_activity,"year_month","principal_disbursed","Principal disbursed · loan activity view",CYAN,value_format="money",height=300)
+        if "principal_disbursed" in loan_activity.columns: line_chart(loan_activity,"year_month","principal_disbursed","Principal disbursed per month",CYAN,value_format="money",height=300)
         else: st.info("Principal disbursed field is not available in the loan activity view.")
     with c2:
-        if "principal_repaid" in repayment_activity.columns: line_chart(repayment_activity,"year_month","principal_repaid","Principal repaid · repayment activity view",PURPLE,value_format="money",height=300)
+        if "principal_repaid" in repayment_activity.columns: line_chart(repayment_activity,"year_month","principal_repaid","Principal repaid per month",PURPLE,value_format="money",height=300)
         else: st.info("Principal repaid field is not available in the repayment activity view.")
     st.markdown("---")
     c1,c2 = st.columns(2)
