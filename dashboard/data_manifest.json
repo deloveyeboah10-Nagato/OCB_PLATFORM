@@ -1,10 +1,27 @@
 {
-  "source": "OCB monitoring workbook exports",
-  "privacy_note": "Names, dates of birth, phone numbers, and email addresses are excluded from dashboard datasets.",
-  "tables": {
+  "source": "Existing OCB SQL Server monitoring views and WP-6.3 investigation queries",
+  "period": {
+    "start_inclusive": "2023-01-01",
+    "end_exclusive": "2026-01-01"
+  },
+  "generated_at_utc": "2026-10-30T09:29:31.117903+00:00",
+  "monitoring": {
+    "ananse_channel": {
+      "file": "data/ananse_channel.csv",
+      "rows": 288,
+      "columns": [
+        "year_month",
+        "transaction_channel",
+        "distinct_customers",
+        "total_transaction_count",
+        "total_transaction_value",
+        "average_transaction_value",
+        "median_transaction_value",
+        "month_date"
+      ]
+    },
     "ananse_monthly": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 2,
+      "file": "data/ananse_monthly.csv",
       "rows": 36,
       "columns": [
         "year_month",
@@ -15,13 +32,36 @@
         "median_transaction_value",
         "customers_mom_change_pct",
         "transaction_count_mom_change_pct",
-        "transaction_value_mom_change_pct"
-      ],
-      "file": "data/ananse_monthly.csv"
+        "transaction_value_mom_change_pct",
+        "month_date"
+      ]
+    },
+    "ananse_outcomes": {
+      "file": "data/ananse_outcomes.csv",
+      "rows": 36,
+      "columns": [
+        "year_month",
+        "total_transaction_count",
+        "total_transaction_value",
+        "average_transaction_value",
+        "successful_transactions",
+        "successful_transaction_value",
+        "successful_average_transaction_value",
+        "successful_rate",
+        "failed_transactions",
+        "failed_transaction_value",
+        "failed_average_transaction_value",
+        "failure_rate",
+        "rejected_transactions",
+        "rejected_transaction_value",
+        "rejected_average_transaction_value",
+        "rejection_rate",
+        "overall_unsuccessful_rate",
+        "month_date"
+      ]
     },
     "ananse_region": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 42,
+      "file": "data/ananse_region.csv",
       "rows": 468,
       "columns": [
         "year_month",
@@ -33,61 +73,12 @@
         "median_transaction_value",
         "customers_mom_change_pct",
         "transaction_count_mom_change_pct",
-        "transaction_value_mom_change_pct"
-      ],
-      "file": "data/ananse_region.csv"
-    },
-    "ananse_channel": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 1733,
-      "rows": 288,
-      "columns": [
-        "year_month",
-        "transaction_channel",
-        "distinct_customers",
-        "total_transaction_count",
-        "total_transaction_value",
-        "average_transaction_value",
-        "median_transaction_value",
-        "customers_mom_change_pct",
-        "transaction_count_mom_change_pct",
-        "transaction_value_mom_change_pct"
-      ],
-      "file": "data/ananse_channel.csv"
-    },
-    "ananse_outcomes": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 2064,
-      "rows": 36,
-      "columns": [
-        "year_month",
-        "total_transaction_count",
-        "successful_transactions",
-        "successful_rate",
-        "failed_transactions",
-        "failure_rate",
-        "rejected_transactions",
-        "rejection_rate",
-        "overall_unsuccessful_rate"
-      ],
-      "file": "data/ananse_outcomes.csv"
-    },
-    "ananse_customers": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 2103,
-      "rows": 2996,
-      "columns": [
-        "ocb_customer_id",
-        "total_transaction_count",
-        "total_transaction_value",
-        "average_transaction_value",
-        "median_transaction_value"
-      ],
-      "file": "data/ananse_customers.csv"
+        "transaction_value_mom_change_pct",
+        "month_date"
+      ]
     },
     "ananse_top10": {
-      "source_workbook": "ananse_MONITORING.xlsx",
-      "source_header_row": 5102,
+      "file": "data/ananse_top10.csv",
       "rows": 10,
       "columns": [
         "ocb_customer_id",
@@ -95,68 +86,220 @@
         "total_transaction_value",
         "average_transaction_value",
         "median_transaction_value"
-      ],
-      "file": "data/ananse_top10.csv"
+      ]
     },
-    "sika_post_maturity_borrowers": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 2,
-      "rows": 448,
+    "ananse_town": {
+      "file": "data/ananse_town.csv",
+      "rows": 1215,
+      "columns": [
+        "year_month",
+        "transaction_town",
+        "distinct_customers",
+        "total_transaction_count",
+        "total_transaction_value",
+        "average_transaction_value",
+        "median_transaction_value",
+        "customers_mom_change_pct",
+        "transaction_count_mom_change_pct",
+        "transaction_value_mom_change_pct",
+        "month_date"
+      ]
+    },
+    "ananse_type": {
+      "file": "data/ananse_type.csv",
+      "rows": 144,
+      "columns": [
+        "year_month",
+        "transaction_type",
+        "distinct_customers",
+        "total_transaction_count",
+        "total_transaction_value",
+        "average_transaction_value",
+        "median_transaction_value",
+        "month_date"
+      ]
+    },
+    "oman_channel": {
+      "file": "data/oman_channel.csv",
+      "rows": 180,
+      "columns": [
+        "year_month",
+        "remittance_transaction_channel",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "month_date"
+      ]
+    },
+    "oman_fatf_monthly_trigger": {
+      "file": "data/oman_fatf_monthly_trigger.csv",
+      "rows": 36,
+      "columns": [
+        "year_month",
+        "flagged_inbound_count",
+        "flagged_successful_value",
+        "month_date"
+      ]
+    },
+    "oman_monthly": {
+      "file": "data/oman_monthly.csv",
+      "rows": 36,
+      "columns": [
+        "year_month",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "customers_mom_change_pct",
+        "remittance_count_mom_change_pct",
+        "remittance_value_mom_change_pct",
+        "month_date"
+      ]
+    },
+    "oman_origin_country": {
+      "file": "data/oman_origin_country.csv",
+      "rows": 358,
+      "columns": [
+        "year_month",
+        "remittance_origin_country",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "customers_mom_change_pct",
+        "remittance_count_mom_change_pct",
+        "remittance_value_mom_change_pct",
+        "month_date"
+      ]
+    },
+    "oman_outbound_monthly_trigger": {
+      "file": "data/oman_outbound_monthly_trigger.csv",
+      "rows": 36,
+      "columns": [
+        "year_month",
+        "outbound_remittance_count",
+        "distinct_customers",
+        "outbound_remittance_value",
+        "month_date"
+      ]
+    },
+    "oman_outcomes": {
+      "file": "data/oman_outcomes.csv",
+      "rows": 36,
+      "columns": [
+        "year_month",
+        "total_remittance_count",
+        "overall_remittance_value",
+        "overall_average_remittance_value",
+        "successful_remittances",
+        "successful_remittance_value",
+        "successful_average_remittance_value",
+        "successful_rate_pct",
+        "failed_remittances",
+        "failed_remittance_value",
+        "failed_average_remittance_value",
+        "failure_rate_pct",
+        "rejected_remittances",
+        "rejected_remittance_value",
+        "rejected_average_remittance_value",
+        "rejection_rate_pct",
+        "overall_unsuccessful_rate_pct",
+        "month_date"
+      ]
+    },
+    "oman_region": {
+      "file": "data/oman_region.csv",
+      "rows": 443,
+      "columns": [
+        "year_month",
+        "remittance_location_region",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "customers_mom_change_pct",
+        "remittance_count_mom_change_pct",
+        "remittance_value_mom_change_pct",
+        "month_date"
+      ]
+    },
+    "oman_top10": {
+      "file": "data/oman_top10.csv",
+      "rows": 10,
       "columns": [
         "ocb_customer_id",
-        "post_maturity_outstanding",
-        "post_maturity_loan_count",
-        "avg_post_maturity_outstanding"
-      ],
-      "file": "data/sika_post_maturity_borrowers.csv"
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value"
+      ]
     },
-    "sika_outstanding_borrowers": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 455,
-      "rows": 485,
+    "oman_town": {
+      "file": "data/oman_town.csv",
+      "rows": 1058,
       "columns": [
-        "ocb_customer_id",
-        "total_outstanding_principal",
-        "total_principal_borrowed",
-        "loan_count",
-        "avg_loan_amount",
-        "total_repaid",
-        "repayment_count",
-        "avg_repayment_amount"
-      ],
-      "file": "data/sika_outstanding_borrowers.csv"
+        "year_month",
+        "remittance_location_town",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "customers_mom_change_pct",
+        "remittance_count_mom_change_pct",
+        "remittance_value_mom_change_pct",
+        "month_date"
+      ]
     },
-    "sika_principal_borrowers": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 944,
-      "rows": 485,
+    "oman_type": {
+      "file": "data/oman_type.csv",
+      "rows": 72,
       "columns": [
-        "ocb_customer_id",
-        "total_principal_borrowed",
-        "loan_count",
-        "avg_loan_amount",
-        "total_repaid",
-        "repayment_count",
-        "avg_repayment_amount"
-      ],
-      "file": "data/sika_principal_borrowers.csv"
+        "year_month",
+        "remittance_type",
+        "distinct_customers",
+        "total_remittance_count",
+        "total_remittance_value",
+        "average_remittance_value",
+        "median_remittance_value",
+        "month_date"
+      ]
     },
     "sika_flows": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 1433,
+      "file": "data/sika_flows.csv",
       "rows": 33,
       "columns": [
         "year_month",
         "principal_disbursed",
         "principal_repaid",
         "net_principal_flow",
-        "cumulative_net_principal_flow"
-      ],
-      "file": "data/sika_flows.csv"
+        "cumulative_net_principal_flow",
+        "month_date"
+      ]
+    },
+    "sika_loan_activity": {
+      "file": "data/sika_loan_activity.csv",
+      "rows": 33,
+      "columns": [
+        "year_month",
+        "distinct_loan_customers",
+        "principal_disbursed_count",
+        "principal_disbursed",
+        "average_principal_value",
+        "median_principal_value",
+        "customers_mom_change_pct",
+        "loans_disbursed_count_mom_change_pct",
+        "principal_value_mom_change_pct",
+        "month_date"
+      ]
     },
     "sika_monthly": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 1470,
+      "file": "data/sika_monthly.csv",
       "rows": 33,
       "columns": [
         "year_month",
@@ -174,40 +317,28 @@
         "repayment_to_opening_outstanding_pct",
         "post_maturity_outstanding_principal",
         "post_maturity_outstanding_loan_count",
-        "post_maturity_outstanding_ratio_pct"
-      ],
-      "file": "data/sika_monthly.csv"
+        "post_maturity_outstanding_ratio_pct",
+        "month_date"
+      ]
     },
-    "sika_top_post_maturity": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 1508,
-      "rows": 10,
+    "sika_repayment_activity": {
+      "file": "data/sika_repayment_activity.csv",
+      "rows": 33,
       "columns": [
-        "ocb_customer_id",
-        "post_maturity_outstanding",
-        "post_maturity_loan_count",
-        "avg_post_maturity_outstanding"
-      ],
-      "file": "data/sika_top_post_maturity.csv"
-    },
-    "sika_top_principal": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 1522,
-      "rows": 10,
-      "columns": [
-        "ocb_customer_id",
-        "total_principal_borrowed",
-        "loan_count",
-        "avg_loan_amount",
-        "total_repaid",
-        "repayment_count",
-        "avg_repayment_amount"
-      ],
-      "file": "data/sika_top_principal.csv"
+        "year_month",
+        "distinct_repayment_customers",
+        "principal_repaid_count",
+        "principal_repaid",
+        "average_repayment_amount",
+        "median_repayment_value",
+        "customers_mom_change_pct",
+        "repayment_count_mom_change_pct",
+        "repayment_value_mom_change_pct",
+        "month_date"
+      ]
     },
     "sika_top_outstanding": {
-      "source_workbook": "sikacredit_MONITORING.xlsx",
-      "source_header_row": 1537,
+      "file": "data/sika_top_outstanding.csv",
       "rows": 10,
       "columns": [
         "ocb_customer_id",
@@ -218,140 +349,449 @@
         "total_repaid",
         "repayment_count",
         "avg_repayment_amount"
-      ],
-      "file": "data/sika_top_outstanding.csv"
+      ]
     },
-    "oman_customers": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 2,
-      "rows": 496,
-      "columns": [
-        "ocb_customer_id",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value"
-      ],
-      "file": "data/oman_customers.csv"
-    },
-    "oman_monthly": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 502,
-      "rows": 36,
-      "columns": [
-        "year_month",
-        "distinct_customers",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value",
-        "customers_mom_change_pct",
-        "remittance_count_mom_change_pct",
-        "remittance_value_mom_change_pct"
-      ],
-      "file": "data/oman_monthly.csv"
-    },
-    "oman_channel": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 542,
-      "rows": 180,
-      "columns": [
-        "year_month",
-        "remittance_transaction_channel",
-        "distinct_customers",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value",
-        "customers_mom_change_pct",
-        "remittance_count_mom_change_pct",
-        "remittance_value_mom_change_pct"
-      ],
-      "file": "data/oman_channel.csv"
-    },
-    "oman_origin_country": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 726,
-      "rows": 358,
-      "columns": [
-        "year_month",
-        "remittance_origin_country",
-        "distinct_customers",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value",
-        "customers_mom_change_pct",
-        "remittance_count_mom_change_pct",
-        "remittance_value_mom_change_pct"
-      ],
-      "file": "data/oman_origin_country.csv"
-    },
-    "oman_region": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 1088,
-      "rows": 443,
-      "columns": [
-        "year_month",
-        "remittance_location_region",
-        "distinct_customers",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value",
-        "customers_mom_change_pct",
-        "remittance_count_mom_change_pct",
-        "remittance_value_mom_change_pct"
-      ],
-      "file": "data/oman_region.csv"
-    },
-    "oman_type": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 2598,
-      "rows": 72,
-      "columns": [
-        "year_month",
-        "remittance_type",
-        "distinct_customers",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value",
-        "customers_mom_change_pct",
-        "remittance_count_mom_change_pct",
-        "remittance_value_mom_change_pct"
-      ],
-      "file": "data/oman_type.csv"
-    },
-    "oman_outcomes": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 2675,
-      "rows": 36,
-      "columns": [
-        "year_month",
-        "total_remittance_count",
-        "successful_remittances",
-        "successful_rate_pct",
-        "failed_remittances",
-        "failure_rate_pct",
-        "rejected_remittances",
-        "rejection_rate_pct",
-        "overall_unsuccessful_rate_pct"
-      ],
-      "file": "data/oman_outcomes.csv"
-    },
-    "oman_top10": {
-      "source_workbook": "oman_monitoring.xlsx",
-      "source_header_row": 2715,
+    "sika_top_post_maturity": {
+      "file": "data/sika_top_post_maturity.csv",
       "rows": 10,
       "columns": [
         "ocb_customer_id",
-        "total_remittance_count",
-        "total_remittance_value",
-        "average_remittance_value",
-        "median_remittance_value"
-      ],
-      "file": "data/oman_top10.csv"
+        "post_maturity_outstanding",
+        "post_maturity_loan_count",
+        "avg_post_maturity_outstanding"
+      ]
     }
-  }
+  },
+  "investigations": {
+    "cashin_to_outbound_remittance_event": {
+      "file": "data/investigations/cashin_to_outbound_remittance_event.csv",
+      "rows": 960,
+      "columns": [
+        "ocb_customer_id",
+        "cash_in_id",
+        "cash_in_timestamp",
+        "remittance_id",
+        "remittance_timestamp",
+        "cashin_remittance_delay_minutes",
+        "funding_remittance_rapidity_score",
+        "funding_remittance_ratio",
+        "funding_remittance_value_correspondence_score",
+        "recurrence_gap_minutes",
+        "funding_remittance_recurrence_score"
+      ]
+    },
+    "credit_to_outbound_remittance_event": {
+      "file": "data/investigations/credit_to_outbound_remittance_event.csv",
+      "rows": 78,
+      "columns": [
+        "ocb_customer_id",
+        "loan_id",
+        "loan_timestamp",
+        "remittance_id",
+        "remittance_timestamp",
+        "credit_to_remittance_rapidity_score",
+        "credit_to_remittance_value_correspondence_score",
+        "credit_to_remittance_recurrence_score"
+      ]
+    },
+    "sika_debt_recycling": {
+      "file": "data/investigations/sika_debt_recycling.csv",
+      "rows": 278,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "repayment_deficiency_flag",
+        "reborrowing_rapidity_flag",
+        "recycling_recurrence_flag",
+        "signal_count",
+        "signal_classification"
+      ]
+    },
+    "sika_borrowing_surge": {
+      "file": "data/investigations/sika_borrowing_surge.csv",
+      "rows": 867,
+      "columns": [
+        "ocb_customer_id",
+        "principal_amount",
+        "borrower_type",
+        "monthly_borrowing_frequency",
+        "reborrowing_rapidity_mad_score",
+        "debt_recycling_recurrence_mad_score"
+      ]
+    },
+    "sika_credit_escalation": {
+      "file": "data/investigations/sika_credit_escalation.csv",
+      "rows": 867,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "escalation_value_flag",
+        "escalation_recurrence_flag",
+        "strike_1_pre_maturity_reborrowing",
+        "strike_2_maturity_breach",
+        "strike_3_post_maturity_reborrowing",
+        "signal_count",
+        "signal_classification"
+      ]
+    },
+    "ananse_surge_contributors": {
+      "file": "data/investigations/ananse_surge_contributors.csv",
+      "rows": 57313,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "november_transaction_count",
+        "december_transaction_count",
+        "transaction_count_change",
+        "november_transaction_value",
+        "december_transaction_value",
+        "transaction_value_change",
+        "transaction_count_mom_change_pct",
+        "transaction_value_mom_change_pct"
+      ]
+    },
+    "ananse_surge_tae": {
+      "file": "data/investigations/ananse_surge_tae.csv",
+      "rows": 607498,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "transaction_id",
+        "november_transaction_count",
+        "december_transaction_count",
+        "transaction_count_change",
+        "november_transaction_value",
+        "december_transaction_value",
+        "transaction_value_change",
+        "global_amount_score",
+        "velocity_score",
+        "customer_amount_score"
+      ]
+    },
+    "ananse_cip2pco_events": {
+      "file": "data/investigations/ananse_cip2pco_events.csv",
+      "rows": 565412,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "transaction_count_change",
+        "transaction_value_change",
+        "transaction_count_mom_change_pct",
+        "transaction_value_mom_change_pct",
+        "cash_in_timestamp",
+        "p2p_timestamp",
+        "cash_out_timestamp",
+        "sequence_duration_mins",
+        "cip2pco_sequence_duration_score",
+        "recurrence_gap_minutes",
+        "cip2pco_recurrence_score",
+        "socr",
+        "cip2pco_socr_score"
+      ]
+    },
+    "ananse_cip2pco_summary": {
+      "file": "data/investigations/ananse_cip2pco_summary.csv",
+      "rows": 57313,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "transaction_count_change",
+        "transaction_value_change",
+        "transaction_count_mom_change_pct",
+        "transaction_value_mom_change_pct",
+        "cip2pco_sequence_count",
+        "duration_score_count",
+        "max_duration_score",
+        "recurrence_score_count",
+        "max_recurrence_score",
+        "socr_score_count",
+        "max_socr_score"
+      ]
+    },
+    "ananse_failed_rejected_customers": {
+      "file": "data/investigations/ananse_failed_rejected_customers.csv",
+      "rows": 2996,
+      "columns": [
+        "ocb_customer_id",
+        "total_transaction_count",
+        "successful_transactions",
+        "successful_rate",
+        "failed_transactions",
+        "failure_rate",
+        "rejected_transactions",
+        "rejection_rate",
+        "unsuccessful_transactions",
+        "overall_unsuccessful_rate"
+      ]
+    },
+    "ananse_overnight_events": {
+      "file": "data/investigations/ananse_overnight_events.csv",
+      "rows": 4271,
+      "columns": [
+        "ocb_customer_id",
+        "unsuccessful_transactions",
+        "overall_unsuccessful_rate",
+        "value_residual",
+        "overnight_residual_score",
+        "interval_minutes",
+        "overnight_rapidity_mad_score"
+      ]
+    },
+    "ananse_overnight_summary": {
+      "file": "data/investigations/ananse_overnight_summary.csv",
+      "rows": 2996,
+      "columns": [
+        "ocb_customer_id",
+        "unsuccessful_transactions",
+        "overall_unsuccessful_rate",
+        "positive_value_signal_count",
+        "max_value_signal_score",
+        "positive_rapidity_signal_count",
+        "max_rapidity_signal_score"
+      ]
+    },
+    "oman_fatf_customers": {
+      "file": "data/investigations/oman_fatf_customers.csv",
+      "rows": 452,
+      "columns": [
+        "ocb_customer_id",
+        "flagged_origin_remittance_count",
+        "successful_count",
+        "failed_count",
+        "rejected_count",
+        "successful_amount",
+        "failed_amount",
+        "rejected_amount"
+      ]
+    },
+    "sika_lending_surge_contributors": {
+      "file": "data/investigations/sika_lending_surge_contributors.csv",
+      "rows": 867,
+      "columns": [
+        "ocb_customer_id",
+        "year_month",
+        "principal_disbursed",
+        "principal_disbursed_count"
+      ]
+    },
+    "sika_loan_cashout_events": {
+      "file": "data/investigations/sika_loan_cashout_events.csv",
+      "rows": 382,
+      "columns": [
+        "year_month",
+        "ocb_customer_id",
+        "principal_disbursed",
+        "principal_disbursed_count",
+        "loan_id",
+        "disbursement_timestamp",
+        "transaction_id",
+        "cash_out_timestamp",
+        "cash_out_amt",
+        "cash_out_to_loan_ratio",
+        "amount_ratio_score",
+        "cash_out_delay_minutes",
+        "loan_cashout_rapidity_score",
+        "next_sequence_loan_id",
+        "next_sequence_loan_timestamp",
+        "recurrence_gap_minutes",
+        "loan_cashout_recurrence_score"
+      ]
+    },
+    "sika_loan_cashout_summary": {
+      "file": "data/investigations/sika_loan_cashout_summary.csv",
+      "rows": 867,
+      "columns": [
+        "year_month",
+        "ocb_customer_id",
+        "principal_disbursed",
+        "principal_disbursed_count",
+        "elevated_amount_ratio_signal_count",
+        "max_amount_ratio_score",
+        "elevated_rapidity_signal_count",
+        "max_rapidity_score",
+        "elevated_recurrence_signal_count",
+        "max_recurrence_score"
+      ]
+    },
+    "sika_recycling_cashout_overlap": {
+      "file": "data/investigations/sika_recycling_cashout_overlap.csv",
+      "rows": 867,
+      "columns": [
+        "ocb_customer_id",
+        "principal_disbursed",
+        "reborrowing_rapidity_flag",
+        "recycling_recurrence_flag",
+        "repayment_deficiency_flag",
+        "elevated_amount_ratio_signal_count",
+        "elevated_rapidity_signal_count",
+        "elevated_recurrence_signal_count",
+        "total_signal_count"
+      ]
+    },
+    "oman_fatf_remittance_cashout": {
+      "file": "data/investigations/oman_fatf_remittance_cashout.csv",
+      "rows": 536,
+      "columns": [
+        "ocb_customer_id",
+        "remittance_id",
+        "year_month",
+        "remittance_timestamp",
+        "remittance_amount",
+        "remittance_origin_country",
+        "transaction_id",
+        "cash_out_timestamp",
+        "cash_out_amt",
+        "remittance_cashout_origin_risk_flag",
+        "cash_out_to_remittance_ratio",
+        "remittance_cashout_amt_score",
+        "cash_out_delay_minutes",
+        "remittance_cashout_rapidity_score",
+        "recurrence_gap_minutes",
+        "remittance_cashout_recurrence_score"
+      ]
+    },
+    "oman_fatf_cashout_tae": {
+      "file": "data/investigations/oman_fatf_cashout_tae.csv",
+      "rows": 235,
+      "columns": [
+        "ocb_customer_id",
+        "remittance_id",
+        "remittance_timestamp",
+        "remittance_origin_country",
+        "remittance_amount",
+        "cash_out_timestamp",
+        "cash_out_amt",
+        "cash_out_to_remittance_ratio",
+        "remittance_cashout_amt_score",
+        "cash_out_delay_minutes",
+        "remittance_cashout_rapidity_score",
+        "recurrence_gap_minutes",
+        "remittance_cashout_recurrence_score",
+        "remittance_cashout_origin_risk_flag",
+        "transaction_type_amount_score"
+      ]
+    },
+    "cashin_to_outbound_q4_2024_summary": {
+      "file": "data/investigations/cashin_to_outbound_q4_2024_summary.csv",
+      "rows": 54,
+      "columns": [
+        "ocb_customer_id",
+        "qualifying_sequence_count",
+        "positive_rapidity_signal_count",
+        "positive_value_correspondence_signal_count",
+        "positive_recurrence_signal_count",
+        "max_rapidity_score",
+        "max_value_correspondence_score",
+        "max_recurrence_score"
+      ]
+    },
+    "credit_to_outbound_q4_2024_summary": {
+      "file": "data/investigations/credit_to_outbound_q4_2024_summary.csv",
+      "rows": 5,
+      "columns": [
+        "ocb_customer_id",
+        "qualifying_sequence_count",
+        "positive_rapidity_sequence_count",
+        "max_rapidity_score",
+        "positive_value_correspondence_sequence_count",
+        "max_value_correspondence_score",
+        "positive_recurrence_sequence_count",
+        "max_recurrence_score"
+      ]
+    },
+    "credit_to_outbound_q4_2025_events": {
+      "file": "data/investigations/credit_to_outbound_q4_2025_events.csv",
+      "rows": 24,
+      "columns": [
+        "ocb_customer_id",
+        "loan_id",
+        "loan_timestamp",
+        "remittance_id",
+        "remittance_timestamp",
+        "credit_to_remittance_rapidity_score",
+        "credit_to_remittance_value_correspondence_score",
+        "credit_to_remittance_recurrence_score"
+      ]
+    },
+    "credit_to_outbound_q4_2025_summary": {
+      "file": "data/investigations/credit_to_outbound_q4_2025_summary.csv",
+      "rows": 24,
+      "columns": [
+        "ocb_customer_id",
+        "qualifying_sequence_count",
+        "positive_rapidity_sequence_count",
+        "max_rapidity_score",
+        "positive_value_correspondence_sequence_count",
+        "max_value_correspondence_score",
+        "positive_recurrence_sequence_count",
+        "max_recurrence_score"
+      ]
+    },
+    "remittance_to_p2p_events": {
+      "file": "data/investigations/remittance_to_p2p_events.csv",
+      "rows": 3207,
+      "columns": [
+        "ocb_customer_id",
+        "remittance_id",
+        "remittance_timestamp",
+        "remittance_amount",
+        "first_p2p_transfer_id",
+        "remittance_origin_country",
+        "remittance_origin_risk_flag",
+        "elapsed_minutes",
+        "inbound_remittance_to_p2p_rapidity_score",
+        "p2p_to_remittance_value_ratio",
+        "inbound_remittance_to_p2p_value_correspondence_score",
+        "recurrence_interval_minutes",
+        "inbound_remittance_to_p2p_recurrence_score"
+      ]
+    },
+    "remittance_to_p2p_summary": {
+      "file": "data/investigations/remittance_to_p2p_summary.csv",
+      "rows": 169,
+      "columns": [
+        "ocb_customer_id",
+        "sequence_count",
+        "rapidity_positive_count",
+        "rapidity_max_score",
+        "value_correspondence_positive_count",
+        "value_correspondence_max_score",
+        "recurrence_positive_count",
+        "recurrence_max_score"
+      ]
+    },
+    "remittance_to_repayment_events": {
+      "file": "data/investigations/remittance_to_repayment_events.csv",
+      "rows": 2683,
+      "columns": [
+        "ocb_customer_id",
+        "loan_id",
+        "repayment_timestamp",
+        "repayment_amount",
+        "remittance_repayment_delay_minutes",
+        "remittance_repayment_rapidity_score",
+        "repayment_correspondence_ratio",
+        "remittance_repayment_value_correspondence_score",
+        "recurrence_gap_minutes",
+        "inbound_remittance_to_repayment_recurrence_score"
+      ]
+    },
+    "remittance_to_repayment_summary": {
+      "file": "data/investigations/remittance_to_repayment_summary.csv",
+      "rows": 470,
+      "columns": [
+        "ocb_customer_id",
+        "rapidity_sequence_count",
+        "rapidity_positive_sequence_count",
+        "rapidity_max_score",
+        "value_correspondence_sequence_count",
+        "value_correspondence_positive_sequence_count",
+        "value_correspondence_max_score",
+        "recurrence_sequence_count",
+        "recurrence_positive_sequence_count",
+        "recurrence_max_score"
+      ]
+    }
+  },
+  "note": "Snapshots are query results, not live SQL. Review privacy before publishing publicly."
 }

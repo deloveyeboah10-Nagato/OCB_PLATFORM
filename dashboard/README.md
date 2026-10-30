@@ -66,7 +66,15 @@ If an investigation page reports that a SQL object is missing, ask the database 
 
 ## Run locally in CSV prototype mode
 
-CSV mode is useful when SQL Server is unavailable and you only need to inspect the supplied dashboard snapshots. It is not live data. The CSV snapshots cover the periods included in the package, and supervisory investigation evidence still requires SQL Server.
+CSV mode is the mode used by the public deployment. It reads committed snapshots and does not require a recruiter to connect to SQL Server. The package must contain all monitoring CSVs and `data/investigations/*.csv`; otherwise the app reports the exact missing snapshot rather than silently substituting an empty chart.
+
+To refresh the public snapshot from the authoritative OCB database, run the following locally after confirming SQL Server access and configuring `OCB_DATA_SOURCE=sql` and the `OCB_SQL_*` environment variables:
+
+```bat
+.venv\\Scripts\\python.exe export_public_snapshots.py
+```
+
+The exporter executes the dashboard's existing monitoring views and registered WP-6.3 investigation SQL files. It fails if a source query cannot run; it does not fabricate investigation results. Review every exported investigation CSV for sensitive or identifying fields before committing the files to the public repository. Then commit the generated `data/` files and `data_manifest.json`, and redeploy. The public app reads those snapshots without requiring the database connection.
 
 1. Open a terminal in the `OCB_Dashboard_Rebuild_v1` folder.
 2. If this is the first run, create the Python environment and install the dependencies:
@@ -115,7 +123,7 @@ For SQL mode, first install the Microsoft SQL Server ODBC driver for your operat
 | Missing SQL view or object | Confirm that the OCB monitoring and WP-5.3/WP-6.3 intelligence objects are deployed in the selected database. |
 | Package installation fails | Check your internet connection and rerun the launcher. Package installation is needed only when setting up or refreshing `.venv`. |
 | Port 8502 is already in use | Close the other local Streamlit session using that port, then try again. |
-| CSV page has blank charts or no investigation rows | Confirm that the CSV files remain in the package's `data/` folder. CSV mode does not provide live supervisory investigation results. |
+| Missing chart or investigation snapshot | Run `export_public_snapshots.py` against the configured OCB SQL Server, confirm the required CSV appears under `data/` or `data/investigations/`, review it for public-release safety, then commit and redeploy. |
 
 ## Data and operating notes
 

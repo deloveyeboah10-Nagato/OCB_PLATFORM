@@ -91,8 +91,30 @@ def load_dataset(name, source_mode):
 
 @st.cache_data(show_spinner=False, ttl=300)
 def run_investigation_query(query_name, start_date=None, end_date_exclusive=None):
-    params = [] if start_date is None else [start_date, end_date_exclusive]
-    return load_sql_query(query_name, params)
+    """Read real investigation evidence from SQL locally or committed CSV snapshots online."""
+    if sql_mode():
+        params = [] if start_date is None else [start_date, end_date_exclusive]
+        return load_sql_query(query_name, params)
+
+    snapshot = ROOT / "data" / "investigations" / f"{query_name}.csv"
+    if not snapshot.exists():
+        raise FileNotFoundError(
+            f"Public investigation snapshot is missing: data/investigations/{query_name}.csv. "
+            "Run export_public_snapshots.py against the OCB SQL Server, then commit the generated CSVs."
+        )
+    frame = pd.read_csv(snapshot)
+    # Date-window filtering is applied to event-grain snapshots when a usable
+    # event timestamp/date column exists. Customer summaries remain at source grain.
+    if start_date is not None and end_date_exclusive is not None:
+        date_col = next((c for c in (
+            "transaction_timestamp", "remittance_timestamp", "repayment_timestamp",
+            "loan_disbursement_timestamp", "event_timestamp", "event_date",
+            "cash_in_timestamp", "outbound_remittance_timestamp", "loan_timestamp"
+        ) if c in frame.columns), None)
+        if date_col:
+            dates = pd.to_datetime(frame[date_col], errors="coerce")
+            frame = frame.loc[(dates >= pd.Timestamp(start_date)) & (dates < pd.Timestamp(end_date_exclusive))].copy()
+    return frame
 
 def month_filter(df, start, end):
     if df.empty or "month_date" not in df.columns:
@@ -234,7 +256,7 @@ def institution_card(title, first_label, first_value, second_label, second_value
 DATA_SOURCE_MODE = "sql" if sql_mode() else "csv"
 try:
     A = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["ananse_monthly", "ananse_region", "ananse_town", "ananse_type", "ananse_channel", "ananse_outcomes", "ananse_top10"]}
-    S = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["sika_monthly", "sika_flows", "sika_top_post_maturity", "sika_top_outstanding"]}
+    S = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["sika_monthly", "sika_flows", "sika_loan_activity", "sika_repayment_activity", "sika_top_post_maturity", "sika_top_outstanding"]}
     O = {k: load_dataset(k, DATA_SOURCE_MODE) for k in ["oman_monthly", "oman_channel", "oman_origin_country", "oman_type", "oman_region", "oman_town", "oman_outcomes", "oman_top10"]}
     O["oman_outbound_monthly_trigger"] = load_dataset("oman_outbound_monthly_trigger", DATA_SOURCE_MODE)
     O["oman_fatf_monthly_trigger"] = load_dataset("oman_fatf_monthly_trigger", DATA_SOURCE_MODE) if DATA_SOURCE_MODE == "sql" else pd.DataFrame()
@@ -365,36 +387,24 @@ elif view == "Ananse Telecom":
         bar_chart(ch, "transaction_channel", "total_transaction_value", "Successful value by channel", PURPLE, horizontal=True, value_format="money", height=350)
     with c2:
         typ = types.groupby("transaction_type",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).sort_values("total_transaction_value",ascending=False) if not types.empty else types
-        if not typ.empty and "transaction_type" in typ.columns:
-            bar_chart(typ, "transaction_type", "total_transaction_value", "Successful value by transaction type", GREEN, horizontal=True, value_format="money", height=350)
-        else:
-            st.info("Transaction-type breakdown is not included in the published CSV snapshot.")
+        bar_chart(typ, "transaction_type", "total_transaction_value", "Successful value by transaction type", GREEN, horizontal=True, value_format="money", height=350)
     c1,c2 = st.columns(2)
     with c1:
         reg = regions.groupby("transaction_region",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).nlargest(10,"total_transaction_value") if not regions.empty else regions
         bar_chart(reg, "transaction_region", "total_transaction_value", "Top regions by successful transaction value", CYAN, horizontal=True, value_format="money", height=330)
     with c2:
         town = towns.groupby("transaction_town",as_index=False).agg(total_transaction_value=("total_transaction_value","sum"),total_transaction_count=("total_transaction_count","sum")).nlargest(10,"total_transaction_value") if not towns.empty and "transaction_town" in towns.columns else towns.iloc[0:0]
-        if not town.empty and "transaction_town" in town.columns:
-            bar_chart(town, "transaction_town", "total_transaction_value", "Top towns by successful transaction value", AMBER, horizontal=True, value_format="money", height=330)
-        else:
-            st.info("Town-level breakdown is not included in the published CSV snapshot.")
+        bar_chart(town, "transaction_town", "total_transaction_value", "Top towns by successful transaction value", AMBER, horizontal=True, value_format="money", height=330)
     c1,c2 = st.columns(2)
     with c1:
         bar_chart(ch, "transaction_channel", "total_transaction_count", "Successful volume by channel", PURPLE, horizontal=True, value_format="integer", height=350)
     with c2:
-        if not typ.empty and "transaction_type" in typ.columns:
-            bar_chart(typ, "transaction_type", "total_transaction_count", "Successful volume by transaction type", GREEN, horizontal=True, value_format="integer", height=350)
-        else:
-            st.info("Transaction-type breakdown is not included in the published CSV snapshot.")
+        bar_chart(typ, "transaction_type", "total_transaction_count", "Successful volume by transaction type", GREEN, horizontal=True, value_format="integer", height=350)
     c1,c2 = st.columns(2)
     with c1:
         bar_chart(reg, "transaction_region", "total_transaction_count", "Top regions by successful transaction volume", CYAN, horizontal=True, value_format="integer", height=330)
     with c2:
-        if not town.empty and "transaction_town" in town.columns:
-            bar_chart(town, "transaction_town", "total_transaction_count", "Top towns by successful transaction volume", AMBER, horizontal=True, value_format="integer", height=330)
-        else:
-            st.info("Town-level breakdown is not included in the published CSV snapshot.")
+        bar_chart(town, "transaction_town", "total_transaction_count", "Top towns by successful transaction volume", AMBER, horizontal=True, value_format="integer", height=330)
     st.markdown("---")
     c1,c2 = st.columns(2)
     with c1:
@@ -426,25 +436,25 @@ elif view == "SikaCredit":
         fig.update_coloraxes(showscale=False); fig.update_yaxes(tickprefix="GHS ",tickformat="~s"); chart_theme(fig,320); st.plotly_chart(fig, use_container_width=True, key="ocb_sika_net_principal_flow", config={"displaylogo": False, "responsive": True})
     with c2: line_chart(monthly,"year_month","post_maturity_outstanding_ratio_pct","Post-maturity outstanding / closing outstanding",AMBER,value_format="percent",height=320)
     st.markdown("---")
-    loan_activity = monthly.copy()
-    repayment_activity = monthly.copy()
+    loan_activity = filtered("sika_loan_activity", S["sika_loan_activity"])
+    repayment_activity = filtered("sika_repayment_activity", S["sika_repayment_activity"])
     st.markdown("---")
     section("Loan and repayment activity", "Separate views expose the lending and repayment activity behind the portfolio-level indicators.")
     c1,c2 = st.columns(2)
     with c1:
-        loan_count_col = "loans_disbursed_count" if "loans_disbursed_count" in loan_activity.columns else None
+        loan_count_col = "principal_disbursed_count" if "principal_disbursed_count" in loan_activity.columns else None
         if loan_count_col: line_chart(loan_activity,"year_month",loan_count_col,"Loans disbursed per month",CYAN,value_format="integer",height=300)
         else: st.info("Loan-count field is not available in this source view.")
     with c2:
-        repay_count_col = "repayment_count" if "repayment_count" in repayment_activity.columns else None
+        repay_count_col = "principal_repaid_count" if "principal_repaid_count" in repayment_activity.columns else None
         if repay_count_col: line_chart(repayment_activity,"year_month",repay_count_col,"Repayment events per month",PURPLE,value_format="integer",height=300)
         else: st.info("Repayment-count field is not available in this source view.")
     c1,c2 = st.columns(2)
     with c1:
-        if "principal_disbursed" in loan_activity.columns: line_chart(loan_activity,"year_month","principal_disbursed","Principal disbursed per month",CYAN,value_format="money",height=300)
+        if "principal_disbursed" in loan_activity.columns: line_chart(loan_activity,"year_month","principal_disbursed","Principal disbursed · loan activity view",CYAN,value_format="money",height=300)
         else: st.info("Principal disbursed field is not available in the loan activity view.")
     with c2:
-        if "principal_repaid" in repayment_activity.columns: line_chart(repayment_activity,"year_month","principal_repaid","Principal repaid per month",PURPLE,value_format="money",height=300)
+        if "principal_repaid" in repayment_activity.columns: line_chart(repayment_activity,"year_month","principal_repaid","Principal repaid · repayment activity view",PURPLE,value_format="money",height=300)
         else: st.info("Principal repaid field is not available in the repayment activity view.")
     st.markdown("---")
     c1,c2 = st.columns(2)
@@ -509,372 +519,369 @@ elif view == "Oman Remit":
 
 else:  # Supervisory investigations
     section("Supervisory investigations", "Event-level evidence retrieved directly from existing WP-6.3 analytical SQL. The reporting window filters the investigation output; it does not rewrite the underlying intelligence-engine history.")
-    if not sql_mode():
-        st.info("This page runs existing SQL investigation queries directly. Set OCB_DATA_SOURCE=sql and configure the local SQL Server connection to use it. No investigation CSVs are required.")
-    else:
-        investigation_options = {
-            "Domestic cash-in → outbound remittance": "cashin_to_outbound_remittance_event",
-            "SikaCredit loan disbursement → outbound remittance": "credit_to_outbound_remittance_event",
+    investigation_options = {
+        "Domestic cash-in → outbound remittance": "cashin_to_outbound_remittance_event",
+        "SikaCredit loan disbursement → outbound remittance": "credit_to_outbound_remittance_event",
+    }
+    added_investigations = {
+        "SikaCredit · November lending surge and debt recycling": {
+            "question": "During SikaCredit's November 2025 lending surge, which customers exhibit elevated debt-recycling repayment-deficiency, reborrowing-rapidity and recurrence signals?",
+            "trigger": "November 2025 lending jumped: principal rose from GHS 104,524 in October to GHS 210,646.56, while loans issued increased from 82 to 146.",
+            "outputs": {"Customer debt-recycling signals": "sika_debt_recycling"},
+        },
+        "SikaCredit · first-time, repeat and frequent borrowers": {
+            "question": "Was the November 2025 lending surge driven mainly by first-time borrowers, repeat borrowers, or frequent borrowing and short inter-loan intervals?",
+            "trigger": "The November 2025 surge nearly doubled loan count: 82 loans in October versus 146 in November, alongside higher principal disbursement.",
+            "outputs": {"November borrower behaviour": "sika_borrowing_surge"},
+        },
+        "SikaCredit · credit escalation": {
+            "question": "Among customers receiving loans during the November 2025 surge, which exhibit credit-value escalation, escalation recurrence or credit-obligation signals?",
+            "trigger": "November principal disbursements nearly doubled to GHS 210,646.56. The review checks whether larger loans and repayment obligations escalated for individual borrowers.",
+            "outputs": {"Credit-escalation signals": "sika_credit_escalation"},
+        },
+        "Ananse · customers behind the December transaction surge": {
+            "question": "Which customers contributed materially to Ananse's December 2025 transaction surge, and what existing TAE or cash-in → P2P → cash-out signals are associated with them?",
+            "trigger": "Ananse's successful transactions rose from 37,913 in November to 53,173 in December 2025; value increased from about GHS 64.95M to GHS 91.41M.",
+            "outputs": {
+                "Customers contributing to the surge": "ananse_surge_contributors",
+                "TAE transaction signals": "ananse_surge_tae",
+                "Cash-in → P2P → cash-out events": "ananse_cip2pco_events",
+                "Cash-in → P2P → cash-out customer summary": "ananse_cip2pco_summary",
+            },
+        },
+        "Ananse · unsuccessful outcomes and overnight behaviour": {
+            "question": "Are customers associated with failed or rejected Ananse transactions also exhibiting elevated overnight transaction rapidity or residual-value signals?",
+            "trigger": "The source flagged customers with high failed/rejected counts or rates and compares them with overnight activity between 23:00 and 04:59.",
+            "outputs": {
+                "Customers with disproportionate failed/rejected activity": "ananse_failed_rejected_customers",
+                "Overnight signals at event level": "ananse_overnight_events",
+                "Overnight signals by customer": "ananse_overnight_summary",
+            },
+        },
+        "Oman Remit · FATF-origin exposure": {
+            "question": "Which customers account for the highest volume and value of successful inbound remittances from FATF-flagged origins, and what failed or rejected activity is associated with them?",
+            "trigger": "Oman Remit's origin-risk monitor flagged inbound transfers from designated higher-risk origins; the review compares successful value with failed and rejected activity.",
+            "outputs": {"Customer exposure and outcomes": "oman_fatf_customers"},
+        },
+        "SikaCredit · November loans followed by cash-outs": {
+            "question": "Among customers receiving SikaCredit loans during the November 2025 surge, which exhibit loan-disbursement → Ananse cash-out sequences with elevated rapidity, amount-ratio or recurrence signals?",
+            "trigger": "SikaCredit issued 146 loans worth GHS 210,646.56 in November 2025, up from 82 loans worth GHS 104,524 in October; the review traces subsequent cash-outs.",
+            "outputs": {
+                "Customers contributing to the lending surge": "sika_lending_surge_contributors",
+                "Loan → cash-out events": "sika_loan_cashout_events",
+                "Loan → cash-out customer summary": "sika_loan_cashout_summary",
+                "Debt-recycling and cash-out overlap": "sika_recycling_cashout_overlap",
+            },
+        },
+        "Oman Remit · FATF-flagged remittance-to-cash-out sequences": {
+            "question": "Which FATF-flagged Oman Remit remittance-to-cash-out sequences during Q4 2025 also exhibit TAE transaction-type amount anomalies in the associated Ananse cash-outs?",
+            "trigger": "Q4 2025 inbound remittance value reached GHS 1,300,618.46, up GHS 217,678.44 quarter-on-quarter; the review traces flagged-origin funds to cash-outs.",
+            "outputs": {
+                "FATF-flagged remittance → cash-out events": "oman_fatf_remittance_cashout",
+                "Events with TAE amount anomalies": "oman_fatf_cashout_tae",
+            },
+        },
+        "Oman Remit · inbound remittance followed by Ananse P2P": {
+            "question": "Among customers contributing to the December 2025 increase in inbound remittances, which exhibit the existing inbound remittance → Ananse P2P redistribution signals?",
+            "trigger": "Inbound remittance value rose 62.824% from November to December 2025; the review checks whether flagged-origin funds were followed by Ananse P2P transfers.",
+            "outputs": {
+                "Inbound remittance → P2P events": "remittance_to_p2p_events",
+                "Customer signal summary": "remittance_to_p2p_summary",
+            },
+        },
+        "SikaCredit · inbound remittance followed by loan repayment": {
+            "question": "Which inbound Oman Remit funds were associated with SikaCredit loan repayments during February 2025, following the decline in repayment value?",
+            "trigger": "SikaCredit repayment value fell from GHS 30,355.61 in January to GHS 22,165.32 in February 2025, a drop of about 27%; the review checks associated inbound remittances.",
+            "outputs": {
+                "Inbound remittance → repayment events": "remittance_to_repayment_events",
+                "Customer signal summary": "remittance_to_repayment_summary",
+            },
+        },
+    }
+    investigation_notes = {
+        "cashin_to_outbound_remittance_event": {
+            "question": "Did successful outbound remittances follow domestic Ananse cash-ins closely enough, and with enough value correspondence or repeated remittance behaviour, to merit review?",
+            "trigger": "Oman Remit's outbound remittance value rose from GHS 274,048.05 to GHS 417,456.75 in Q4 2024 (+52.33%); this review checks cash-ins shortly before those transfers.",
+            "scores": [
+                ("Funding/remittance rapidity", "Measures the time from a domestic cash-in to the first following successful outbound remittance in that cash-in window; shorter-than-usual intervals score higher."),
+                ("Value correspondence", "Compares each outbound remittance amount with its associated cash-in amount. Higher remittance-to-cash-in ratios score more strongly against the population; this does not prove direct funding."),
+                ("Recurrence", "Measures the interval between the two outbound remittances in successive qualifying cash-in → remittance cycles; shorter intervals score higher."),
+            ],
+            "trigger_window": ("2024-10-01", "2025-01-01"),
+        },
+        "credit_to_outbound_remittance_event": {
+            "question": "Did successful outbound remittances follow SikaCredit loan disbursements, with timing, value correspondence or repeated remittance behaviour that merits review?",
+            "trigger": "Oman Remit's outbound remittance value rose 52.33% in Q4 2024 (GHS 274,048.05 to GHS 417,456.75); five credit-to-remittance events were found in that quarter.",
+            "scores": [
+                ("Credit/remittance rapidity", "Measures the time from loan disbursement to the first following successful outbound remittance in that loan window; shorter-than-usual intervals score higher."),
+                ("Value correspondence", "Compares each outbound remittance amount with the associated loan principal. Higher remittance-to-principal ratios score more strongly against the population; this does not prove direct funding."),
+                ("Remittance recurrence", "Measures the interval between the two outbound remittances across successive qualifying loan → remittance sequences; shorter intervals score higher."),
+            ],
+            "trigger_window": ("2024-10-01", "2025-01-01"),
+        },
+    }
+    with st.container(border=True):
+        st.markdown('<div class="ocb-card-kicker">Supervisory workbench</div>', unsafe_allow_html=True)
+        st.caption("Choose an investigative question to review its trigger, reporting window, signals and supporting evidence.")
+        chosen_label = st.selectbox("Investigation question", list(investigation_options) + list(added_investigations), key="investigation_question")
+    if chosen_label in added_investigations:
+        details = added_investigations[chosen_label]
+        st.markdown("#### Investigation question")
+        st.write(details["question"])
+        st.markdown("**Trigger event**")
+        st.info(details["trigger"])
+        # Give every added investigation the same date controls and visible
+        # trigger context as the original two investigations.
+        investigation_context = {
+            "SikaCredit · November lending surge and debt recycling": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
+                ("Repayment deficiency", "Shows the share of the previous loan's principal still unpaid when the next loan was issued; higher deficiency relative to other qualifying cases scores higher."),
+                ("Reborrowing rapidity", "Measures the time from a loan to the next loan while the previous loan still has unpaid principal; shorter-than-usual delays score higher."),
+                ("Debt-recycling recurrence", "Measures the gap from the second loan in one sequence to the third loan in the next qualifying sequence. Both transitions must involve a new loan taken while principal on the previous loan is still unpaid. Shorter gaps mean qualifying debt recycling repeats sooner."),
+            ]),
+            "SikaCredit · first-time, repeat and frequent borrowers": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
+                ("First-time / repeat", "First-time means no earlier loan appears in the available history; repeat means a prior loan is recorded."),
+                ("Monthly borrowing frequency", "Counts loans issued to each borrower in the selected month; it is not a customer count."),
+                ("Reborrowing rapidity", "Measures the time from a loan to the next loan while the previous loan still has unpaid principal; shorter-than-usual delays score higher."),
+            ]),
+            "SikaCredit · credit escalation": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
+                ("Credit-value escalation", "Compares each loan with the customer's historical median loan size for the preceding observed lending year; a larger positive increase scores higher."),
+                ("Escalation recurrence", "Measures how quickly loans that qualify for credit-value escalation recur. Ordinary loans between qualifying increases do not count as escalation events."),
+                ("Strike 1 · before maturity", "A later loan was taken before the previous loan's due date, while that earlier loan still had an unpaid balance."),
+                ("Strike 2 · at maturity", "The previous loan still had an unpaid balance on its contractual maturity date."),
+                ("Strike 3 · after maturity", "The previous loan remained unpaid at maturity, and the customer took another loan after that due date."),
+            ]),
+            "Ananse · customers behind the December transaction surge": ("ananse", (date(2025, 12, 1), date(2025, 12, 31)), [
+                ("Surge contribution", "Shows each customer's change in transaction count and value from the previous month."),
+                ("Amount and velocity scores", "Amount compares a transaction with its transaction-type baseline; velocity measures the time between consecutive transactions and scores unusually short intervals."),
+                ("Cash-in → P2P → cash-out", "Tracks the three ordered transactions. Recurrence measures the gap from completing one qualifying sequence at cash-out to starting the next at cash-in; shorter gaps score higher."),
+            ]),
+            "Ananse · unsuccessful outcomes and overnight behaviour": ("ananse", (date(2025, 12, 1), date(2025, 12, 31)), [
+                ("Failed / rejected count and rate", "Count shows failed and rejected attempts; the rate is their combined share of all transaction attempts in the period."),
+                ("Overnight rapidity", "Measures the gap between consecutive transactions within the same overnight period (23:00–04:59); shorter-than-usual gaps score higher."),
+                ("Overnight residual value", "Compares that customer's overnight transaction total with their usual overnight-value baseline; only a positive excess receives a positive score."),
+            ]),
+            "Oman Remit · FATF-origin exposure": ("oman", (date(2025, 12, 1), date(2025, 12, 31)), [
+                ("Origin-risk flag", "A time-aware yes/no marker: it is set when the origin country met the source's risk rule on the remittance date."),
+                ("Count and successful value", "Counts flagged-origin transfers and sums the value of those that completed successfully."),
+                ("Failed / rejected outcomes", "Separate unsuccessful attempts shown for context; they are not included in successful remittance value."),
+            ]),
+            "SikaCredit · November loans followed by cash-outs": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
+                ("Loan-to-cash-out rapidity", "Measures the time from loan disbursement to the first matched cash-out; shorter-than-usual delays score higher."),
+                ("Cash-out / loan ratio", "Divides the matched cash-out amount by loan principal. Higher ratios relative to the population score higher; a ratio above one does not prove that the loan funded the cash-out."),
+                ("Recurrence", "Measures the interval from completing one matched sequence at cash-out to starting the next at loan disbursement; shorter intervals score higher."),
+            ]),
+            "Oman Remit · FATF-flagged remittance-to-cash-out sequences": ("oman", (date(2025, 10, 1), date(2025, 12, 31)), [
+                ("Origin-risk flag", "A time-aware yes/no marker set when the remittance origin met the source's risk rule on that transaction date."),
+                ("Remittance-to-cash-out", "Rapidity measures the time from remittance to matched cash-out. Amount relationship compares cash-out value with remittance value; it does not establish fund provenance. Recurrence measures the gap from completing one sequence at cash-out to initiating the next at remittance."),
+                ("TAE amount signal", "Compares a cash-out amount with the historical baseline for its transaction type; it is distinct from the remittance-to-cash-out amount relationship."),
+            ]),
+            "Oman Remit · inbound remittance followed by Ananse P2P": ("oman", (date(2025, 12, 1), date(2025, 12, 31)), [
+                ("Rapidity", "Measures the time from inbound remittance receipt to the first following successful P2P transfer; shorter intervals score higher."),
+                ("Value correspondence", "Compares the matched P2P amount with the inbound remittance amount. Higher P2P-to-remittance ratios relative to the population score higher; this does not prove direct funding."),
+                ("Recurrence", "Measures the interval between completion of one remittance-to-P2P sequence and initiation of the next; shorter intervals score higher."),
+            ]),
+            "SikaCredit · inbound remittance followed by loan repayment": ("sika", (date(2025, 2, 1), date(2025, 2, 28)), [
+                ("Rapidity", "Measures the time from inbound remittance receipt to the first following loan repayment; shorter intervals score higher."),
+                ("Value correspondence", "Compares total loan repayments in the sequence with the inbound remittance amount. Higher repayment-to-remittance ratios relative to the population score higher; this does not prove direct funding."),
+                ("Recurrence", "Measures the interval between completion of one remittance-to-repayment sequence and initiation of the next; shorter intervals score higher."),
+            ]),
         }
-        added_investigations = {
-            "SikaCredit · November lending surge and debt recycling": {
-                "question": "During SikaCredit's November 2025 lending surge, which customers exhibit elevated debt-recycling repayment-deficiency, reborrowing-rapidity and recurrence signals?",
-                "trigger": "November 2025 lending jumped: principal rose from GHS 104,524 in October to GHS 210,646.56, while loans issued increased from 82 to 146.",
-                "outputs": {"Customer debt-recycling signals": "sika_debt_recycling"},
-            },
-            "SikaCredit · first-time, repeat and frequent borrowers": {
-                "question": "Was the November 2025 lending surge driven mainly by first-time borrowers, repeat borrowers, or frequent borrowing and short inter-loan intervals?",
-                "trigger": "The November 2025 surge nearly doubled loan count: 82 loans in October versus 146 in November, alongside higher principal disbursement.",
-                "outputs": {"November borrower behaviour": "sika_borrowing_surge"},
-            },
-            "SikaCredit · credit escalation": {
-                "question": "Among customers receiving loans during the November 2025 surge, which exhibit credit-value escalation, escalation recurrence or credit-obligation signals?",
-                "trigger": "November principal disbursements nearly doubled to GHS 210,646.56. The review checks whether larger loans and repayment obligations escalated for individual borrowers.",
-                "outputs": {"Credit-escalation signals": "sika_credit_escalation"},
-            },
-            "Ananse · customers behind the December transaction surge": {
-                "question": "Which customers contributed materially to Ananse's December 2025 transaction surge, and what existing TAE or cash-in → P2P → cash-out signals are associated with them?",
-                "trigger": "Ananse's successful transactions rose from 37,913 in November to 53,173 in December 2025; value increased from about GHS 64.95M to GHS 91.41M.",
-                "outputs": {
-                    "Customers contributing to the surge": "ananse_surge_contributors",
-                    "TAE transaction signals": "ananse_surge_tae",
-                    "Cash-in → P2P → cash-out events": "ananse_cip2pco_events",
-                    "Cash-in → P2P → cash-out customer summary": "ananse_cip2pco_summary",
-                },
-            },
-            "Ananse · unsuccessful outcomes and overnight behaviour": {
-                "question": "Are customers associated with failed or rejected Ananse transactions also exhibiting elevated overnight transaction rapidity or residual-value signals?",
-                "trigger": "The source flagged customers with high failed/rejected counts or rates and compares them with overnight activity between 23:00 and 04:59.",
-                "outputs": {
-                    "Customers with disproportionate failed/rejected activity": "ananse_failed_rejected_customers",
-                    "Overnight signals at event level": "ananse_overnight_events",
-                    "Overnight signals by customer": "ananse_overnight_summary",
-                },
-            },
-            "Oman Remit · FATF-origin exposure": {
-                "question": "Which customers account for the highest volume and value of successful inbound remittances from FATF-flagged origins, and what failed or rejected activity is associated with them?",
-                "trigger": "Oman Remit's origin-risk monitor flagged inbound transfers from designated higher-risk origins; the review compares successful value with failed and rejected activity.",
-                "outputs": {"Customer exposure and outcomes": "oman_fatf_customers"},
-            },
-            "SikaCredit · November loans followed by cash-outs": {
-                "question": "Among customers receiving SikaCredit loans during the November 2025 surge, which exhibit loan-disbursement → Ananse cash-out sequences with elevated rapidity, amount-ratio or recurrence signals?",
-                "trigger": "SikaCredit issued 146 loans worth GHS 210,646.56 in November 2025, up from 82 loans worth GHS 104,524 in October; the review traces subsequent cash-outs.",
-                "outputs": {
-                    "Customers contributing to the lending surge": "sika_lending_surge_contributors",
-                    "Loan → cash-out events": "sika_loan_cashout_events",
-                    "Loan → cash-out customer summary": "sika_loan_cashout_summary",
-                    "Debt-recycling and cash-out overlap": "sika_recycling_cashout_overlap",
-                },
-            },
-            "Oman Remit · FATF-flagged remittance-to-cash-out sequences": {
-                "question": "Which FATF-flagged Oman Remit remittance-to-cash-out sequences during Q4 2025 also exhibit TAE transaction-type amount anomalies in the associated Ananse cash-outs?",
-                "trigger": "Q4 2025 inbound remittance value reached GHS 1,300,618.46, up GHS 217,678.44 quarter-on-quarter; the review traces flagged-origin funds to cash-outs.",
-                "outputs": {
-                    "FATF-flagged remittance → cash-out events": "oman_fatf_remittance_cashout",
-                    "Events with TAE amount anomalies": "oman_fatf_cashout_tae",
-                },
-            },
-            "Oman Remit · inbound remittance followed by Ananse P2P": {
-                "question": "Among customers contributing to the December 2025 increase in inbound remittances, which exhibit the existing inbound remittance → Ananse P2P redistribution signals?",
-                "trigger": "Inbound remittance value rose 62.824% from November to December 2025; the review checks whether flagged-origin funds were followed by Ananse P2P transfers.",
-                "outputs": {
-                    "Inbound remittance → P2P events": "remittance_to_p2p_events",
-                    "Customer signal summary": "remittance_to_p2p_summary",
-                },
-            },
-            "SikaCredit · inbound remittance followed by loan repayment": {
-                "question": "Which inbound Oman Remit funds were associated with SikaCredit loan repayments during February 2025, following the decline in repayment value?",
-                "trigger": "SikaCredit repayment value fell from GHS 30,355.61 in January to GHS 22,165.32 in February 2025, a drop of about 27%; the review checks associated inbound remittances.",
-                "outputs": {
-                    "Inbound remittance → repayment events": "remittance_to_repayment_events",
-                    "Customer signal summary": "remittance_to_repayment_summary",
-                },
-            },
-        }
-        investigation_notes = {
-            "cashin_to_outbound_remittance_event": {
-                "question": "Did successful outbound remittances follow domestic Ananse cash-ins closely enough, and with enough value correspondence or repeated remittance behaviour, to merit review?",
-                "trigger": "Oman Remit's outbound remittance value rose from GHS 274,048.05 to GHS 417,456.75 in Q4 2024 (+52.33%); this review checks cash-ins shortly before those transfers.",
-                "scores": [
-                    ("Funding/remittance rapidity", "Measures the time from a domestic cash-in to the first following successful outbound remittance in that cash-in window; shorter-than-usual intervals score higher."),
-                    ("Value correspondence", "Compares each outbound remittance amount with its associated cash-in amount. Higher remittance-to-cash-in ratios score more strongly against the population; this does not prove direct funding."),
-                    ("Recurrence", "Measures the interval between the two outbound remittances in successive qualifying cash-in → remittance cycles; shorter intervals score higher."),
-                ],
-                "trigger_window": ("2024-10-01", "2025-01-01"),
-            },
-            "credit_to_outbound_remittance_event": {
-                "question": "Did successful outbound remittances follow SikaCredit loan disbursements, with timing, value correspondence or repeated remittance behaviour that merits review?",
-                "trigger": "Oman Remit's outbound remittance value rose 52.33% in Q4 2024 (GHS 274,048.05 to GHS 417,456.75); five credit-to-remittance events were found in that quarter.",
-                "scores": [
-                    ("Credit/remittance rapidity", "Measures the time from loan disbursement to the first following successful outbound remittance in that loan window; shorter-than-usual intervals score higher."),
-                    ("Value correspondence", "Compares each outbound remittance amount with the associated loan principal. Higher remittance-to-principal ratios score more strongly against the population; this does not prove direct funding."),
-                    ("Remittance recurrence", "Measures the interval between the two outbound remittances across successive qualifying loan → remittance sequences; shorter intervals score higher."),
-                ],
-                "trigger_window": ("2024-10-01", "2025-01-01"),
-            },
-        }
-        with st.container(border=True):
-            st.markdown('<div class="ocb-card-kicker">Supervisory workbench</div>', unsafe_allow_html=True)
-            st.caption("Choose an investigative question to review its trigger, reporting window, signals and supporting evidence.")
-            chosen_label = st.selectbox("Investigation question", list(investigation_options) + list(added_investigations), key="investigation_question")
-        if chosen_label in added_investigations:
-            details = added_investigations[chosen_label]
-            st.markdown("#### Investigation question")
-            st.write(details["question"])
-            st.markdown("**Trigger event**")
-            st.info(details["trigger"])
-            # Give every added investigation the same date controls and visible
-            # trigger context as the original two investigations.
-            investigation_context = {
-                "SikaCredit · November lending surge and debt recycling": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
-                    ("Repayment deficiency", "Shows the share of the previous loan's principal still unpaid when the next loan was issued; higher deficiency relative to other qualifying cases scores higher."),
-                    ("Reborrowing rapidity", "Measures the time from a loan to the next loan while the previous loan still has unpaid principal; shorter-than-usual delays score higher."),
-                    ("Debt-recycling recurrence", "Measures the gap from the second loan in one sequence to the third loan in the next qualifying sequence. Both transitions must involve a new loan taken while principal on the previous loan is still unpaid. Shorter gaps mean qualifying debt recycling repeats sooner."),
-                ]),
-                "SikaCredit · first-time, repeat and frequent borrowers": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
-                    ("First-time / repeat", "First-time means no earlier loan appears in the available history; repeat means a prior loan is recorded."),
-                    ("Monthly borrowing frequency", "Counts loans issued to each borrower in the selected month; it is not a customer count."),
-                    ("Reborrowing rapidity", "Measures the time from a loan to the next loan while the previous loan still has unpaid principal; shorter-than-usual delays score higher."),
-                ]),
-                "SikaCredit · credit escalation": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
-                    ("Credit-value escalation", "Compares each loan with the customer's historical median loan size for the preceding observed lending year; a larger positive increase scores higher."),
-                    ("Escalation recurrence", "Measures how quickly loans that qualify for credit-value escalation recur. Ordinary loans between qualifying increases do not count as escalation events."),
-                    ("Strike 1 · before maturity", "A later loan was taken before the previous loan's due date, while that earlier loan still had an unpaid balance."),
-                    ("Strike 2 · at maturity", "The previous loan still had an unpaid balance on its contractual maturity date."),
-                    ("Strike 3 · after maturity", "The previous loan remained unpaid at maturity, and the customer took another loan after that due date."),
-                ]),
-                "Ananse · customers behind the December transaction surge": ("ananse", (date(2025, 12, 1), date(2025, 12, 31)), [
-                    ("Surge contribution", "Shows each customer's change in transaction count and value from the previous month."),
-                    ("Amount and velocity scores", "Amount compares a transaction with its transaction-type baseline; velocity measures the time between consecutive transactions and scores unusually short intervals."),
-                    ("Cash-in → P2P → cash-out", "Tracks the three ordered transactions. Recurrence measures the gap from completing one qualifying sequence at cash-out to starting the next at cash-in; shorter gaps score higher."),
-                ]),
-                "Ananse · unsuccessful outcomes and overnight behaviour": ("ananse", (date(2025, 12, 1), date(2025, 12, 31)), [
-                    ("Failed / rejected count and rate", "Count shows failed and rejected attempts; the rate is their combined share of all transaction attempts in the period."),
-                    ("Overnight rapidity", "Measures the gap between consecutive transactions within the same overnight period (23:00–04:59); shorter-than-usual gaps score higher."),
-                    ("Overnight residual value", "Compares that customer's overnight transaction total with their usual overnight-value baseline; only a positive excess receives a positive score."),
-                ]),
-                "Oman Remit · FATF-origin exposure": ("oman", (date(2025, 12, 1), date(2025, 12, 31)), [
-                    ("Origin-risk flag", "A time-aware yes/no marker: it is set when the origin country met the source's risk rule on the remittance date."),
-                    ("Count and successful value", "Counts flagged-origin transfers and sums the value of those that completed successfully."),
-                    ("Failed / rejected outcomes", "Separate unsuccessful attempts shown for context; they are not included in successful remittance value."),
-                ]),
-                "SikaCredit · November loans followed by cash-outs": ("sika", (date(2025, 11, 1), date(2025, 11, 30)), [
-                    ("Loan-to-cash-out rapidity", "Measures the time from loan disbursement to the first matched cash-out; shorter-than-usual delays score higher."),
-                    ("Cash-out / loan ratio", "Divides the matched cash-out amount by loan principal. Higher ratios relative to the population score higher; a ratio above one does not prove that the loan funded the cash-out."),
-                    ("Recurrence", "Measures the interval from completing one matched sequence at cash-out to starting the next at loan disbursement; shorter intervals score higher."),
-                ]),
-                "Oman Remit · FATF-flagged remittance-to-cash-out sequences": ("oman", (date(2025, 10, 1), date(2025, 12, 31)), [
-                    ("Origin-risk flag", "A time-aware yes/no marker set when the remittance origin met the source's risk rule on that transaction date."),
-                    ("Remittance-to-cash-out", "Rapidity measures the time from remittance to matched cash-out. Amount relationship compares cash-out value with remittance value; it does not establish fund provenance. Recurrence measures the gap from completing one sequence at cash-out to initiating the next at remittance."),
-                    ("TAE amount signal", "Compares a cash-out amount with the historical baseline for its transaction type; it is distinct from the remittance-to-cash-out amount relationship."),
-                ]),
-                "Oman Remit · inbound remittance followed by Ananse P2P": ("oman", (date(2025, 12, 1), date(2025, 12, 31)), [
-                    ("Rapidity", "Measures the time from inbound remittance receipt to the first following successful P2P transfer; shorter intervals score higher."),
-                    ("Value correspondence", "Compares the matched P2P amount with the inbound remittance amount. Higher P2P-to-remittance ratios relative to the population score higher; this does not prove direct funding."),
-                    ("Recurrence", "Measures the interval between completion of one remittance-to-P2P sequence and initiation of the next; shorter intervals score higher."),
-                ]),
-                "SikaCredit · inbound remittance followed by loan repayment": ("sika", (date(2025, 2, 1), date(2025, 2, 28)), [
-                    ("Rapidity", "Measures the time from inbound remittance receipt to the first following loan repayment; shorter intervals score higher."),
-                    ("Value correspondence", "Compares total loan repayments in the sequence with the inbound remittance amount. Higher repayment-to-remittance ratios relative to the population score higher; this does not prove direct funding."),
-                    ("Recurrence", "Measures the interval between completion of one remittance-to-repayment sequence and initiation of the next; shorter intervals score higher."),
-                ]),
-            }
-            institution, default_window, score_notes = investigation_context[chosen_label]
-            selected_window = st.date_input("Investigation reporting window", value=default_window, key=f"window_{chosen_label}")
-            if not isinstance(selected_window, tuple) or len(selected_window) != 2:
-                st.warning("Select both a start date and an end date.")
-            elif selected_window[0] > selected_window[1]:
-                st.error("Invalid reporting window: the start date must be on or before the end date.")
-            else:
-                start_date, end_date = selected_window
-                end_exclusive = end_date + timedelta(days=1)
-                if start_date < date(2023, 1, 1) or end_date > date(2025, 12, 31):
-                    st.error("Choose dates within the available event-data period (2023-01-01 to 2025-12-31).")
-                else:
-                    st.caption(f"Selected inclusive reporting window: {start_date.isoformat()} to {end_date.isoformat()}. The chart shows available monthly activity and highlights months touched by this window.")
-                    st.caption("Event outputs use the exact dates selected where the source provides event timestamps. Monthly source indicators cover the complete months touched by the selected dates.")
-                    if chosen_label == "Ananse · unsuccessful outcomes and overnight behaviour":
-                        trigger_df = A["ananse_outcomes"].copy()
-                        if {"failed_transactions", "rejected_transactions"}.issubset(trigger_df.columns):
-                            trigger_df["unsuccessful_transactions"] = trigger_df["failed_transactions"].fillna(0) + trigger_df["rejected_transactions"].fillna(0)
-                        count_col, value_col = "unsuccessful_transactions", "overall_unsuccessful_rate"
-                        metric_titles = ("Failed + rejected transactions", "Unsuccessful transaction rate (%)")
-                        chart_colors = (AMBER, CRIMSON)
-                        chart_formats = (",d", ".1f")
-                        trigger_title = "Ananse · unsuccessful outcomes"
-                    elif chosen_label == "SikaCredit · inbound remittance followed by loan repayment":
-                        trigger_df = S["sika_monthly"].copy()
-                        count_col, value_col = "repayment_count", "principal_repaid"
-                        metric_titles = ("Loan repayments", "Principal repaid (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "SikaCredit · repayments"
-                    elif chosen_label == "Oman Remit · FATF-origin exposure":
-                        trigger_df = O["oman_fatf_monthly_trigger"].copy()
-                        count_col, value_col = "flagged_inbound_count", "flagged_successful_value"
-                        metric_titles = ("Flagged inbound remittances", "Successful flagged value (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "Oman Remit · FATF-flagged inbound activity"
-                    elif chosen_label in {"Oman Remit · FATF-flagged remittance-to-cash-out sequences", "Oman Remit · inbound remittance followed by Ananse P2P"}:
-                        trigger_df = O["oman_type"].copy()
-                        if "remittance_type" in trigger_df.columns:
-                            trigger_df = trigger_df.loc[trigger_df["remittance_type"].astype(str).str.lower().eq("remittance_received")].copy()
-                        trigger_df = trigger_df.groupby("year_month", as_index=False).agg(total_remittance_count=("total_remittance_count", "sum"), total_remittance_value=("total_remittance_value", "sum")) if not trigger_df.empty else trigger_df
-                        count_col, value_col = "total_remittance_count", "total_remittance_value"
-                        metric_titles = ("Inbound remittance count", "Inbound remittance value (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "Oman Remit · inbound remittances"
-                    elif institution == "ananse":
-                        trigger_df = A["ananse_monthly"].copy()
-                        count_col, value_col = "total_transaction_count", "total_transaction_value"
-                        metric_titles = ("Successful transaction count", "Successful transaction value (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "Ananse · successful transaction activity"
-                    elif institution == "sika":
-                        trigger_df = S["sika_monthly"].copy()
-                        count_col, value_col = "loans_disbursed_count", "principal_disbursed"
-                        metric_titles = ("Loans disbursed", "Principal disbursed (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "SikaCredit · lending activity"
-                    else:
-                        trigger_df = O["oman_monthly"].copy()
-                        count_col, value_col = "total_remittance_count", "total_remittance_value"
-                        metric_titles = ("Remittance count", "Remittance value (GHS)")
-                        chart_colors = (CYAN, PURPLE)
-                        chart_formats = (",d", "~s")
-                        trigger_title = "Oman Remit · remittance activity"
-                    if not trigger_df.empty and "year_month" in trigger_df.columns:
-                        trigger_df = trigger_df.copy()
-                        trigger_df["year_month"] = trigger_df["year_month"].astype(str).str[:7]
-                        first_month = pd.Timestamp(start_date).to_period("M").strftime("%Y-%m")
-                        last_month = pd.Timestamp(end_date).to_period("M").strftime("%Y-%m")
-                        trigger_df["selected_window"] = trigger_df["year_month"].between(first_month, last_month)
-                        c1, c2 = st.columns(2)
-                        for target, column, title, color, fmt in [
-                            (c1, count_col, f"{trigger_title} · {metric_titles[0]}", chart_colors[0], chart_formats[0]),
-                            (c2, value_col, f"{trigger_title} · {metric_titles[1]}", chart_colors[1], chart_formats[1]),
-                        ]:
-                            if column in trigger_df.columns:
-                                chart = alt.Chart(trigger_df).mark_bar(cornerRadiusEnd=5).encode(
-                                    x=alt.X("year_month:O", sort=None, title="Month"),
-                                    y=alt.Y(f"{column}:Q", title=column.replace("_", " "), axis=alt.Axis(format=fmt)),
-                                    color=alt.Color("selected_window:N", scale=alt.Scale(domain=[True, False], range=[color, "#334256"]), legend=None),
-                                    tooltip=[alt.Tooltip("year_month:O", title="Month"), alt.Tooltip(f"{column}:Q", title=column.replace("_", " "), format=fmt)],
-                                ).properties(
-                                    title=alt.TitleParams(text=title, anchor="start", fontSize=14, fontWeight="bold", offset=12),
-                                    height=250,
-                                    padding={"top": 20, "left": 8, "right": 8, "bottom": 8},
-                                ).configure(
-                                    background=PANEL,
-                                    axis={"labelColor": MUTED, "titleColor": TEXT, "gridColor": GRID},
-                                    title={"color": TEXT, "anchor": "start", "fontSize": 14, "fontWeight": "bold", "offset": 12},
-                                )
-                                target.altair_chart(chart, use_container_width=True, key=f"inv_{institution}_{column}_{chosen_label}")
-                    with st.expander("What the scores and measures mean", expanded=True):
-                        for score_title, score_description in score_notes:
-                            st.markdown(f"**{score_title}.** {score_description}")
-                        st.caption("These are analytical indicators for supervisory review, not proof of misuse or automatic regulatory findings.")
-            outputs = details["outputs"]
-            if len(outputs) > 1:
-                output_label = st.selectbox("Evidence view", list(outputs), key=f"investigation_output_{chosen_label}")
-            else:
-                output_label = next(iter(outputs))
-                st.caption(f"Evidence view: {output_label}")
-            query_name = outputs[output_label]
-            try:
-                with st.spinner("Retrieving investigation evidence from SQL Server…"):
-                    if isinstance(selected_window, tuple) and len(selected_window) == 2 and selected_window[0] >= date(2023, 1, 1) and selected_window[1] <= date(2025, 12, 31):
-                        evidence = run_investigation_query(query_name, selected_window[0].isoformat(), (selected_window[1] + timedelta(days=1)).isoformat())
-                    else:
-                        evidence = pd.DataFrame()
-                if evidence.empty:
-                    st.info("No rows were returned for this valid reporting window, or the selected window is incomplete/outside the available period.")
-                else:
-                    metric_cols = st.columns(2)
-                    metric_cols[0].metric("Evidence rows", integer(len(evidence)))
-                    metric_cols[1].metric("Distinct customers", integer(evidence["ocb_customer_id"].nunique()) if "ocb_customer_id" in evidence.columns else "—")
-                    st.caption("All qualifying rows for this reporting window are returned; the investigation queries do not apply a top-50 cutoff.")
-                    st.dataframe(evidence, use_container_width=True, hide_index=True, height=520)
-            except Exception as exc:
-                st.error(f"The investigation query failed: {exc}")
+        institution, default_window, score_notes = investigation_context[chosen_label]
+        selected_window = st.date_input("Investigation reporting window", value=default_window, key=f"window_{chosen_label}")
+        if not isinstance(selected_window, tuple) or len(selected_window) != 2:
+            st.warning("Select both a start date and an end date.")
+        elif selected_window[0] > selected_window[1]:
+            st.error("Invalid reporting window: the start date must be on or before the end date.")
         else:
-            query_name = investigation_options[chosen_label]
-            details = investigation_notes[query_name]
-            st.markdown("#### Investigation question")
-            st.write(details["question"])
-            st.markdown("**Trigger event**")
-            st.info(details["trigger"])
-            default_window = (date(2024, 10, 1), date(2024, 12, 31))
-            selected_window = st.date_input("Investigation reporting window", value=default_window, key=f"window_{query_name}")
-            if not isinstance(selected_window, tuple) or len(selected_window) != 2:
-                st.warning("Select both a start date and an end date.")
-            elif selected_window[0] > selected_window[1]:
-                st.error("Invalid reporting window: the start date must be on or before the end date.")
+            start_date, end_date = selected_window
+            end_exclusive = end_date + timedelta(days=1)
+            if start_date < date(2023, 1, 1) or end_date > date(2025, 12, 31):
+                st.error("Choose dates within the available event-data period (2023-01-01 to 2025-12-31).")
             else:
-                start_date, end_date = selected_window
-                end_exclusive = end_date + timedelta(days=1)
-                st.caption("Available event data: 2023-01-01 to 2025-12-31. The selected reporting window filters returned event rows only. Score engines retain their existing full-history calculations; the trigger period is a starting point, not a date cap.")
-                if start_date < date(2023, 1, 1) or end_date > date(2025, 12, 31):
-                    st.error("Selected dates are outside the available event-data period (2023-01-01 to 2025-12-31). Choose a window entirely within these boundaries.")
-                st.caption(f"Selected inclusive reporting window: {start_date.isoformat()} to {end_date.isoformat()}")
-    
-                # Trigger context chart: show full available monthly outbound-remittance history and highlight the chosen window.
-                trigger = O.get("oman_outbound_monthly_trigger", pd.DataFrame()).copy()
-                if not trigger.empty:
-                    trigger["month_date"] = pd.to_datetime(trigger["year_month"] + "-01", errors="coerce")
-                    trigger["selected_window"] = trigger["month_date"].between(pd.Timestamp(start_date).to_period("M").to_timestamp(), pd.Timestamp(end_date).to_period("M").to_timestamp())
-                    chart_left, chart_right = st.columns(2)
-                    with chart_left:
-                        fig = go.Figure()
-                        fig.add_trace(go.Bar(x=trigger["year_month"], y=trigger["outbound_remittance_count"], name="Successful outbound remittances", marker_color=[CYAN if v else "#334256" for v in trigger["selected_window"]], hovertemplate="%{x}<br>Successful outbound remittances: %{y:,}<extra></extra>"))
-                        fig.update_layout(title="Oman Remit · outbound remittance volume", xaxis_title="Month", yaxis_title="Successful remittances")
-                        chart_theme(fig, 330)
-                        st.plotly_chart(fig, use_container_width=True, key="ocb_investigation_outbound_volume", config={"displaylogo": False, "responsive": True})
-                    with chart_right:
-                        fig = go.Figure()
-                        fig.add_trace(go.Bar(x=trigger["year_month"], y=trigger["outbound_remittance_value"], name="Successful outbound value", marker_color=[PURPLE if v else "#334256" for v in trigger["selected_window"]], hovertemplate="%{x}<br>Successful outbound value: GHS %{y:,.2f}<extra></extra>"))
-                        fig.update_layout(title="Oman Remit · outbound remittance value", xaxis_title="Month", yaxis_title="Successful value (GHS)")
-                        fig.update_yaxes(tickprefix="GHS ", tickformat="~s")
-                        chart_theme(fig, 330)
-                        st.plotly_chart(fig, use_container_width=True, key="ocb_investigation_outbound_value", config={"displaylogo": False, "responsive": True})
-                    if query_name == "cashin_to_outbound_remittance_event":
-                        st.caption("Original trigger period: Q4 2024. The highlighted months follow the selected reporting window; the full history is shown to help compare other periods.")
-                    else:
-                        st.caption("Original trigger period: Q4 2024; Q4 2025 was supplementary context. The highlighted months follow the selected reporting window; the full history remains visible.")
-    
-                with st.expander("What the scores mean", expanded=True):
-                    for score_title, score_description in details["scores"]:
+                st.caption(f"Selected inclusive reporting window: {start_date.isoformat()} to {end_date.isoformat()}. The chart shows available monthly activity and highlights months touched by this window.")
+                st.caption("Event outputs use the exact dates selected where the source provides event timestamps. Monthly source indicators cover the complete months touched by the selected dates.")
+                if chosen_label == "Ananse · unsuccessful outcomes and overnight behaviour":
+                    trigger_df = A["ananse_outcomes"].copy()
+                    if {"failed_transactions", "rejected_transactions"}.issubset(trigger_df.columns):
+                        trigger_df["unsuccessful_transactions"] = trigger_df["failed_transactions"].fillna(0) + trigger_df["rejected_transactions"].fillna(0)
+                    count_col, value_col = "unsuccessful_transactions", "overall_unsuccessful_rate"
+                    metric_titles = ("Failed + rejected transactions", "Unsuccessful transaction rate (%)")
+                    chart_colors = (AMBER, CRIMSON)
+                    chart_formats = (",d", ".1f")
+                    trigger_title = "Ananse · unsuccessful outcomes"
+                elif chosen_label == "SikaCredit · inbound remittance followed by loan repayment":
+                    trigger_df = S["sika_monthly"].copy()
+                    count_col, value_col = "repayment_count", "principal_repaid"
+                    metric_titles = ("Loan repayments", "Principal repaid (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "SikaCredit · repayments"
+                elif chosen_label == "Oman Remit · FATF-origin exposure":
+                    trigger_df = O["oman_fatf_monthly_trigger"].copy()
+                    count_col, value_col = "flagged_inbound_count", "flagged_successful_value"
+                    metric_titles = ("Flagged inbound remittances", "Successful flagged value (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "Oman Remit · FATF-flagged inbound activity"
+                elif chosen_label in {"Oman Remit · FATF-flagged remittance-to-cash-out sequences", "Oman Remit · inbound remittance followed by Ananse P2P"}:
+                    trigger_df = O["oman_type"].copy()
+                    if "remittance_type" in trigger_df.columns:
+                        trigger_df = trigger_df.loc[trigger_df["remittance_type"].astype(str).str.lower().eq("remittance_received")].copy()
+                    trigger_df = trigger_df.groupby("year_month", as_index=False).agg(total_remittance_count=("total_remittance_count", "sum"), total_remittance_value=("total_remittance_value", "sum")) if not trigger_df.empty else trigger_df
+                    count_col, value_col = "total_remittance_count", "total_remittance_value"
+                    metric_titles = ("Inbound remittance count", "Inbound remittance value (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "Oman Remit · inbound remittances"
+                elif institution == "ananse":
+                    trigger_df = A["ananse_monthly"].copy()
+                    count_col, value_col = "total_transaction_count", "total_transaction_value"
+                    metric_titles = ("Successful transaction count", "Successful transaction value (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "Ananse · successful transaction activity"
+                elif institution == "sika":
+                    trigger_df = S["sika_monthly"].copy()
+                    count_col, value_col = "loans_disbursed_count", "principal_disbursed"
+                    metric_titles = ("Loans disbursed", "Principal disbursed (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "SikaCredit · lending activity"
+                else:
+                    trigger_df = O["oman_monthly"].copy()
+                    count_col, value_col = "total_remittance_count", "total_remittance_value"
+                    metric_titles = ("Remittance count", "Remittance value (GHS)")
+                    chart_colors = (CYAN, PURPLE)
+                    chart_formats = (",d", "~s")
+                    trigger_title = "Oman Remit · remittance activity"
+                if not trigger_df.empty and "year_month" in trigger_df.columns:
+                    trigger_df = trigger_df.copy()
+                    trigger_df["year_month"] = trigger_df["year_month"].astype(str).str[:7]
+                    first_month = pd.Timestamp(start_date).to_period("M").strftime("%Y-%m")
+                    last_month = pd.Timestamp(end_date).to_period("M").strftime("%Y-%m")
+                    trigger_df["selected_window"] = trigger_df["year_month"].between(first_month, last_month)
+                    c1, c2 = st.columns(2)
+                    for target, column, title, color, fmt in [
+                        (c1, count_col, f"{trigger_title} · {metric_titles[0]}", chart_colors[0], chart_formats[0]),
+                        (c2, value_col, f"{trigger_title} · {metric_titles[1]}", chart_colors[1], chart_formats[1]),
+                    ]:
+                        if column in trigger_df.columns:
+                            chart = alt.Chart(trigger_df).mark_bar(cornerRadiusEnd=5).encode(
+                                x=alt.X("year_month:O", sort=None, title="Month"),
+                                y=alt.Y(f"{column}:Q", title=column.replace("_", " "), axis=alt.Axis(format=fmt)),
+                                color=alt.Color("selected_window:N", scale=alt.Scale(domain=[True, False], range=[color, "#334256"]), legend=None),
+                                tooltip=[alt.Tooltip("year_month:O", title="Month"), alt.Tooltip(f"{column}:Q", title=column.replace("_", " "), format=fmt)],
+                            ).properties(
+                                title=alt.TitleParams(text=title, anchor="start", fontSize=14, fontWeight="bold", offset=12),
+                                height=250,
+                                padding={"top": 20, "left": 8, "right": 8, "bottom": 8},
+                            ).configure(
+                                background=PANEL,
+                                axis={"labelColor": MUTED, "titleColor": TEXT, "gridColor": GRID},
+                                title={"color": TEXT, "anchor": "start", "fontSize": 14, "fontWeight": "bold", "offset": 12},
+                            )
+                            target.altair_chart(chart, use_container_width=True, key=f"inv_{institution}_{column}_{chosen_label}")
+                with st.expander("What the scores and measures mean", expanded=True):
+                    for score_title, score_description in score_notes:
                         st.markdown(f"**{score_title}.** {score_description}")
-                    st.caption("Score definitions follow the existing OCB intelligence-engine intent. A positive score is an analytical signal, not proof of misuse or a regulatory finding.")
-    
-                if start_date >= date(2023, 1, 1) and end_date <= date(2025, 12, 31):
-                    try:
-                        with st.spinner("Retrieving investigation evidence from SQL Server…"):
-                            evidence = run_investigation_query(query_name, start_date.isoformat(), end_exclusive.isoformat())
-                        if evidence.empty:
-                            st.info("No qualifying events were returned for this investigation window.")
-                        else:
-                            m1, m2 = st.columns(2)
-                            m1.metric("Qualifying event rows", integer(len(evidence)))
-                            m2.metric("Distinct customers", integer(evidence["ocb_customer_id"].nunique()) if "ocb_customer_id" in evidence.columns else "—")
-                            st.caption("One row should represent one qualifying successful outbound remittance event. Signal columns retain the source query's definitions.")
-                            labels = {
-                                "ocb_customer_id": "Customer ID", "cash_in_id": "Cash-in event ID", "cash_in_timestamp": "Cash-in timestamp",
-                                "loan_id": "Loan ID", "loan_timestamp": "Loan timestamp", "remittance_id": "Remittance event ID",
-                                "remittance_timestamp": "Remittance timestamp", "cashin_remittance_delay_minutes": "Cash-in → remittance delay (min)",
-                                "funding_remittance_rapidity_score": "Funding/remittance rapidity score", "funding_remittance_ratio": "Funding/remittance value ratio",
-                                "funding_remittance_value_correspondence_score": "Funding/remittance value correspondence score", "recurrence_gap_minutes": "Remittance recurrence gap (min)",
-                                "funding_remittance_recurrence_score": "Remittance recurrence score", "credit_to_remittance_rapidity_score": "Credit/remittance rapidity score",
-                                "credit_to_remittance_value_correspondence_score": "Credit/remittance value correspondence score", "credit_to_remittance_recurrence_score": "Remittance recurrence score",
-                            }
-                            evidence = evidence.rename(columns=labels)
-                            st.dataframe(evidence, use_container_width=True, hide_index=True, height=520)
-                    except Exception as exc:
-                        st.error(f"The investigation query failed: {exc}")
+                    st.caption("These are analytical indicators for supervisory review, not proof of misuse or automatic regulatory findings.")
+        outputs = details["outputs"]
+        if len(outputs) > 1:
+            output_label = st.selectbox("Evidence view", list(outputs), key=f"investigation_output_{chosen_label}")
+        else:
+            output_label = next(iter(outputs))
+            st.caption(f"Evidence view: {output_label}")
+        query_name = outputs[output_label]
+        try:
+            with st.spinner("Retrieving investigation evidence from SQL Server…"):
+                if isinstance(selected_window, tuple) and len(selected_window) == 2 and selected_window[0] >= date(2023, 1, 1) and selected_window[1] <= date(2025, 12, 31):
+                    evidence = run_investigation_query(query_name, selected_window[0].isoformat(), (selected_window[1] + timedelta(days=1)).isoformat())
+                else:
+                    evidence = pd.DataFrame()
+            if evidence.empty:
+                st.info("No rows were returned for this valid reporting window, or the selected window is incomplete/outside the available period.")
+            else:
+                metric_cols = st.columns(2)
+                metric_cols[0].metric("Evidence rows", integer(len(evidence)))
+                metric_cols[1].metric("Distinct customers", integer(evidence["ocb_customer_id"].nunique()) if "ocb_customer_id" in evidence.columns else "—")
+                st.caption("All qualifying rows for this reporting window are returned; the investigation queries do not apply a top-50 cutoff.")
+                st.dataframe(evidence, use_container_width=True, hide_index=True, height=520)
+        except Exception as exc:
+            st.error(f"The investigation query failed: {exc}")
+    else:
+        query_name = investigation_options[chosen_label]
+        details = investigation_notes[query_name]
+        st.markdown("#### Investigation question")
+        st.write(details["question"])
+        st.markdown("**Trigger event**")
+        st.info(details["trigger"])
+        default_window = (date(2024, 10, 1), date(2024, 12, 31))
+        selected_window = st.date_input("Investigation reporting window", value=default_window, key=f"window_{query_name}")
+        if not isinstance(selected_window, tuple) or len(selected_window) != 2:
+            st.warning("Select both a start date and an end date.")
+        elif selected_window[0] > selected_window[1]:
+            st.error("Invalid reporting window: the start date must be on or before the end date.")
+        else:
+            start_date, end_date = selected_window
+            end_exclusive = end_date + timedelta(days=1)
+            st.caption("Available event data: 2023-01-01 to 2025-12-31. The selected reporting window filters returned event rows only. Score engines retain their existing full-history calculations; the trigger period is a starting point, not a date cap.")
+            if start_date < date(2023, 1, 1) or end_date > date(2025, 12, 31):
+                st.error("Selected dates are outside the available event-data period (2023-01-01 to 2025-12-31). Choose a window entirely within these boundaries.")
+            st.caption(f"Selected inclusive reporting window: {start_date.isoformat()} to {end_date.isoformat()}")
+
+            # Trigger context chart: show full available monthly outbound-remittance history and highlight the chosen window.
+            trigger = O.get("oman_outbound_monthly_trigger", pd.DataFrame()).copy()
+            if not trigger.empty:
+                trigger["month_date"] = pd.to_datetime(trigger["year_month"] + "-01", errors="coerce")
+                trigger["selected_window"] = trigger["month_date"].between(pd.Timestamp(start_date).to_period("M").to_timestamp(), pd.Timestamp(end_date).to_period("M").to_timestamp())
+                chart_left, chart_right = st.columns(2)
+                with chart_left:
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(x=trigger["year_month"], y=trigger["outbound_remittance_count"], name="Successful outbound remittances", marker_color=[CYAN if v else "#334256" for v in trigger["selected_window"]], hovertemplate="%{x}<br>Successful outbound remittances: %{y:,}<extra></extra>"))
+                    fig.update_layout(title="Oman Remit · outbound remittance volume", xaxis_title="Month", yaxis_title="Successful remittances")
+                    chart_theme(fig, 330)
+                    st.plotly_chart(fig, use_container_width=True, key="ocb_investigation_outbound_volume", config={"displaylogo": False, "responsive": True})
+                with chart_right:
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(x=trigger["year_month"], y=trigger["outbound_remittance_value"], name="Successful outbound value", marker_color=[PURPLE if v else "#334256" for v in trigger["selected_window"]], hovertemplate="%{x}<br>Successful outbound value: GHS %{y:,.2f}<extra></extra>"))
+                    fig.update_layout(title="Oman Remit · outbound remittance value", xaxis_title="Month", yaxis_title="Successful value (GHS)")
+                    fig.update_yaxes(tickprefix="GHS ", tickformat="~s")
+                    chart_theme(fig, 330)
+                    st.plotly_chart(fig, use_container_width=True, key="ocb_investigation_outbound_value", config={"displaylogo": False, "responsive": True})
+                if query_name == "cashin_to_outbound_remittance_event":
+                    st.caption("Original trigger period: Q4 2024. The highlighted months follow the selected reporting window; the full history is shown to help compare other periods.")
+                else:
+                    st.caption("Original trigger period: Q4 2024; Q4 2025 was supplementary context. The highlighted months follow the selected reporting window; the full history remains visible.")
+
+            with st.expander("What the scores mean", expanded=True):
+                for score_title, score_description in details["scores"]:
+                    st.markdown(f"**{score_title}.** {score_description}")
+                st.caption("Score definitions follow the existing OCB intelligence-engine intent. A positive score is an analytical signal, not proof of misuse or a regulatory finding.")
+
+            if start_date >= date(2023, 1, 1) and end_date <= date(2025, 12, 31):
+                try:
+                    with st.spinner("Retrieving investigation evidence from SQL Server…"):
+                        evidence = run_investigation_query(query_name, start_date.isoformat(), end_exclusive.isoformat())
+                    if evidence.empty:
+                        st.info("No qualifying events were returned for this investigation window.")
+                    else:
+                        m1, m2 = st.columns(2)
+                        m1.metric("Qualifying event rows", integer(len(evidence)))
+                        m2.metric("Distinct customers", integer(evidence["ocb_customer_id"].nunique()) if "ocb_customer_id" in evidence.columns else "—")
+                        st.caption("One row should represent one qualifying successful outbound remittance event. Signal columns retain the source query's definitions.")
+                        labels = {
+                            "ocb_customer_id": "Customer ID", "cash_in_id": "Cash-in event ID", "cash_in_timestamp": "Cash-in timestamp",
+                            "loan_id": "Loan ID", "loan_timestamp": "Loan timestamp", "remittance_id": "Remittance event ID",
+                            "remittance_timestamp": "Remittance timestamp", "cashin_remittance_delay_minutes": "Cash-in → remittance delay (min)",
+                            "funding_remittance_rapidity_score": "Funding/remittance rapidity score", "funding_remittance_ratio": "Funding/remittance value ratio",
+                            "funding_remittance_value_correspondence_score": "Funding/remittance value correspondence score", "recurrence_gap_minutes": "Remittance recurrence gap (min)",
+                            "funding_remittance_recurrence_score": "Remittance recurrence score", "credit_to_remittance_rapidity_score": "Credit/remittance rapidity score",
+                            "credit_to_remittance_value_correspondence_score": "Credit/remittance value correspondence score", "credit_to_remittance_recurrence_score": "Remittance recurrence score",
+                        }
+                        evidence = evidence.rename(columns=labels)
+                        st.dataframe(evidence, use_container_width=True, hide_index=True, height=520)
+                except Exception as exc:
+                    st.error(f"The investigation query failed: {exc}")
 
 
 st.markdown("---")

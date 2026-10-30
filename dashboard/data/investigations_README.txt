@@ -1,0 +1,1 @@
+Supervisory investigation snapshots are written to this folder by export_public_snapshots.py under data/investigations/. Do not publish until the actual SQL query results have been generated and reviewed for privacy.
