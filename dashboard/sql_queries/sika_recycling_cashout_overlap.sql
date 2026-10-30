@@ -76,6 +76,7 @@ AS (
     )
 SELECT
     t50.ocb_customer_id,
+    t50.year_month,
     t50.principal_disbursed,
     dr.reborrowing_rapidity_flag,
     dr.recycling_recurrence_flag,

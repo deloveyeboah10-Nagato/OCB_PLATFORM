@@ -2,6 +2,7 @@
 
 SELECT
     ocb_customer_id,
+    disbursement_timestamp,
     principal_amount,
     borrower_type,
     monthly_borrowing_frequency,

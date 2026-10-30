@@ -89,9 +89,52 @@ def load_dataset(name, source_mode):
         df["month_date"] = pd.to_datetime(df["year_month"] + "-01", errors="coerce")
     return df
 
+# Reporting-grain metadata for investigation snapshots. The selected date window
+# must be applied to the event that defines each output row, never to the first
+# timestamp that happens to be present in the CSV.
+INVESTIGATION_DATE_FIELDS = {
+    # Original cross-institution investigations: one row per successful outbound remittance.
+    "cashin_to_outbound_remittance_event": ("remittance_timestamp", "timestamp"),
+    "credit_to_outbound_remittance_event": ("remittance_timestamp", "timestamp"),
+    # Monthly/customer outputs use their explicit reporting month.
+    "sika_debt_recycling": ("year_month", "month"),
+    "sika_credit_escalation": ("year_month", "month"),
+    "ananse_surge_contributors": ("year_month", "month"),
+    "ananse_surge_tae": ("year_month", "month"),
+    "ananse_cip2pco_events": ("cash_in_timestamp", "timestamp"),
+    "ananse_cip2pco_summary": ("year_month", "month"),
+    "sika_lending_surge_contributors": ("year_month", "month"),
+    # Loan -> cash-out sequences are anchored on the loan disbursement.
+    "sika_loan_cashout_events": ("disbursement_timestamp", "timestamp"),
+    "sika_loan_cashout_summary": ("year_month", "month"),
+    # FATF remittance -> cash-out rows are anchored on the inbound remittance.
+    "oman_fatf_remittance_cashout": ("remittance_timestamp", "timestamp"),
+    "oman_fatf_cashout_tae": ("remittance_timestamp", "timestamp"),
+    # Remittance-led sequence outputs are anchored on the inbound remittance.
+    "remittance_to_p2p_events": ("remittance_timestamp", "timestamp"),
+    # Customer summaries retain customer-month grain so CSV mode can filter the
+    # selected months before presenting customer-level evidence.
+    "remittance_to_p2p_summary": ("year_month", "month"),
+    "sika_recycling_cashout_overlap": ("year_month", "month"),
+    "remittance_to_repayment_summary": ("year_month", "month"),
+    # Repayment-led output is one row per repayment event.
+    "remittance_to_repayment_events": ("repayment_timestamp", "timestamp"),
+    # Formerly date-less outputs now retain the event/month that defines each row.
+    "sika_borrowing_surge": ("disbursement_timestamp", "timestamp"),
+    "ananse_failed_rejected_customers": ("year_month", "month"),
+    "ananse_overnight_events": ("overnight_date", "timestamp"),
+    "ananse_overnight_summary": ("year_month", "month"),
+    "oman_fatf_customers": ("year_month", "month"),
+}
+
 @st.cache_data(show_spinner=False, ttl=300)
 def run_investigation_query(query_name, start_date=None, end_date_exclusive=None):
-    """Read real investigation evidence from SQL locally or committed CSV snapshots online."""
+    """Return investigation evidence restricted to its declared reporting grain."""
+    if (start_date is None) != (end_date_exclusive is None):
+        raise ValueError("Both start_date and end_date_exclusive are required for a reporting-window filter.")
+    if start_date is not None and pd.Timestamp(start_date) >= pd.Timestamp(end_date_exclusive):
+        raise ValueError("Investigation window must end after it starts.")
+
     if sql_mode():
         params = [] if start_date is None else [start_date, end_date_exclusive]
         return load_sql_query(query_name, params)
@@ -103,18 +146,31 @@ def run_investigation_query(query_name, start_date=None, end_date_exclusive=None
             "Run export_public_snapshots.py against the OCB SQL Server, then commit the generated CSVs."
         )
     frame = pd.read_csv(snapshot)
-    # Date-window filtering is applied to event-grain snapshots when a usable
-    # event timestamp/date column exists. Customer summaries remain at source grain.
-    if start_date is not None and end_date_exclusive is not None:
-        date_col = next((c for c in (
-            "transaction_timestamp", "remittance_timestamp", "repayment_timestamp",
-            "loan_disbursement_timestamp", "event_timestamp", "event_date",
-            "cash_in_timestamp", "outbound_remittance_timestamp", "loan_timestamp"
-        ) if c in frame.columns), None)
-        if date_col:
-            dates = pd.to_datetime(frame[date_col], errors="coerce")
-            frame = frame.loc[(dates >= pd.Timestamp(start_date)) & (dates < pd.Timestamp(end_date_exclusive))].copy()
-    return frame
+    if start_date is None:
+        return frame
+
+    date_spec = INVESTIGATION_DATE_FIELDS.get(query_name)
+    if date_spec is None:
+        raise ValueError(
+            f"No reporting-grain date rule is configured for '{query_name}'. "
+            "The dashboard will not return an unfiltered snapshot for a custom reporting window."
+        )
+
+    date_col, grain = date_spec
+    if date_col not in frame.columns:
+        raise ValueError(
+            f"Snapshot '{query_name}.csv' is missing its configured reporting date column "
+            f"'{date_col}'. Regenerate the snapshot from its SQL query; no unfiltered rows were returned."
+        )
+
+    if grain == "month":
+        dates = pd.to_datetime(frame[date_col].astype(str).str.slice(0, 7) + "-01", errors="coerce")
+        start_month = pd.Timestamp(start_date).to_period("M").to_timestamp()
+        end_month = (pd.Timestamp(end_date_exclusive) - pd.Timedelta(days=1)).to_period("M").to_timestamp()
+        return frame.loc[dates.between(start_month, end_month)].copy()
+
+    dates = pd.to_datetime(frame[date_col], errors="coerce")
+    return frame.loc[(dates >= pd.Timestamp(start_date)) & (dates < pd.Timestamp(end_date_exclusive))].copy()
 
 def month_filter(df, start, end):
     if df.empty or "month_date" not in df.columns:
@@ -312,7 +368,7 @@ if view == "System overview":
     s_repaid = float(s["principal_repaid"].sum()) if not s.empty else 0
     s_latest = latest_row(s)
     cards = [
-        institution_card("Ananse Telecom · e-money", "Successful transactions", integer(a_count), "Successful value", ghs(a_value, True), f"Peak monthly active customers: {integer(a_customers)}"),
+        institution_card("Ananse Telecom · Mobile Money", "Successful transactions", integer(a_count), "Successful value", ghs(a_value, True), f"Peak monthly active customers: {integer(a_customers)}"),
         institution_card("SikaCredit · digital lending", "Principal disbursed", ghs(s_disbursed, True), "Principal repaid", ghs(s_repaid, True), f"Latest closing outstanding: {ghs(s_latest['closing_outstanding_principal'], True) if s_latest is not None else '—'}"),
         institution_card("Oman Remit · remittance", "Successful remittances", integer(o_count), "Successful value", ghs(o_value, True), f"Peak monthly active customers: {integer(o_customers)}"),
     ]

@@ -1,6 +1,7 @@
 -- Adapted from WP-6.3-supervisory_intelligence_investigations.sql; report window applied and TOP 50 cap removed.
 
 SELECT ocb_customer_id,
+    CONVERT(CHAR(7), remittance_timestamp, 120) AS year_month,
     COUNT(*) AS flagged_origin_remittance_count,
     COUNT(CASE 
             WHEN remittance_status = 'successful'
@@ -31,6 +32,6 @@ WHERE remittance_origin_risk_flag = 1
         AND remittance_type = 'remittance_received'
         AND remittance_timestamp >= '{START_DATE}'
         AND remittance_timestamp < '{END_EXCLUSIVE}'
-GROUP BY ocb_customer_id
+GROUP BY ocb_customer_id, CONVERT(CHAR(7), remittance_timestamp, 120)
 ORDER BY successful_amount DESC,
     successful_count DESC;

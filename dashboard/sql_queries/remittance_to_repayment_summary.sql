@@ -13,6 +13,7 @@ rapidity_by_customer AS
 (
     SELECT
         f.ocb_customer_id,
+        CONVERT(CHAR(7), f.repayment_timestamp, 120) AS year_month,
         COUNT(*) AS rapidity_sequence_count,
         SUM(CASE WHEN rap.remittance_repayment_rapidity_score > 0 THEN 1 ELSE 0 END)
             AS rapidity_positive_sequence_count,
@@ -21,12 +22,13 @@ rapidity_by_customer AS
     INNER JOIN intelligence.vw_remittance_repayment_rapidity_score AS rap
         ON rap.ocb_customer_id = f.ocb_customer_id
        AND rap.repayment_timestamp = f.repayment_timestamp
-    GROUP BY f.ocb_customer_id
+    GROUP BY f.ocb_customer_id, CONVERT(CHAR(7), f.repayment_timestamp, 120)
 ),
 value_correspondence_by_customer AS
 (
     SELECT
         f.ocb_customer_id,
+        CONVERT(CHAR(7), f.repayment_timestamp, 120) AS year_month,
         COUNT(*) AS value_correspondence_sequence_count,
         SUM(CASE WHEN val.remittance_repayment_value_correspondence_score > 0 THEN 1 ELSE 0 END)
             AS value_correspondence_positive_sequence_count,
@@ -36,12 +38,13 @@ value_correspondence_by_customer AS
     INNER JOIN intelligence.vw_remittance_repayment_value_correspondence_score AS val
         ON val.ocb_customer_id = f.ocb_customer_id
        AND val.repayment_timestamp = f.repayment_timestamp
-    GROUP BY f.ocb_customer_id
+    GROUP BY f.ocb_customer_id, CONVERT(CHAR(7), f.repayment_timestamp, 120)
 ),
 recurrence_by_customer AS
 (
     SELECT
         f.ocb_customer_id,
+        CONVERT(CHAR(7), f.repayment_timestamp, 120) AS year_month,
         COUNT(*) AS recurrence_sequence_count,
         SUM(CASE WHEN rec.inbound_remittance_to_repayment_recurrence_score > 0 THEN 1 ELSE 0 END)
             AS recurrence_positive_sequence_count,
@@ -51,10 +54,11 @@ recurrence_by_customer AS
     INNER JOIN intelligence.vw_remittance_repayment_recurrence_score AS rec
         ON rec.ocb_customer_id = f.ocb_customer_id
        AND rec.next_repayment_timestamp = f.repayment_timestamp
-    GROUP BY f.ocb_customer_id
+    GROUP BY f.ocb_customer_id, CONVERT(CHAR(7), f.repayment_timestamp, 120)
 )
 SELECT
     c.ocb_customer_id,
+    c.year_month,
     COALESCE(rap.rapidity_sequence_count, 0) AS rapidity_sequence_count,
     COALESCE(rap.rapidity_positive_sequence_count, 0) AS rapidity_positive_sequence_count,
     rap.rapidity_max_score,
@@ -66,15 +70,15 @@ SELECT
     rec.recurrence_max_score
 FROM
 (
-    SELECT DISTINCT ocb_customer_id
+    SELECT DISTINCT ocb_customer_id, CONVERT(CHAR(7), repayment_timestamp, 120) AS year_month
     FROM february_repayments
 ) AS c
 LEFT JOIN rapidity_by_customer AS rap
-    ON rap.ocb_customer_id = c.ocb_customer_id
+    ON rap.ocb_customer_id = c.ocb_customer_id AND rap.year_month = c.year_month
 LEFT JOIN value_correspondence_by_customer AS val
-    ON val.ocb_customer_id = c.ocb_customer_id
+    ON val.ocb_customer_id = c.ocb_customer_id AND val.year_month = c.year_month
 LEFT JOIN recurrence_by_customer AS rec
-    ON rec.ocb_customer_id = c.ocb_customer_id
+    ON rec.ocb_customer_id = c.ocb_customer_id AND rec.year_month = c.year_month
 ORDER BY
     COALESCE(rap.rapidity_positive_sequence_count, 0) DESC,
     COALESCE(val.value_correspondence_positive_sequence_count, 0) DESC,

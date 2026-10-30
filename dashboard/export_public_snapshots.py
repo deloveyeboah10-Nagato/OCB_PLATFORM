@@ -16,6 +16,37 @@ INVESTIGATIONS = DATA / "investigations"
 START_DATE = "2023-01-01"
 END_EXCLUSIVE = "2026-01-01"
 
+# Required reporting-grain fields for the investigation outputs whose custom-window
+# behaviour was repaired. Export must stop rather than write snapshots that the
+# dashboard cannot safely filter.
+REQUIRED_INVESTIGATION_COLUMNS = {
+    "remittance_to_p2p_summary": {"ocb_customer_id", "year_month"},
+    "sika_recycling_cashout_overlap": {"ocb_customer_id", "year_month"},
+    "remittance_to_repayment_summary": {"ocb_customer_id", "year_month"},
+    "sika_borrowing_surge": {"ocb_customer_id", "disbursement_timestamp"},
+    "ananse_failed_rejected_customers": {"ocb_customer_id", "year_month"},
+    "ananse_overnight_events": {"ocb_customer_id", "overnight_date", "year_month"},
+    "ananse_overnight_summary": {"ocb_customer_id", "year_month"},
+    "oman_fatf_customers": {"ocb_customer_id", "year_month"},
+}
+
+def validate_investigation_snapshot(name, frame):
+    required = REQUIRED_INVESTIGATION_COLUMNS.get(name, set())
+    missing = required - set(frame.columns)
+    if missing:
+        raise RuntimeError(
+            f"Investigation export '{name}' is missing required reporting columns: "
+            f"{', '.join(sorted(missing))}. Snapshot was not written."
+        )
+    if "year_month" in required:
+        months = frame["year_month"].astype(str).str.slice(0, 7)
+        invalid = ~months.str.fullmatch(r"\d{4}-\d{2}")
+        if invalid.any():
+            raise RuntimeError(f"Investigation export '{name}' contains invalid year_month values.")
+    if name in {"remittance_to_p2p_summary", "sika_recycling_cashout_overlap", "remittance_to_repayment_summary", "ananse_failed_rejected_customers", "ananse_overnight_summary", "oman_fatf_customers"}:
+        if frame.duplicated(["ocb_customer_id", "year_month"]).any():
+            raise RuntimeError(f"Investigation export '{name}' is not unique at customer-month grain.")
+
 def main():
     DATA.mkdir(parents=True, exist_ok=True)
     INVESTIGATIONS.mkdir(parents=True, exist_ok=True)
@@ -51,6 +82,7 @@ def main():
     or "?" in sql) else []
         print(f"Running investigation query: {name}")
         frame = load_sql_query(name, params)
+        validate_investigation_snapshot(name, frame)
         path = INVESTIGATIONS / f"{name}.csv"
         frame.to_csv(path, index=False)
         manifest["investigations"][name] = {

@@ -4,7 +4,7 @@
     "start_inclusive": "2023-01-01",
     "end_exclusive": "2026-01-01"
   },
-  "generated_at_utc": "2026-10-30T09:29:31.117903+00:00",
+  "generated_at_utc": "2026-10-30T12:47:20.600161+00:00",
   "monitoring": {
     "ananse_channel": {
       "file": "data/ananse_channel.csv",
@@ -412,6 +412,7 @@
       "rows": 867,
       "columns": [
         "ocb_customer_id",
+        "disbursement_timestamp",
         "principal_amount",
         "borrower_type",
         "monthly_borrowing_frequency",
@@ -510,9 +511,10 @@
     },
     "ananse_failed_rejected_customers": {
       "file": "data/investigations/ananse_failed_rejected_customers.csv",
-      "rows": 2996,
+      "rows": 57773,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "total_transaction_count",
         "successful_transactions",
         "successful_rate",
@@ -526,9 +528,12 @@
     },
     "ananse_overnight_events": {
       "file": "data/investigations/ananse_overnight_events.csv",
-      "rows": 4271,
+      "rows": 2257,
       "columns": [
         "ocb_customer_id",
+        "overnight_date",
+        "year_month",
+        "total_transaction_count",
         "unsuccessful_transactions",
         "overall_unsuccessful_rate",
         "value_residual",
@@ -539,9 +544,10 @@
     },
     "ananse_overnight_summary": {
       "file": "data/investigations/ananse_overnight_summary.csv",
-      "rows": 2996,
+      "rows": 57773,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "unsuccessful_transactions",
         "overall_unsuccessful_rate",
         "positive_value_signal_count",
@@ -552,9 +558,10 @@
     },
     "oman_fatf_customers": {
       "file": "data/investigations/oman_fatf_customers.csv",
-      "rows": 452,
+      "rows": 2438,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "flagged_origin_remittance_count",
         "successful_count",
         "failed_count",
@@ -618,6 +625,7 @@
       "rows": 867,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "principal_disbursed",
         "reborrowing_rapidity_flag",
         "recycling_recurrence_flag",
@@ -748,9 +756,10 @@
     },
     "remittance_to_p2p_summary": {
       "file": "data/investigations/remittance_to_p2p_summary.csv",
-      "rows": 169,
+      "rows": 498,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "sequence_count",
         "rapidity_positive_count",
         "rapidity_max_score",
@@ -778,9 +787,10 @@
     },
     "remittance_to_repayment_summary": {
       "file": "data/investigations/remittance_to_repayment_summary.csv",
-      "rows": 470,
+      "rows": 1680,
       "columns": [
         "ocb_customer_id",
+        "year_month",
         "rapidity_sequence_count",
         "rapidity_positive_sequence_count",
         "rapidity_max_score",

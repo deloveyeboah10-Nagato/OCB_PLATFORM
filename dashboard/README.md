@@ -133,3 +133,23 @@ For SQL mode, first install the Microsoft SQL Server ODBC driver for your operat
 - The package contains no database, database credentials, or SQL Server deployment script.
 - Treat data according to your organization's access and confidentiality rules. Do not expose internal or identifiable data through a public dashboard.
 
+
+## Investigation reporting-window filtering
+
+Investigation evidence filtering is defined per output in `app.py` under
+`INVESTIGATION_DATE_FIELDS`. Each output uses the event/month that defines its
+reporting grain (for example, outbound-remittance rows use
+`remittance_timestamp`; loan-to-cash-out rows use `disbursement_timestamp`).
+The dashboard does not select the first timestamp column found in a result.
+
+In CSV mode, an output without a date-bearing field cannot be truthfully
+re-filtered for an arbitrary custom window. Such customer-summary snapshots
+are listed in `DATELESS_SUMMARY_OUTPUTS` and now fail closed with an explanatory
+message instead of silently returning all-history rows. Use SQL mode for those
+outputs, where the registered SQL applies the selected reporting dates, or
+regenerate a window-specific summary snapshot. A missing configured date column
+also raises an error rather than bypassing the filter.
+
+In SQL mode, `sql_data.load_sql_query` now rejects a selected reporting window
+when the registered SQL query has no date tokens or bind placeholders. This
+prevents a query from silently ignoring the selected dates.

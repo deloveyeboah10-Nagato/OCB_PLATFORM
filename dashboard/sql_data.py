@@ -144,11 +144,13 @@ def load_sql_query(name: str, params: list | tuple = ()) -> pd.DataFrame:
         if "{START_DATE}" in sql or "{END_EXCLUSIVE}" in sql or "{START_MONTH}" in sql or "{END_MONTH}" in sql:
             raise ValueError(f"Investigation query '{name}' has an unresolved date token.")
         return pd.read_sql_query(sql, _connect())
-    # Several source investigation views are intentionally all-history cohort
-    # rankings and do not accept a reporting-period parameter. Pass bind values
-    # only when the registered SQL actually contains DB-API placeholders.
+    # A selected reporting window must never be silently ignored. Every query
+    # used with date parameters must declare date tokens or DB-API placeholders.
     if params and "?" not in sql:
-        return pd.read_sql_query(sql, _connect())
+        raise ValueError(
+            f"Investigation query '{name}' does not accept reporting-window parameters. "
+            "Add explicit date predicates to its SQL before using it with a custom window."
+        )
     return pd.read_sql_query(sql, _connect(), params=list(params))
 
 

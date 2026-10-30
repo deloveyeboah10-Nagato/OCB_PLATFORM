@@ -2,6 +2,7 @@
 WITH customer_outcome_analytics AS (
     SELECT
         ocb_customer_id,
+        CONVERT(CHAR(7), transaction_timestamp, 120) AS year_month,
         COUNT(*) AS total_transaction_count,
         SUM(CASE WHEN transaction_status = 'successful' THEN 1 ELSE 0 END) AS successful_transactions,
         CAST(100.0 * SUM(CASE WHEN transaction_status = 'successful' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS DECIMAL(19, 3)) AS successful_rate,
@@ -15,7 +16,7 @@ WITH customer_outcome_analytics AS (
     WHERE transaction_type <> 'merchant payment'
         AND transaction_timestamp >= '{START_DATE}'
         AND transaction_timestamp < '{END_EXCLUSIVE}'
-    GROUP BY ocb_customer_id
+    GROUP BY ocb_customer_id, CONVERT(CHAR(7), transaction_timestamp, 120)
 )
 SELECT *
 FROM customer_outcome_analytics

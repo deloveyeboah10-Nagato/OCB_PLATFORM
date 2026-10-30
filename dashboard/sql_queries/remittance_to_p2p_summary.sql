@@ -46,6 +46,7 @@ remittance_p2p_signals AS
 )
 SELECT
     s.ocb_customer_id,
+    CONVERT(CHAR(7), s.remittance_timestamp, 120) AS year_month,
     COUNT(DISTINCT s.remittance_id) AS sequence_count,
 
     SUM(CASE
@@ -82,7 +83,8 @@ INNER JOIN fatf_flagged_remittances AS f
 WHERE s.first_p2p_transfer_id IS NOT NULL
 
 GROUP BY
-    s.ocb_customer_id
+    s.ocb_customer_id,
+    CONVERT(CHAR(7), s.remittance_timestamp, 120)
 
 ORDER BY
     sequence_count DESC,
