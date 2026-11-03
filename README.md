@@ -108,6 +108,11 @@ The public dashboard is deployed through Streamlit Community Cloud.
        alt="OCB Dashboard — System Overview" width="100%">
 </div>
 
+<div align="center">
+  <img src="./screenshots/system_overview2.png"
+       alt="OCB Dashboard — System Overview" width="100%">
+</div>
+
 #### Institutional Monitoring
 <!-- Screenshot: Institutional activity and monitoring indicators -->
 <div align="center">
