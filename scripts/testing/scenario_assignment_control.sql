@@ -13,7 +13,7 @@ CREATE TABLE scenario_assignments_control
 );
 
 BULK INSERT scenario_assignments_control
-FROM 'C:\Users\REV DELOVE\Desktop\MIKE\DATA ANALYSIS\PROJECTS\SQL\OCB_PLATFORM\simulation\OCB_Simulation_Platform_v1_0_0\control\scenario_assignments.csv' 
+FROM 'C:\Users\REV DELOVE\Desktop\MIKE\DATA ANALYSIS\PROJECTS\SQL\OCB_PLATFORM\simulation\control\scenario_assignments.csv' 
 WITH (
         FORMAT = 'CSV',
         FIRSTROW = 2,

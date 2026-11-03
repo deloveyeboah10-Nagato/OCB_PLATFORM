@@ -2,9 +2,9 @@
 
 ## Deprecated Implementation Artifacts
 
-**Programme:** OCB Platform v1.0.0
-**Component:** Historical / Deprecated Implementations
-**Work Package:** Cross-Work-Package
+**Programme:** OCB Platform v1.0.0  
+**Component:** Historical / Deprecated Implementations  
+**Work Package:** Cross-Work-Package  
 **Status:** Deprecated / Retained for Historical Reference
 
 ### Purpose
@@ -15,7 +15,7 @@ These artifacts are retained intentionally to document valid approaches used dur
 
 ### Contents
 
-#### `database_reset.sql`
+#### `WP-2.4-T01_reset_database.sql`
 
 Earlier development utility for completely resetting the `ocb_platform` database by dropping and recreating it.
 
@@ -23,7 +23,7 @@ Earlier development utility for completely resetting the `ocb_platform` database
 
 **Reason:** The platform subsequently adopted controlled, non-destructive deployment and layer-specific reload strategies.
 
-#### `ocb_platform_tables_deployment.sql`
+#### `WP-2.4-T03_create_tables.sql`
 
 Earlier non-destructive procedure for creating the initial OCB Platform physical schema.
 
@@ -31,15 +31,13 @@ Earlier non-destructive procedure for creating the initial OCB Platform physical
 
 **Reason:** The physical schema was subsequently redesigned and formalized as the platform architecture matured.
 
-#### `ocb_customer_identity_population.sql`
+#### `WP-5.3-silver_transformations_full_load_old.sql`
 
-Earlier implementation of OCB customer identity resolution.
+Earlier Silver full-load implementation containing the original customer identity diagnostics and canonical-record resolution logic, based on source customer ID suffixes and customer attributes.
 
 **Status:** Deprecated.
 
-**Reason:** The implementation used source customer attributes and source identifier patterns to establish cross-domain identity. Validation against the generator's identity ground truth demonstrated that this did not reliably represent the intended synthetic identities.
-
-The current implementation uses the validated identity mapping produced through the OCB customer identity-resolution validation workflow.
+**Reason:** The identity-resolution approach was superseded after validation against the generator's identity ground truth demonstrated that source identifier patterns and attributes did not reliably represent the intended synthetic identities. The current implementation uses the validated identity mapping produced through the OCB customer identity-resolution validation workflow.
 
 ### Retention Principle
 

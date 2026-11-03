@@ -1,221 +1,170 @@
-# OCB Platform v1.0.0
-### Osagyefo Central Bank Digital Financial Intelligence Platform
+<div align="center">
+  <img src="screenshots/ocb_dashboard_banner.png" alt="Osagyefo Central Bank Digital Financial Intelligence Platform" width="100%">
+</div>
 
-**Engineer financial truth. Transform events into intelligence.**
+<h1 align="center">OSAGYEFO CENTRAL BANK (OCB)</h1>
 
-OCB is a SQL-first financial intelligence and supervisory analytics sandbox built to explore how transaction data, lending activity, repayment behaviour, and cross-institution financial events can be transformed into structured analytical signals and investigation-ready evidence.
+<h3 align="center">Digital Financial Intelligence Platform</h3>
 
-The platform uses synthetic financial data representing three independent institutions. It combines a layered data warehouse with T-SQL intelligence engines, institutional monitoring, and cross-institution investigative analysis.
+<p align="center">
+  Engineer financial truth. Transform events into intelligence.
+</p>
 
-> **Project type:** Financial data engineering · SQL analytics · Financial intelligence · Supervisory monitoring  
-> **Environment:** Synthetic regulatory sandbox  
-> **Version:** 1.0.0
+<p align="center">
+  <a href="https://ocb-financial-intelligence.streamlit.app/"><strong>Explore the Live Dashboard</strong></a>
+  &nbsp; | &nbsp;
+  <a href="https://github.com/deloveyeboah10-Nagato/OCB_PLATFORM"><strong>View Repository</strong></a>
+</p>
 
 ---
 
-## 1. Project Overview
+## 1. PROJECT OVERVIEW
 
-Financial events become more informative when they are examined in context. Individual transactions, loan disbursements, repayments, and remittances can be analysed for their timing, frequency, value relationships, recurrence, and connections across financial institutions.
+The **Osagyefo Central Bank (OCB) Digital Financial Intelligence Platform** is a SQL-first financial intelligence and supervisory monitoring project designed to demonstrate how financial data from interconnected institutions can be transformed into structured intelligence.
 
-OCB explores this process through a reproducible project structure that separates data preparation from analytical interpretation.
+Built as a synthetic regulatory sandbox, OCB models the financial activities of three independent institutions operating across different segments of the digital financial ecosystem. It integrates their data, establishes cross-institution customer identity relationships, and applies analytical intelligence to identify unusual financial activity, behavioural patterns, institutional risks, and interconnected financial relationships.
 
-The platform is designed to demonstrate how to:
+The platform combines data engineering, financial behaviour analysis, anomaly detection, cross-institution intelligence, institutional monitoring, and supervisory investigations within a unified analytical environment.
 
-- Generate and manage synthetic financial event data.
-- Resolve customer identities across separate institutional datasets.
-- Build a layered Bronze, Silver, and Gold data warehouse.
-- Develop SQL-based transaction, credit, repayment, and behavioural intelligence.
-- Examine temporal and value relationships between events across institutions.
-- Produce monitoring outputs and transaction-grain investigation results.
-- Document analytical scope, assumptions, limitations, and implementation decisions.
+**OCB Platform v1.0.0** establishes the foundational architecture and analytical capabilities of this environment.
 
-OCB is a portfolio engineering project, not a live central bank system.
+## 2. PLATFORM ARCHITECTURE
 
-## 2. Simulated Financial Institutions
+OCB follows a layered data architecture that transforms institutional source data into analytical and supervisory intelligence.
 
-The sandbox models three fictional institutions with distinct financial activities.
+<div align="center">
+  <img src="ocb_platform/screenshots/ocb_platform_architecture.png" alt="OCB Platform Architecture" width="90%">
+</div>
 
-| Institution | Domain | Activities represented |
+| Layer | Responsibility |
+|---|---|
+| **Bronze** | Preserves institutional source data in its original structural form. |
+| **Silver** | Applies data transformations, standardisation, validation, and cross-institution customer identity resolution. |
+| **Gold** | Provides consolidated analytical views across transactions, customers, loans, repayments, remittances, and institutions. |
+| **Intelligence** | Implements SQL-based analytical engines for anomaly detection, behavioural analysis, transaction sequences, and cross-institution intelligence. |
+| **Monitoring & Investigations** | Supports institutional monitoring and supervisory examination through structured intelligence outputs. |
+| **Dashboard** | Presents analytical results through an interactive financial intelligence interface. |
+
+The architecture maintains a separation between institutional source data, transformed analytical data, and intelligence outputs.
+
+SQL Server serves as the platform's analytical foundation and source of truth.
+
+## 3. INSTITUTIONAL COVERAGE
+
+The platform models three independent financial institutions:
+
+| Institution | Institutional Profile | Primary Activities |
 |---|---|---|
-| **Ananse Telecom** | Electronic money / mobile money | Cash-in, cash-out, P2P transfers, merchant payments |
-| **SikaCredit** | Digital lending | Loan disbursements, loan accounts, repayments |
-| **Oman Remit** | Remittance | Inbound and outbound remittance events |
+| **Ananse Telecom** | Electronic Money Issuer (EMI) | Mobile money transactions, cash-in, cash-out, P2P transfers, and merchant payments. |
+| **SikaCredit** | Digital Lender | Loan disbursements, repayment activity, and credit behaviour. |
+| **Oman Remit** | Remittance Provider | Inbound and outbound remittance transactions. |
 
-The institutions remain separate simulated entities. Cross-institution analysis examines relationships between their events without treating the institutions as one operational system.
+Each institution operates within its own simulated institutional boundary. Cross-institution intelligence is developed through resolved customer relationships and analytical connections rather than shared operational infrastructure.
 
-## 3. Architecture and Data Flow
+## 4. FINANCIAL INTELLIGENCE CAPABILITIES
 
-The platform follows a layered data-engineering and analytical workflow:
+OCB v1.0.0 incorporates several analytical engines designed to examine financial activity from different perspectives.
 
-```text
-Synthetic Data Generation
-          |
-          v
-Source Files (CSV / JSON)
-          |
-          v
-Bronze Layer
-          |
-          v
-Silver Layer
-  Cleaning, transformation,
-  identity resolution
-          |
-          v
-Gold Layer
-  Analytical data model
-          |
-          v
-SQL Intelligence Views
-          |
-          v
-Monitoring & Investigations
-          |
-          v
-Presentation Layer
-  Dashboard / reporting
-```
+### Transaction Anomaly Detection
+Examines transaction-level activity to identify unusual patterns, deviations, and potentially suspicious financial behaviour.
 
-The architecture separates source data, transformation, analytical modelling, and intelligence logic. This makes it possible to examine how each layer contributes to the final analytical output.
+### Behavioural Intelligence
+Analyses customer transaction behaviour, including activity patterns, frequency, value, and changes in behavioural characteristics.
 
-**Related resources**
+### Credit Behaviour Intelligence
+Examines lending and repayment behaviour to identify unusual credit activity and potentially significant repayment patterns.
 
-- [Architecture and data-model documentation](architecture/)
-- [Warehouse implementation](warehouse/)
-- [Database scripts](scripts/database/)
-- [Architecture diagrams](diagrams/)
+### Transaction Sequence Intelligence
+Evaluates the temporal and structural relationships between financial events, identifying unusual sequences and patterns that may not be apparent from isolated transactions.
 
-## 4. Intelligence and Analytical Capabilities
+### Cross-Institution Intelligence
+Examines financial relationships and activity across institutional boundaries to identify interconnected behaviours, unusual relationships, and potential risks involving multiple institutions.
 
-### Transaction intelligence
+### Institutional Monitoring
+Provides institution-level monitoring of financial activity, operational patterns, and selected institutional indicators.
 
-Transaction-level analysis examines activity, transaction values, distributions, and event sequences.
+### Supervisory Intelligence
+Combines analytical outputs to support structured supervisory investigations into financial behaviour, institutional activity, and cross-institution relationships.
 
-Implementation: [`WP-5.1_transaction_intelligence.sql`](intelligence/WP-5.1_transaction_intelligence.sql)
+## 5. INTERACTIVE FINANCIAL INTELLIGENCE DASHBOARD
 
-### Financial behaviour
+The OCB Financial Intelligence Dashboard provides an interactive presentation layer for exploring the platform's analytical outputs.
 
-Behavioural analysis examines financial activity in context, including patterns across customers, time periods, and transaction categories.
+It is designed to make financial intelligence accessible through institutional monitoring, analytical summaries, investigation views, and transaction-level evidence.
 
-Implementation: [`WP-5.2_financial__behaviour.sql`](intelligence/WP-5.2_financial__behaviour.sql)
+**The dashboard supports two data access modes:**
 
-### Behavioural anomaly analysis
+- **SQL Mode:** Retrieves analytical results from the deployed OCB SQL Server environment.
+- **CSV Mode:** Uses prepared public data snapshots, allowing the dashboard to operate independently of a live SQL Server connection.
 
-The platform includes analytical engines for investigating unusual credit behaviour, cross-institution activity, and event sequences.
+The public dashboard is deployed through Streamlit Community Cloud.
 
-- [Behavioural anomaly engine](intelligence/WP-5.3-behavioural-anomaly-engine.sql)
-- [Credit behaviour anomaly engine](intelligence/WP-5.3_credit_behaviour_anomaly_engine.sql)
-- [Cross-institution anomaly engine](intelligence/WP-5.3_cross_institution_anomaly_engine.sql)
-- [Sequence anomaly engine](intelligence/WP-5.3_sequence_anomaly_engine.sql)
+<p align="center">
+  <a href="https://ocb-financial-intelligence.streamlit.app/"><strong>OPEN THE LIVE OCB FINANCIAL INTELLIGENCE DASHBOARD →</strong></a>
+</p>
 
-These analyses produce signals for further examination. An unusual pattern is not, by itself, proof of fraud or misconduct.
+### Dashboard Preview
 
-### Cross-institution financial behaviour
+#### System Overview
+<!-- Screenshot: Overall platform metrics and system-level activity -->
+<div align="center">
+  <img src="ocb_platform/screenshots/system_overview.png" alt="OCB Dashboard — System Overview" width="100%">
+</div>
 
-The platform examines relationships between activity recorded by different institutions, including:
+#### Institutional Monitoring
+<!-- Screenshot: Institutional activity and monitoring indicators -->
+<div align="center">
+  <img src="ocb_platform/screenshots/institutional_monitoring.png" alt="OCB Dashboard — Institutional Monitoring" width="100%">
+</div>
 
-- Ananse cash-in followed by outbound Oman Remit activity.
-- SikaCredit loan disbursement followed by outbound Oman Remit activity.
-- Inbound Oman Remit activity followed by Ananse P2P transfers.
-- Inbound Oman Remit activity followed by SikaCredit repayments.
+#### Financial Intelligence
+<!-- Screenshot: Financial intelligence and analytical engine outputs -->
+<div align="center">
+  <img src="ocb_platform/screenshots/financial_intelligence.png" alt="OCB Dashboard — Financial Intelligence" width="100%">
+</div>
 
-The analysis uses event relationships and measures such as temporal proximity, value correspondence, and recurrence. These measures support investigation; they do not establish causality or prove the source or destination of funds.
+#### Supervisory Investigations
+<!-- Screenshot: Supervisory investigation interface and findings -->
+<div align="center">
+  <img src="ocb_platform/screenshots/supervisory_investigations.png" alt="OCB Dashboard — Supervisory Investigations" width="100%">
+</div>
 
-Implementation: [`WP5.2_cross_institution_financial_behaviour.sql`](intelligence/WP5.2_cross_institution_financial_behaviour.sql)
+#### Transaction Evidence
+<!-- Screenshot: Transaction-level evidence supporting analytical findings -->
+<div align="center">
+  <img src="ocb_platform/screenshots/transaction_evidence.png" alt="OCB Dashboard — Transaction Evidence" width="100%">
+</div>
 
-### Supervisory monitoring and investigations
+## 6. TECHNOLOGY STACK
 
-Monitoring and investigation work examines institutional activity and selected patterns that warrant closer review. The investigation layer includes analysis of lending behaviour and cross-institution financial event relationships.
-
-- [Supervisory intelligence investigations](intelligence/WP-6.3-supervisory_intelligence_investigations.sql)
-- [Institutional monitoring](reports/WP-6.1_%20institutional_monitoring.sql)
-
-## 5. Data Warehouse
-
-The warehouse is organised into three principal layers.
-
-| Layer | Purpose |
+| Technology | Application |
 |---|---|
-| **Bronze** | Loads source data into the warehouse environment. |
-| **Silver** | Applies transformations and supports customer identity resolution. |
-| **Gold** | Exposes curated analytical entities for downstream SQL intelligence. |
+| **Microsoft SQL Server** | Relational data storage, transformation, analytical modelling, and intelligence engines. |
+| **T-SQL** | Data processing, identity resolution, analytical views, anomaly detection, and supervisory investigations. |
+| **Python** | Dashboard development, data snapshot preparation, and supporting automation. |
+| **Streamlit** | Interactive financial intelligence dashboard. |
+| **Pandas** | Data preparation and manipulation. |
+| **Git & GitHub** | Version control and project repository management. |
 
-Key implementation scripts:
+## 7. DATA AND SIMULATION DISCLAIMER
 
-- [Bronze full load — WP-3.2](warehouse/WP-3.2-bronze_full_load.sql)
-- [Silver customer identity resolution — WP-3.3](warehouse/WP-3.3-silver_ocb_customer_identity_resolution.sql)
-- [Silver table deployment — WP-3.3](warehouse/WP-3.3-silver_table_deployment.sql)
-- [Silver transformations — WP-3.3](warehouse/WP-3.3-silver_transformations_full_load.sql)
-- [Gold layer — WP-3.4](warehouse/WP-3.4-gold_layer.sql)
+OCB is an independent analytical project built using synthetic financial data.
 
-The Gold model exposes analytical views for transactions, loans, repayments, remittances, customers, and institutions.
+The institutions, customers, transactions, loans, remittances, and associated financial activities represented within the platform are simulated. They do not constitute actual financial records or represent the operational systems of any real financial institution.
 
-## 6. Synthetic Simulation Platform
+The platform is intended for demonstration, analytical exploration, and the development of financial intelligence and supervisory monitoring concepts. It is not a production regulatory system or a substitute for formal supervisory processes.
 
-OCB includes a Python-based simulation platform for generating synthetic financial data used by the analytical environment.
+## 8. EXECUTION AND PROJECT DOCUMENTATION
 
-The simulation resources include generator code, configuration, source data, reference data, loading guidance, and documentation of the platform's scope.
+The repository contains the SQL scripts, synthetic source data, supporting documentation, and dashboard components required to examine and execute the platform.
 
-**Explore:** [OCB Simulation Platform v1.0.0](simulation/OCB_Simulation_Platform_v1_0_0/)
+For deployment and execution instructions, see the **[Execution Guide](execution.md)**.
 
-The data is synthetic and should not be interpreted as real customer activity or evidence of actual financial crime.
-
-## 7. Repository Guide
-
-Use this section to explore the project by implementation area.
-
-| Repository path | Contents |
-|---|---|
-| [`architecture/`](architecture/) | Architecture, relational schema, entity and operational schema documentation |
-| [`docs/`](docs/) | Governance, glossary, data dictionary, backlog, and testing documentation |
-| [`diagrams/`](diagrams/) | Draw.io diagrams and SVG visualisations |
-| [`simulation/`](simulation/) | Synthetic data generator, configuration, datasets, and simulation documentation |
-| [`scripts/database/`](scripts/database/) | Database and schema creation scripts |
-| [`scripts/testing/`](scripts/testing/) | Workflow validation and scenario-assignment controls |
-| [`warehouse/`](warehouse/) | Bronze, Silver, and Gold implementation |
-| [`intelligence/`](intelligence/) | Transaction, behavioural, sequence, and cross-institution intelligence |
-| [`reports/`](reports/) | Institutional monitoring SQL |
-| [`deprecated/`](deprecated/) | Retained legacy scripts |
-
-## 8. Technology Stack
-
-- **Microsoft SQL Server / T-SQL** — warehouse transformations, analytical views, window functions, and intelligence logic.
-- **Python** — synthetic financial data generation.
-- **CSV and JSON** — simulation data and configuration.
-- **Draw.io and SVG** — architecture and data-model visualisation.
-- **Git and GitHub** — source control and project documentation.
-
-## 9. Current Development Status
-
-OCB v1.0.0 has an established simulation, layered warehouse, and SQL intelligence structure. Monitoring and investigation analysis are being developed and refined alongside presentation and documentation work.
-
-The repository should be treated as an evolving portfolio project rather than a fully deployed production platform. The README and supporting documentation will be reconciled with the final implementation as development progresses.
-
-## 10. Scope and Limitations
-
-OCB is a **synthetic supervisory analytics sandbox**.
-
-- It is not a live central bank platform or production regulatory reporting system.
-- It is not a payment processor, transaction ledger, or reconciliation engine.
-- Its datasets do not represent real financial institutions or customers.
-- Analytical signals identify patterns for review; they do not independently establish fraud, intent, causality, or regulatory violations.
-- A relationship between events across institutions does not, on its own, prove that one event funded or caused another.
-- Production deployment, operational controls, and end-to-end reproducibility should not be assumed from the presence of implementation scripts alone.
-
-## 11. What This Project Demonstrates
-
-OCB brings together financial-domain reasoning and data engineering in a single analytical workflow:
-
-1. **Data engineering:** transforming source data into structured analytical layers.
-2. **SQL analytics:** using joins, CTEs, window functions, and views to examine financial events.
-3. **Behavioural analysis:** developing signals from transaction, lending, repayment, and sequence patterns.
-4. **Cross-institution analysis:** connecting related events across separate simulated financial domains.
-5. **Investigative thinking:** preserving event-level evidence and distinguishing observed relationships from conclusions.
-6. **Engineering discipline:** separating components, documenting assumptions, and recognising the limitations of synthetic analytical results.
-
-The objective is to demonstrate how financial data can be engineered into useful intelligence while keeping the analytical logic, evidence, and limitations explicit.
+For the platform's current capabilities and longer-term development direction, see **[OCB Project Future](OCB_PROJECT_FUTURE.md)**.
 
 ---
 
-**OCB Platform v1.0.0**  
-*Engineer financial truth. Transform events into intelligence.*
+<p align="center">
+  <strong>OCB PLATFORM v1.0.0</strong><br>
+  Engineer financial truth. Transform events into intelligence.
+</p>
