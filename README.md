@@ -10,11 +10,9 @@
   Engineer financial truth. Transform events into intelligence.
 </p>
 
-<p align="center">
-  <a href="https://ocb-financial-intelligence.streamlit.app/"><strong>Explore the Live Dashboard</strong></a>
-  &nbsp; | &nbsp;
-  <a href="https://github.com/deloveyeboah10-Nagato/OCB_PLATFORM"><strong>View Repository</strong></a>
-</p>
+<div align="center">
+  <img src="ocb_platform/screenshots/ocb_platform_architecture.png" alt="OCB Platform Architecture" width="90%">
+</div>
 
 ---
 
