@@ -104,7 +104,8 @@ The public dashboard is deployed through Streamlit Community Cloud.
 #### System Overview
 <!-- Screenshot: Overall platform metrics and system-level activity -->
 <div align="center">
-  <img src="ocb_platform/screenshots/system_overview.png" alt="OCB Dashboard — System Overview" width="100%">
+  <img src="./screenshots/system_overview.png"
+       alt="OCB Dashboard — System Overview" width="100%">
 </div>
 
 #### Institutional Monitoring
