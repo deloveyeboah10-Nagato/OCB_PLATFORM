@@ -11,7 +11,9 @@
 </p>
 
 <div align="center">
-  <img src="ocb_platform/screenshots/ocb_platform_architecture.png" alt="OCB Platform Architecture" width="90%">
+  <img src="screenshots/ocb_platform_architecture.png"
+       alt="OCB Platform Architecture"
+       width="90%">
 </div>
 
 ---
