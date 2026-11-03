@@ -10,12 +10,6 @@
   Engineer financial truth. Transform events into intelligence.
 </p>
 
-<div align="center">
-  <img src="screenshots/ocb_platform_architecture.png"
-       alt="OCB Platform Architecture"
-       width="90%">
-</div>
-
 ---
 
 ## 1. PROJECT OVERVIEW
