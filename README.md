@@ -33,7 +33,9 @@ The platform combines data engineering, financial behaviour analysis, anomaly de
 OCB follows a layered data architecture that transforms institutional source data into analytical and supervisory intelligence.
 
 <div align="center">
-  <img src="ocb_platform/screenshots/ocb_platform_architecture.png" alt="OCB Platform Architecture" width="90%">
+  <img src="./screenshots/ocb_platform_architecture.png"
+       alt="OCB Platform Architecture"
+       width="90%">
 </div>
 
 | Layer | Responsibility |
