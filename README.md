@@ -130,19 +130,19 @@ The public dashboard is deployed through Streamlit Community Cloud.
 #### Financial Intelligence
 <!-- Screenshot: Financial intelligence and analytical engine outputs -->
 <div align="center">
-  <img src="ocb_platform/screenshots/financial_intelligence.png" alt="OCB Dashboard — Financial Intelligence" width="100%">
+  <img src="./screenshots/financial_intelligence.png" alt="OCB Dashboard — Financial Intelligence" width="100%">
 </div>
 
 #### Supervisory Investigations
 <!-- Screenshot: Supervisory investigation interface and findings -->
 <div align="center">
-  <img src="ocb_platform/screenshots/supervisory_investigations.png" alt="OCB Dashboard — Supervisory Investigations" width="100%">
+  <img src="./screenshots/supervisory_investigations.png" alt="OCB Dashboard — Supervisory Investigations" width="100%">
 </div>
 
 #### Transaction Evidence
 <!-- Screenshot: Transaction-level evidence supporting analytical findings -->
 <div align="center">
-  <img src="ocb_platform/screenshots/transaction_evidence.png" alt="OCB Dashboard — Transaction Evidence" width="100%">
+  <img src="./screenshots/transaction_evidence.png" alt="OCB Dashboard — Transaction Evidence" width="100%">
 </div>
 
 ## 6. TECHNOLOGY STACK
