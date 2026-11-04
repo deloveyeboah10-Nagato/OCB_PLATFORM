@@ -116,7 +116,15 @@ The public dashboard is deployed through Streamlit Community Cloud.
 #### Institutional Monitoring
 <!-- Screenshot: Institutional activity and monitoring indicators -->
 <div align="center">
-  <img src="ocb_platform/screenshots/institutional_monitoring.png" alt="OCB Dashboard — Institutional Monitoring" width="100%">
+  <img src="./screenshots/ananse_institutional_monitoring.png" alt="OCB Dashboard —Ananse Telecom Institutional Monitoring" width="100%">
+</div>
+
+<div align="center">
+  <img src="./screenshots/sikacredit_institutional_monitoring.png" alt="OCB Dashboard —SikaCredit Institutional Monitoring" width="100%">
+</div>
+
+<div align="center">
+  <img src="./screenshots/oman_remit_institutional_monitoring.png" alt="OCB Dashboard —Oman Remit Institutional Monitoring" width="100%">
 </div>
 
 #### Financial Intelligence
