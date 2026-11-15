@@ -168,9 +168,9 @@ The platform is intended for demonstration, analytical exploration, and the deve
 
 The repository contains the SQL scripts, synthetic source data, supporting documentation, and dashboard components required to examine and execute the platform.
 
-For deployment and execution instructions, see the **[Execution Guide](execution.md)**.
+For deployment and execution instructions, see the **[Execution Guide](execution_guide.md)**.
 
-For the platform's current capabilities and longer-term development direction, see **[OCB Project Future](OCB_PROJECT_FUTURE.md)**.
+For the platform's current capabilities and longer-term development direction, see **[OCB Project Future](future_development.md)**.
 
 ---
 
