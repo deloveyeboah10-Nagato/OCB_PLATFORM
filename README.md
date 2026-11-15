@@ -170,7 +170,7 @@ The repository contains the SQL scripts, synthetic source data, supporting docum
 
 For deployment and execution instructions, see the **[Execution Guide](execution_guide.md)**.
 
-For the platform's current capabilities and longer-term development direction, see **[OCB Project Future](future_development.md)**.
+For the platform's current capabilities and longer-term development direction, see **[OCB Project Future](future_development/future_development.md)**.
 
 ---
 
